@@ -1,0 +1,12 @@
+go 1.25.4
+
+use (
+	./analyticsservice
+	./inventory_service_api
+	./inventoryservice
+	./model
+	./order_service_api
+	./orderservice
+)
+
+replace github.com/gorundebug/servicelib => ../servicelib

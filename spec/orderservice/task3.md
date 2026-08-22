@@ -1,0 +1,37 @@
+# Task 3/8: `MapToOrderState`
+
+> Rules: [`spec/rules.md`](../rules.md)
+
+| Field | Value |
+|-------|-------|
+| Language | `Go` |
+| Kind | `map` |
+| File | `orderservice/internal/functions/maptoorderstate.go` |
+| Test | `orderservice/internal/functions/maptoorderstate_test.go` |
+| Service | `Order Service` |
+
+
+## Behaviour
+
+Produce a TIMED_OUT order result that preserves the order ID and submitted total.
+Do not add item results at this stage; results received before the timeout are included in the final response.
+
+
+
+
+
+## Stream types
+- Input: `Order` — `orderservice/internal/types/order.go`
+- Output: `OrderState` — `orderservice/internal/types/orderstate.go`
+
+## Checklist
+
+- [ ] Read [`spec/rules.md`](../rules.md), especially the `Go` section
+- [ ] Open `orderservice/internal/functions/maptoorderstate.go` and preserve its generated contract
+- [ ] Inspect input type `Order` in `orderservice/internal/types/order.go`
+- [ ] Inspect output type `OrderState` in `orderservice/internal/types/orderstate.go`
+- [ ] Implement the Go function and propagate the received `context.Context`
+- [ ] Run `make test`
+- [ ] Implement meaningful assertions in `orderservice/internal/functions/maptoorderstate_test.go`
+- [ ] Re-read this checklist
+- [ ] Append to `spec/progress.md`: `- [x] orderservice/task3.md — MapToOrderState — Go — done`
