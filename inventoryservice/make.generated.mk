@@ -25,9 +25,11 @@ SERVICEGEN_DEPENDENCY_PROXY_DOCKER_HOST ?= host.docker.internal
 SERVICEGEN_DEPENDENCY_PROXY_PORT ?= 18081
 SERVICEGEN_DEPENDENCY_PROXY_DOCKER_ARGS := --add-host host.docker.internal:host-gateway
 export GOPROXY := http://$(SERVICEGEN_DEPENDENCY_PROXY_HOST):$(SERVICEGEN_DEPENDENCY_PROXY_PORT)/repository/go-proxy/
+export GOSUMDB := off
 export SERVICEGEN_GITHUB_RAW_URL := http://$(SERVICEGEN_DEPENDENCY_PROXY_HOST):$(SERVICEGEN_DEPENDENCY_PROXY_PORT)/repository/github-raw
 export GOSERVICELIB_SOURCE_CONTEXT := http://$(SERVICEGEN_DEPENDENCY_PROXY_DOCKER_HOST):$(SERVICEGEN_DEPENDENCY_PROXY_PORT)/repository/github-raw/gorundebug/servicelib/archive/refs/tags/v0.2.6.tar.gz
 docker-build docker-build-local: export GOPROXY := http://$(SERVICEGEN_DEPENDENCY_PROXY_DOCKER_HOST):$(SERVICEGEN_DEPENDENCY_PROXY_PORT)/repository/go-proxy/
+docker-build docker-build-local: export GOSUMDB := off
 docker-build docker-build-local: export SERVICEGEN_APT_DEBIAN_URL := http://$(SERVICEGEN_DEPENDENCY_PROXY_DOCKER_HOST):$(SERVICEGEN_DEPENDENCY_PROXY_PORT)/repository/apt-debian
 docker-build docker-build-local: export SERVICEGEN_APT_DEBIAN_SECURITY_URL := http://$(SERVICEGEN_DEPENDENCY_PROXY_DOCKER_HOST):$(SERVICEGEN_DEPENDENCY_PROXY_PORT)/repository/apt-debian-security
 endif
@@ -78,6 +80,7 @@ docker-build:
 			$(SERVICEGEN_DEPENDENCY_PROXY_DOCKER_ARGS) \
 			--build-context servicelib-source="$(GOSERVICELIB_SOURCE_CONTEXT)" \
 			--build-arg GOPROXY="$${GOPROXY:-https://proxy.golang.org,direct}" \
+			--build-arg GOSUMDB="$${GOSUMDB:-sum.golang.org}" \
 			--build-arg SERVICE_DIR="$(SERVICE_NAME)" \
 			--build-arg SERVICEGEN_RUNTIME_STRIP="$(SERVICEGEN_RUNTIME_STRIP)" \
 			-t $(SERVICE_NAME):latest "$(PROJECT_DIR)"; \
@@ -86,6 +89,7 @@ docker-build:
 			$(SERVICEGEN_DEPENDENCY_PROXY_DOCKER_ARGS) \
 			--build-context servicelib-source="$(GOSERVICELIB_SOURCE_CONTEXT)" \
 			--build-arg GOPROXY="$${GOPROXY:-https://proxy.golang.org,direct}" \
+			--build-arg GOSUMDB="$${GOSUMDB:-sum.golang.org}" \
 			--build-arg SERVICEGEN_RUNTIME_STRIP="$(SERVICEGEN_RUNTIME_STRIP)" \
 			-t $(SERVICE_NAME):latest .; \
 	fi
@@ -98,6 +102,7 @@ docker-build-local:
 	fi
 	docker build -f Dockerfile.local \
 		--build-arg GOPROXY="$${GOPROXY:-https://proxy.golang.org,direct}" \
+		--build-arg GOSUMDB="$${GOSUMDB:-sum.golang.org}" \
 		--build-arg SERVICEGEN_APT_DEBIAN_URL="$${SERVICEGEN_APT_DEBIAN_URL:-}" \
 		--build-arg SERVICEGEN_APT_DEBIAN_SECURITY_URL="$${SERVICEGEN_APT_DEBIAN_SECURITY_URL:-}" \
 		-t $(SERVICE_NAME):latest ..

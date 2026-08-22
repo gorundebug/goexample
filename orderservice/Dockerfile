@@ -10,6 +10,8 @@ ARG TARGETARCH
 ARG SERVICEGEN_RUNTIME_STRIP=ON
 ARG GOPROXY=https://proxy.golang.org,direct
 ENV GOPROXY=${GOPROXY}
+ARG GOSUMDB=sum.golang.org
+ENV GOSUMDB=${GOSUMDB}
 COPY --from=servicelib-source / /tmp/servicelib-source
 RUN source_dir=/tmp/servicelib-source; \
     if [ -f "$source_dir/context" ]; then \
