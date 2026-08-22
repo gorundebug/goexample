@@ -134,7 +134,7 @@ go-mod-sync: ## Sync Go modules with published versions after git-push
 $(BUF):
 	@mkdir -p "$(TOOLS_DIR)"
 	@echo "Downloading buf $(BUF_VERSION)..."
-	@curl -sSL "https://github.com/bufbuild/buf/releases/download/$(BUF_VERSION)/buf-$(OS)-$(ARCH)" -o "$(BUF)"
+	@curl -sSL "$(SERVICEGEN_GITHUB_RAW_URL)/bufbuild/buf/releases/download/$(BUF_VERSION)/buf-$(OS)-$(ARCH)" -o "$(BUF)"
 	@chmod +x "$(BUF)"
 
 $(PROTOC):
@@ -143,7 +143,7 @@ $(PROTOC):
 	@_os=$$(uname -s | sed 's/Darwin/osx/;s/Linux/linux/'); \
 	_arch=$$(uname -m | sed 's/arm64/aarch_64/;s/aarch64/aarch_64/'); \
 	_ver=$$(echo "$(PROTOC_VERSION)" | sed 's/v//'); \
-	curl -sSL "https://github.com/protocolbuffers/protobuf/releases/download/$(PROTOC_VERSION)/protoc-$${_ver}-$${_os}-$${_arch}.zip" -o /tmp/protoc.zip; \
+	curl -sSL "$(SERVICEGEN_GITHUB_RAW_URL)/protocolbuffers/protobuf/releases/download/$(PROTOC_VERSION)/protoc-$${_ver}-$${_os}-$${_arch}.zip" -o /tmp/protoc.zip; \
 	rm -rf /tmp/protoc_extract; \
 	unzip -q /tmp/protoc.zip bin/protoc -d /tmp/protoc_extract; \
 	mv /tmp/protoc_extract/bin/protoc "$(PROTOC)"; \
