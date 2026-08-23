@@ -22,6 +22,7 @@ LANG_FMT_TARGETS += golang-fmt
 LANG_GEN_TARGETS += golang-gen
 LANG_CLEAN_TARGETS += golang-clean
 LANG_TOOL_TARGETS += golang-tools
+LANG_HOST_PREP_TARGETS += golang-gen golang-tools
 LANG_DOCKER_BUILD_TARGETS += golang-docker-build
 
 .PHONY: golang-build golang-test golang-lint golang-lint-fix golang-fmt \
