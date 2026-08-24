@@ -105,7 +105,7 @@ GLAB := $(TOOLS_DIR)/glab
 	dependency-cache-docker-env dependency-cache-docker-build \
 	dependency-cache-down dependency-cache-clean \
 	dependency-source-cache-invalidate \
-	git-push git-delete git-push-inventory_service_api git-delete-inventory_service_api git-push-model git-delete-model git-push-order_service_api git-delete-order_service_api git-push-analyticsservice git-delete-analyticsservice git-push-inventoryservice git-delete-inventoryservice git-push-orderservice git-delete-orderservice git-push-project git-delete-project
+	git-push git-delete git-push-inventory_service_api git-delete-inventory_service_api git-push-model git-delete-model git-push-order_service_api git-delete-order_service_api git-push-analyticsservice git-delete-analyticsservice git-push-automationservice git-delete-automationservice git-push-inventoryservice git-delete-inventoryservice git-push-orderservice git-delete-orderservice git-push-project git-delete-project
 
 all: build ## Build all services (default)
 
@@ -164,6 +164,7 @@ endif
 
 grafana-dashboards: ## Generate Grafana dashboards for all services
 	@cd analyticsservice/grafana && bash generate.generated.sh
+	@cd automationservice/grafana && bash generate.generated.sh
 	@cd inventoryservice/grafana && bash generate.generated.sh
 	@cd orderservice/grafana && bash generate.generated.sh
 
@@ -347,6 +348,13 @@ git-delete-analyticsservice: $(GH) ## Delete service Analytics Service from remo
 	@$(GH) repo delete gorundebug/analyticsservice --yes 2>/dev/null || true
 
 
+git-push-automationservice: $(GH) ## Push service Automation Service to github.com/gorundebug/automationservice
+	$(call git-push-dir,automationservice,$(MODULE_VERSION),github.com,gorundebug/automationservice,)
+
+git-delete-automationservice: $(GH) ## Delete service Automation Service from remote
+	@$(GH) repo delete gorundebug/automationservice --yes 2>/dev/null || true
+
+
 git-push-inventoryservice: $(GH) ## Push service Inventory Service to github.com/gorundebug/inventoryservice
 	$(call git-push-dir,inventoryservice,$(MODULE_VERSION),github.com,gorundebug/inventoryservice,)
 
@@ -371,10 +379,10 @@ git-delete-project: $(GH) ## Delete project repository github.com/gorundebug/goe
 git-push: gen $(GH) ## Generate and push all modules, services, and project repositories
 	@$(GH) auth status >/dev/null 2>&1 || { echo "ERROR: authenticate first with: $(GH) auth login"; exit 1; }
 
-	@$(MAKE) git-push-inventory_service_api git-push-model git-push-order_service_api git-push-analyticsservice git-push-inventoryservice git-push-orderservice git-push-project
+	@$(MAKE) git-push-inventory_service_api git-push-model git-push-order_service_api git-push-analyticsservice git-push-automationservice git-push-inventoryservice git-push-orderservice git-push-project
 
 git-delete: $(GH) ## Delete all generated remote repositories
-	@$(MAKE) git-delete-inventory_service_api git-delete-model git-delete-order_service_api git-delete-analyticsservice git-delete-inventoryservice git-delete-orderservice git-delete-project
+	@$(MAKE) git-delete-inventory_service_api git-delete-model git-delete-order_service_api git-delete-analyticsservice git-delete-automationservice git-delete-inventoryservice git-delete-orderservice git-delete-project
 
 help: ## Show this help
 	@grep -hE '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-32s %s\n", $$1, $$2}'
