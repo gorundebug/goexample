@@ -8,3 +8,5 @@ grafana/
 scripts/
 *.md
 go.work.sum
+.pyservicelib/
+.tsservicelib/
