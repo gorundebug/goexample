@@ -16,6 +16,7 @@ docker-compose.kubernetes.yml
 docker-compose.dependency-cache.generated.yml
 pyproject.toml
 go.work
+analyticsservice/grafana/Dockerfile
 analyticsservice/grafana/dashboards/_lib.libsonnet
 analyticsservice/helm/Chart.yaml
 analyticsservice/helm/values.schema.json
@@ -28,6 +29,7 @@ analyticsservice/static_config.yaml
 analyticsservice/config/config.yaml
 analyticsservice/config/config_vars.yaml
 analyticsservice/config/config_vars.integration.yaml
+automationservice/grafana/Dockerfile
 automationservice/grafana/dashboards/_lib.libsonnet
 automationservice/helm/Chart.yaml
 automationservice/helm/values.schema.json
@@ -40,6 +42,7 @@ automationservice/static_config.yaml
 automationservice/config/config.yaml
 automationservice/config/config_vars.yaml
 automationservice/config/config_vars.integration.yaml
+inventoryservice/grafana/Dockerfile
 inventoryservice/grafana/dashboards/_lib.libsonnet
 inventoryservice/helm/Chart.yaml
 inventoryservice/helm/values.schema.json
@@ -52,6 +55,7 @@ inventoryservice/static_config.yaml
 inventoryservice/config/config.yaml
 inventoryservice/config/config_vars.yaml
 inventoryservice/config/config_vars.integration.yaml
+orderservice/grafana/Dockerfile
 orderservice/grafana/dashboards/_lib.libsonnet
 orderservice/helm/Chart.yaml
 orderservice/helm/values.schema.json
