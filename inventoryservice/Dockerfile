@@ -76,6 +76,6 @@ EXPOSE 9092
 EXPOSE 9202
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD wget -qO/dev/null http://localhost:9092status || exit 1
+  CMD wget -qO/dev/null http://localhost:9092/status || exit 1
 
 ENTRYPOINT ["./service", "-config", "./config/config.yaml", "-values", "./config/overrides.yaml"]
