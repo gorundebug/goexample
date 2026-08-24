@@ -1,55 +1,47 @@
-# Task 2/2: `GetInventoryItemData`
+# Task 2/2: `ProcessOrderItem`
 
 > Rules: [`spec/rules.md`](../rules.md)
 
 | Field | Value |
 |-------|-------|
-| Kind | `process` |
-| File | `inventoryservice/internal/functions/getinventoryitemdata.go` |
-| Test | `inventoryservice/internal/functions/getinventoryitemdata_test.go` |
+| Language | `Go` |
+| Kind | `grpc-source` |
+| File | `inventoryservice/internal/functions/processorderitem.go` |
 | Service | `Inventory Service` |
-| Visibility | private |
 
----
 
-## Description
+## Behaviour
 
-Reserve the requested quantity without allowing concurrent orders to overdraw stock.
-On success, return CONFIRMED with the requested quantity available. Otherwise return OUT_OF_STOCK with the current available quantity.
-Preserve the order and item identity, requested quantity, and unit price.
-The example starts with SKU-001: 100, SKU-002: 50, and SKU-003: 25.
+Reserve inventory for one order item using its order ID, item ID, SKU, and quantity.
+Return the available quantity, reservation outcome, and status. The caller combines this response with the original identity, requested quantity, and unit price.
+If the inventory call fails, the caller returns a non-reserved PROCESSING_ERROR result with the failure message.
 
----
 
-## Internal stream types (T / R / K)
-### Input type (T)
+
+
+## External contract
 
 | Field | Value |
 |-------|-------|
-| Name | `OrderItemResult` |
-| Kind | `native` |
-| File | `model/pkg/types/orderitemresult.go` |
-| Import | `github.com/gorundebug/model/pkg/types` |
-### Output type (R)
+| Format | `proto` |
+| Source | `inventory_service_api/proto/inventoryserviceapi/processorderitem/processorderitem.proto` |
+| Request | `ProcessOrderItemRequest` |
+| Response | `ProcessOrderItemResponse` |
 
-| Field | Value |
-|-------|-------|
-| Name | `OrderItem` |
-| Kind | `native` |
-| File | `model/pkg/types/orderitem.go` |
-| Import | `github.com/gorundebug/model/pkg/types` |
 
----
+## Stream types
+- Input: `OrderItem` — `model/pkg/types/orderitem.go`
+- Output: `OrderItemResult` — `model/pkg/types/orderitemresult.go`
 
-## Implementation checklist
+## Checklist
 
-- [ ] Read [`spec/rules.md`](rules.md)
-- [ ] Open `inventoryservice/internal/functions/getinventoryitemdata.go`
-- [ ] Understand input type `OrderItemResult` in `model/pkg/types/orderitemresult.go`
-- [ ] If `OrderItemResult` struct body is empty, add its fields from the type description before implementing
-- [ ] Understand output type `OrderItem` in `model/pkg/types/orderitem.go`
-- [ ] If `OrderItem` struct body is empty, add its fields from the type description before implementing
-- [ ] Implement the function body (replace `//TODO` stub)
-- [ ] Open `inventoryservice/internal/functions/getinventoryitemdata_test.go` and implement the test cases
-- [ ] Run `make test` — all tests must pass
-- [ ] Append to `spec/progress.md`: `- [x] task2.md — GetInventoryItemData — done`
+- [ ] Read [`spec/rules.md`](../rules.md), especially the `Go` section
+- [ ] Open `inventoryservice/internal/functions/processorderitem.go` and preserve its generated contract
+- [ ] Read `inventory_service_api/proto/inventoryserviceapi/processorderitem/processorderitem.proto`; change the source contract rather than generated bindings
+- [ ] Inspect input type `OrderItem` in `model/pkg/types/orderitem.go`
+- [ ] Inspect output type `OrderItemResult` in `model/pkg/types/orderitemresult.go`
+- [ ] Implement the Go function and propagate the received `context.Context`
+- [ ] Run `make test`
+- [ ] Verify the endpoint/result lifecycle, including completion and error paths
+- [ ] Re-read this checklist
+- [ ] Append to `spec/progress.md`: `- [x] inventoryservice/task2.md — ProcessOrderItem — Go — done`

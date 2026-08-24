@@ -1,4 +1,4 @@
-# Task 1/3: `MakeLocalJob`
+# Task 1/5: `LocalJob`
 
 > Rules: [`spec/rules.md`](../rules.md)
 
@@ -6,8 +6,8 @@
 |-------|-------|
 | Language | `Go` |
 | Kind | `map` |
-| File | `automationservice/internal/functions/makelocaljob.go` |
-| Test | `automationservice/internal/functions/makelocaljob_test.go` |
+| File | `automationservice/internal/functions/localjob.go` |
+| Test | `automationservice/internal/functions/localjob_test.go` |
 | Service | `Automation Service` |
 
 
@@ -26,9 +26,9 @@ Create a job message identifying the local scheduled firing.
 ## Checklist
 
 - [ ] Read [`spec/rules.md`](../rules.md), especially the `Go` section
-- [ ] Open `automationservice/internal/functions/makelocaljob.go` and preserve its generated contract
+- [ ] Open `automationservice/internal/functions/localjob.go` and preserve its generated contract
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
-- [ ] Implement meaningful assertions in `automationservice/internal/functions/makelocaljob_test.go`
+- [ ] Implement meaningful assertions in `automationservice/internal/functions/localjob_test.go`
 - [ ] Re-read this checklist
-- [ ] Append to `spec/progress.md`: `- [x] automationservice/task1.md — MakeLocalJob — Go — done`
+- [ ] Append to `spec/progress.md`: `- [x] automationservice/task1.md — LocalJob — Go — done`
