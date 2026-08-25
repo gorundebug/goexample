@@ -20,10 +20,7 @@ func (f *DurablePause) Duration(_ context.Context, stream runtime.Stream, _ stri
 	return time.Duration(cfg.Duration) * time.Millisecond
 }
 
-func (f *DurablePause) DelayError(ctx context.Context, _ runtime.Stream, _ string, delayErr error, _ runtime.Collect[string]) {
-	if err := runtime.DurableCallError(ctx, delayErr); err != nil {
-		panic(err)
-	}
+func (f *DurablePause) DelayError(_ context.Context, _ runtime.Stream, _ string, _ error, _ runtime.Collect[string]) {
 }
 
 // MakeDurablePause is instantiated once at application startup via its maker function.

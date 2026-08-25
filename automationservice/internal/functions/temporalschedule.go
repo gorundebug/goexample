@@ -29,9 +29,6 @@ func (f *TemporalSchedule) OnTrigger(
 	out runtime.Collect[string],
 ) {
 	out.Out(ctx, fmt.Sprintf("temporal:%s:%s", trigger.ScheduleID, trigger.TriggerID))
-	if err := runtime.DurableCallSuccess(ctx); err != nil {
-		panic(err)
-	}
 }
 
 // MakeTemporalSchedule constructs the endpoint function once during service startup.

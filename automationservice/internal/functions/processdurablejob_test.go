@@ -20,5 +20,4 @@ func TestProcessDurableJob_Map(t *testing.T) {
 	ctx := runtime.WithDurableCallContext(context.Background(), durable)
 	f.Map(ctx, nil, "job-42", out)
 	assert.Equal(t, []string{"processed:job-42"}, collected)
-	assert.ErrorIs(t, runtime.DurableCallSuccess(ctx), runtime.ErrDurableCallAlreadyCompleted)
 }

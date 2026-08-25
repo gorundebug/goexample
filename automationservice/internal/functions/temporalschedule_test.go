@@ -21,5 +21,4 @@ func TestTemporalScheduleOnTrigger(t *testing.T) {
 	function.OnTrigger(ctx, trigger, out)
 
 	assert.Equal(t, []string{"temporal:durable-report:trigger-2"}, collected)
-	assert.ErrorIs(t, runtime.DurableCallSuccess(ctx), runtime.ErrDurableCallAlreadyCompleted)
 }

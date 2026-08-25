@@ -16,9 +16,6 @@ type ProcessDurableJob struct{}
 
 func (f *ProcessDurableJob) Map(ctx context.Context, _ runtime.Stream, value string, out runtime.Collect[string]) {
 	out.Out(ctx, "processed:"+value)
-	if err := runtime.DurableCallSuccess(ctx); err != nil {
-		panic(err)
-	}
 }
 
 // MakeProcessDurableJob is instantiated once at application startup via its maker function.
