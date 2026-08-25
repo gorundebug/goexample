@@ -15,8 +15,11 @@ func TestTemporalScheduleOnTrigger(t *testing.T) {
 		collected = append(collected, value)
 	})
 	trigger := runtime.ScheduleTrigger{ScheduleID: "durable-report", TriggerID: "trigger-2"}
+	durable := runtime.NewDurableCallContext("test", nil, nil)
+	ctx := runtime.WithDurableCallContext(context.Background(), durable)
 
-	function.OnTrigger(context.Background(), trigger, out)
+	function.OnTrigger(ctx, trigger, out)
 
 	assert.Equal(t, []string{"temporal:durable-report:trigger-2"}, collected)
+	assert.ErrorIs(t, runtime.DurableCallSuccess(ctx), runtime.ErrDurableCallAlreadyCompleted)
 }
