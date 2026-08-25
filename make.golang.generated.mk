@@ -58,7 +58,7 @@ golang-lint-fix: $(GOLANGCI_LINT) ## Auto-fix Go lint issues
 	@$(MAKE) -C ./inventoryservice -f Makefile lint-fix GOLANGCI_LINT="$(GOLANGCI_LINT)"
 	@$(MAKE) -C ./orderservice -f Makefile lint-fix GOLANGCI_LINT="$(GOLANGCI_LINT)"
 golang-workflowcheck: $(WORKFLOWCHECK) ## Check Go Temporal Workflow determinism
-	@cd ./automationservice && GOWORK=off "$(WORKFLOWCHECK)" ./...
+	@cd ./automationservice && GOWORK=off "$(WORKFLOWCHECK)" -config workflowcheck.generated.yaml ./...
 
 golang-fmt-go: ## Format Go code
 	@gofmt -w ./analyticsservice
