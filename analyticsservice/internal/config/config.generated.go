@@ -374,6 +374,7 @@ func MakeConfig() *Config {
 				Implementation:   api.DataConnectorImplementationIBMsarama,
 				Brokers:          "redpanda:9092",
 				Version:          "2.8.0",
+				DialTimeout:      5000,
 				SecurityProtocol: "PLAINTEXT",
 				SaslMechanism:    "SCRAM-SHA-512",
 			},
