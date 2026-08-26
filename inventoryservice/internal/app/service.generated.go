@@ -263,13 +263,6 @@ func (s *Service) initWorkflowFunctions(ctx context.Context, cfg *config.Config,
 		}
 		s.functions.getInventoryItemData = value
 	}
-	if s.makers.getInventoryItemErrorMaker != nil {
-		value, err := s.makers.getInventoryItemErrorMaker(ctx, &cfg.Streams.GetInventoryItemError, env)
-		if err != nil {
-			return err
-		}
-		s.functions.getInventoryItemError = value
-	}
 	if s.makers.processOrderItemMaker != nil {
 		value, err := s.makers.processOrderItemMaker(ctx, &cfg.Endpoints.ProcessOrderItem, env)
 		if err != nil {
