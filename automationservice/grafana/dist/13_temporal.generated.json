@@ -1,0 +1,480 @@
+{
+   "panels": [
+      {
+         "collapsed": false,
+         "gridPos": {
+            "h": 1,
+            "w": 0,
+            "x": 0,
+            "y": 0
+         },
+         "id": 1,
+         "panels": [ ],
+         "title": "Temporal Server",
+         "type": "row"
+      },
+      {
+         "datasource": {
+            "type": "datasource",
+            "uid": "-- Mixed --"
+         },
+         "fieldConfig": {
+            "defaults": {
+               "unit": "ops"
+            }
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 1
+         },
+         "id": 2,
+         "pluginVersion": "v11.0.0",
+         "targets": [
+            {
+               "datasource": {
+                  "type": "prometheus",
+                  "uid": "$datasource"
+               },
+               "expr": "sum(rate(service_requests{telemetry_source=\"temporal-server\", job=~\"$server_job\"}[$__rate_interval])) by (operation)",
+               "intervalFactor": 2,
+               "legendFormat": "{{operation}}"
+            }
+         ],
+         "title": "Frontend Request Rate",
+         "type": "timeseries"
+      },
+      {
+         "datasource": {
+            "type": "datasource",
+            "uid": "-- Mixed --"
+         },
+         "fieldConfig": {
+            "defaults": {
+               "unit": "ops"
+            }
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 1
+         },
+         "id": 3,
+         "pluginVersion": "v11.0.0",
+         "targets": [
+            {
+               "datasource": {
+                  "type": "prometheus",
+                  "uid": "$datasource"
+               },
+               "expr": "sum(rate({__name__=~\"service_errors.*\", telemetry_source=\"temporal-server\", job=~\"$server_job\"}[$__rate_interval])) by (__name__, operation)",
+               "intervalFactor": 2,
+               "legendFormat": "{{__name__}} {{operation}}"
+            }
+         ],
+         "title": "Server Error Rate",
+         "type": "timeseries"
+      },
+      {
+         "collapsed": false,
+         "gridPos": {
+            "h": 1,
+            "w": 0,
+            "x": 24,
+            "y": 9
+         },
+         "id": 4,
+         "panels": [ ],
+         "title": "Official SDK / Worker",
+         "type": "row"
+      },
+      {
+         "datasource": {
+            "type": "datasource",
+            "uid": "-- Mixed --"
+         },
+         "fieldConfig": {
+            "defaults": {
+               "unit": "short"
+            }
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 24,
+            "x": 0,
+            "y": 10
+         },
+         "id": 5,
+         "pluginVersion": "v11.0.0",
+         "targets": [
+            {
+               "datasource": {
+                  "type": "prometheus",
+                  "uid": "$datasource"
+               },
+               "expr": "sum(temporal_worker_task_slots_used{telemetry_source=\"temporal-sdk\", job=~\"$sdk_job\", task_queue=~\"$task_queue\"}) by (worker_type, task_queue)",
+               "intervalFactor": 2,
+               "legendFormat": "used {{worker_type}} / {{task_queue}}"
+            },
+            {
+               "datasource": {
+                  "type": "prometheus",
+                  "uid": "$datasource"
+               },
+               "expr": "sum(temporal_worker_task_slots_available{telemetry_source=\"temporal-sdk\", job=~\"$sdk_job\", task_queue=~\"$task_queue\"}) by (worker_type, task_queue)",
+               "intervalFactor": 2,
+               "legendFormat": "available {{worker_type}} / {{task_queue}}"
+            }
+         ],
+         "title": "Worker Slots Used / Available",
+         "type": "timeseries"
+      },
+      {
+         "datasource": {
+            "type": "datasource",
+            "uid": "-- Mixed --"
+         },
+         "fieldConfig": {
+            "defaults": {
+               "unit": "s"
+            }
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 24,
+            "x": 0,
+            "y": 18
+         },
+         "id": 6,
+         "pluginVersion": "v11.0.0",
+         "targets": [
+            {
+               "datasource": {
+                  "type": "prometheus",
+                  "uid": "$datasource"
+               },
+               "expr": "histogram_quantile(0.5, sum(rate(temporal_request_latency_seconds_bucket{telemetry_source=\"temporal-sdk\", job=~\"$sdk_job\"}[$__rate_interval])) by (le, operation))",
+               "intervalFactor": 2,
+               "legendFormat": "p50 {{operation}}"
+            },
+            {
+               "datasource": {
+                  "type": "prometheus",
+                  "uid": "$datasource"
+               },
+               "expr": "histogram_quantile(0.95, sum(rate(temporal_request_latency_seconds_bucket{telemetry_source=\"temporal-sdk\", job=~\"$sdk_job\"}[$__rate_interval])) by (le, operation))",
+               "intervalFactor": 2,
+               "legendFormat": "p95 {{operation}}"
+            },
+            {
+               "datasource": {
+                  "type": "prometheus",
+                  "uid": "$datasource"
+               },
+               "expr": "histogram_quantile(0.99, sum(rate(temporal_request_latency_seconds_bucket{telemetry_source=\"temporal-sdk\", job=~\"$sdk_job\"}[$__rate_interval])) by (le, operation))",
+               "intervalFactor": 2,
+               "legendFormat": "p99 {{operation}}"
+            }
+         ],
+         "title": "Temporal Client Request Latency p50 / p95 / p99",
+         "type": "timeseries"
+      },
+      {
+         "collapsed": false,
+         "gridPos": {
+            "h": 1,
+            "w": 0,
+            "x": 24,
+            "y": 26
+         },
+         "id": 7,
+         "panels": [ ],
+         "title": "DurableCall — Temporal-owned latency",
+         "type": "row"
+      },
+      {
+         "datasource": {
+            "type": "datasource",
+            "uid": "-- Mixed --"
+         },
+         "fieldConfig": {
+            "defaults": {
+               "unit": "s"
+            }
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 27
+         },
+         "id": 8,
+         "pluginVersion": "v11.0.0",
+         "targets": [
+            {
+               "datasource": {
+                  "type": "prometheus",
+                  "uid": "$datasource"
+               },
+               "expr": "histogram_quantile(0.5, sum(rate(temporal_activity_schedule_to_start_latency_seconds_bucket{telemetry_source=\"temporal-sdk\", job=~\"$sdk_job\", task_queue=~\"$task_queue\", activity_type=~\"servicegen\\.durable\\..*\"}[$__rate_interval])) by (le, activity_type, task_queue))",
+               "intervalFactor": 2,
+               "legendFormat": "p50 {{activity_type}}"
+            },
+            {
+               "datasource": {
+                  "type": "prometheus",
+                  "uid": "$datasource"
+               },
+               "expr": "histogram_quantile(0.95, sum(rate(temporal_activity_schedule_to_start_latency_seconds_bucket{telemetry_source=\"temporal-sdk\", job=~\"$sdk_job\", task_queue=~\"$task_queue\", activity_type=~\"servicegen\\.durable\\..*\"}[$__rate_interval])) by (le, activity_type, task_queue))",
+               "intervalFactor": 2,
+               "legendFormat": "p95 {{activity_type}}"
+            },
+            {
+               "datasource": {
+                  "type": "prometheus",
+                  "uid": "$datasource"
+               },
+               "expr": "histogram_quantile(0.99, sum(rate(temporal_activity_schedule_to_start_latency_seconds_bucket{telemetry_source=\"temporal-sdk\", job=~\"$sdk_job\", task_queue=~\"$task_queue\", activity_type=~\"servicegen\\.durable\\..*\"}[$__rate_interval])) by (le, activity_type, task_queue))",
+               "intervalFactor": 2,
+               "legendFormat": "p99 {{activity_type}}"
+            }
+         ],
+         "title": "Queue Wait p50 / p95 / p99",
+         "type": "timeseries"
+      },
+      {
+         "datasource": {
+            "type": "datasource",
+            "uid": "-- Mixed --"
+         },
+         "fieldConfig": {
+            "defaults": {
+               "unit": "s"
+            }
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 27
+         },
+         "id": 9,
+         "pluginVersion": "v11.0.0",
+         "targets": [
+            {
+               "datasource": {
+                  "type": "prometheus",
+                  "uid": "$datasource"
+               },
+               "expr": "histogram_quantile(0.5, sum(rate(temporal_activity_execution_latency_seconds_bucket{telemetry_source=\"temporal-sdk\", job=~\"$sdk_job\", task_queue=~\"$task_queue\", activity_type=~\"servicegen\\.durable\\..*\"}[$__rate_interval])) by (le, activity_type, task_queue))",
+               "intervalFactor": 2,
+               "legendFormat": "p50 {{activity_type}}"
+            },
+            {
+               "datasource": {
+                  "type": "prometheus",
+                  "uid": "$datasource"
+               },
+               "expr": "histogram_quantile(0.95, sum(rate(temporal_activity_execution_latency_seconds_bucket{telemetry_source=\"temporal-sdk\", job=~\"$sdk_job\", task_queue=~\"$task_queue\", activity_type=~\"servicegen\\.durable\\..*\"}[$__rate_interval])) by (le, activity_type, task_queue))",
+               "intervalFactor": 2,
+               "legendFormat": "p95 {{activity_type}}"
+            },
+            {
+               "datasource": {
+                  "type": "prometheus",
+                  "uid": "$datasource"
+               },
+               "expr": "histogram_quantile(0.99, sum(rate(temporal_activity_execution_latency_seconds_bucket{telemetry_source=\"temporal-sdk\", job=~\"$sdk_job\", task_queue=~\"$task_queue\", activity_type=~\"servicegen\\.durable\\..*\"}[$__rate_interval])) by (le, activity_type, task_queue))",
+               "intervalFactor": 2,
+               "legendFormat": "p99 {{activity_type}}"
+            }
+         ],
+         "title": "Activity Execution p50 / p95 / p99",
+         "type": "timeseries"
+      },
+      {
+         "datasource": {
+            "type": "datasource",
+            "uid": "-- Mixed --"
+         },
+         "fieldConfig": {
+            "defaults": {
+               "unit": "ops"
+            }
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 24,
+            "x": 0,
+            "y": 35
+         },
+         "id": 10,
+         "pluginVersion": "v11.0.0",
+         "targets": [
+            {
+               "datasource": {
+                  "type": "prometheus",
+                  "uid": "$datasource"
+               },
+               "expr": "rate(temporal_activity_execution_failed_total{telemetry_source=\"temporal-sdk\", job=~\"$sdk_job\", task_queue=~\"$task_queue\", activity_type=~\"servicegen\\.durable\\..*\"}[$__rate_interval])",
+               "intervalFactor": 2,
+               "legendFormat": "failed {{activity_type}}"
+            },
+            {
+               "datasource": {
+                  "type": "prometheus",
+                  "uid": "$datasource"
+               },
+               "expr": "rate(temporal_activity_execution_cancelled_total{telemetry_source=\"temporal-sdk\", job=~\"$sdk_job\", task_queue=~\"$task_queue\", activity_type=~\"servicegen\\.durable\\..*\"}[$__rate_interval])",
+               "intervalFactor": 2,
+               "legendFormat": "cancelled {{activity_type}}"
+            }
+         ],
+         "title": "Activity Failures and Cancellations",
+         "type": "timeseries"
+      },
+      {
+         "collapsed": false,
+         "gridPos": {
+            "h": 1,
+            "w": 0,
+            "x": 24,
+            "y": 43
+         },
+         "id": 11,
+         "panels": [ ],
+         "title": "ServiceLib application context",
+         "type": "row"
+      },
+      {
+         "datasource": {
+            "type": "datasource",
+            "uid": "-- Mixed --"
+         },
+         "fieldConfig": {
+            "defaults": {
+               "unit": "ops"
+            }
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 24,
+            "x": 0,
+            "y": 44
+         },
+         "id": 12,
+         "pluginVersion": "v11.0.0",
+         "targets": [
+            {
+               "datasource": {
+                  "type": "prometheus",
+                  "uid": "$datasource"
+               },
+               "expr": "rate(stream_messages_total{service=~\"$service\", from=~\"$from\", to=~\"$to\"}[$__rate_interval])",
+               "intervalFactor": 2,
+               "legendFormat": "{{from}} → {{to}}"
+            }
+         ],
+         "title": "Graph Link Throughput",
+         "type": "timeseries"
+      }
+   ],
+   "refresh": "30s",
+   "schemaVersion": 39,
+   "tags": [
+      "servicelib",
+      "temporal",
+      "durable-call"
+   ],
+   "templating": {
+      "list": [
+         {
+            "label": "Datasource",
+            "name": "datasource",
+            "query": "prometheus",
+            "type": "datasource"
+         },
+         {
+            "datasource": {
+               "type": "prometheus",
+               "uid": "$datasource"
+            },
+            "includeAll": true,
+            "label": "Server_job",
+            "multi": true,
+            "name": "server_job",
+            "query": "label_values(service_requests{telemetry_source=\"temporal-server\"}, job)",
+            "type": "query"
+         },
+         {
+            "datasource": {
+               "type": "prometheus",
+               "uid": "$datasource"
+            },
+            "includeAll": true,
+            "label": "Sdk_job",
+            "multi": true,
+            "name": "sdk_job",
+            "query": "label_values(temporal_worker_task_slots_available{telemetry_source=\"temporal-sdk\"}, job)",
+            "type": "query"
+         },
+         {
+            "datasource": {
+               "type": "prometheus",
+               "uid": "$datasource"
+            },
+            "includeAll": true,
+            "label": "Task_queue",
+            "multi": true,
+            "name": "task_queue",
+            "query": "label_values(temporal_worker_task_slots_available{telemetry_source=\"temporal-sdk\", job=~\"$sdk_job\"}, task_queue)",
+            "type": "query"
+         },
+         {
+            "datasource": {
+               "type": "prometheus",
+               "uid": "$datasource"
+            },
+            "includeAll": true,
+            "label": "Service",
+            "multi": true,
+            "name": "service",
+            "query": "label_values(service_info, service)",
+            "type": "query"
+         },
+         {
+            "datasource": {
+               "type": "prometheus",
+               "uid": "$datasource"
+            },
+            "includeAll": true,
+            "label": "From",
+            "multi": true,
+            "name": "from",
+            "query": "label_values(stream_messages_total{service=~\"$service\"}, from)",
+            "type": "query"
+         },
+         {
+            "datasource": {
+               "type": "prometheus",
+               "uid": "$datasource"
+            },
+            "includeAll": true,
+            "label": "To",
+            "multi": true,
+            "name": "to",
+            "query": "label_values(stream_messages_total{service=~\"$service\", from=~\"$from\"}, to)",
+            "type": "query"
+         }
+      ]
+   },
+   "time": {
+      "from": "now-1h",
+      "to": "now"
+   },
+   "timezone": "browser",
+   "title": "automationservice / Temporal & DurableCall",
+   "uid": "automationservice-temporal"
+}
