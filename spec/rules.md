@@ -1,227 +1,95 @@
 # Implementation Rules
 
-> **These rules apply to every task file in `spec/task*.md`.**
-> Read this once before starting any implementation.
+These rules apply to every `spec/*/task*.md`. The generated graph and transport
+contracts are the source of truth; business implementations and their tests are
+user-owned extension points.
 
----
+## Project invariants
 
-## Project layout
+- Project root: `example/`
+- Graph: `example/graph/example.generated.yaml`
+- Never edit a file whose name contains `generated`; those files are replaced
+  during project merge.
+- Never change generated signatures, topology wiring, IDs, config keys, or
+  transport contracts in order to make an implementation easier.
+- Change `.proto`/OpenAPI source and regenerate; never patch generated bindings.
+- Preserve the message/stream context received from the framework.
+- Do not keep mutable per-request state in function objects: function instances
+  are created once and may process requests concurrently.
+- Finish one task at a time and immediately copy its completion line to
+  `spec/progress.md`.
 
-| Entry | Location |
-|-------|----------|
-| Project root | `example/` |
-| Graph definition | `example/graph/example.generated.yaml` |
-| Service `Inventory Service` | `inventoryservice/` · `github.com/gorundebug/inventoryservice` |
-| Service `Order Service` | `orderservice/` · `github.com/gorundebug/orderservice` |
-| Module `inventory_service_api` | `inventory_service_api/` · `github.com/gorundebug/inventory_service_api` |
-| Module `model` | `model/` · `github.com/gorundebug/model` |
-| Module `order_service_api` | `order_service_api/` · `github.com/gorundebug/order_service_api` |
+## Services
 
----
+| Service | Language | Directory |
+|---------|----------|-----------|
+| `Analytics Service` | `Go` | `analyticsservice/` |
+| `Automation Service` | `Go` | `automationservice/` |
+| `Inventory Service` | `Go` | `inventoryservice/` |
+| `Order Service` | `Go` | `orderservice/` |
 
-## Service dependencies
 
-### `Inventory Service`
+## Go rules
 
-| | |
-|-|-|
-| Module | `github.com/gorundebug/inventoryservice` |
-| Directory | `inventoryservice/` |
-| Uses modules | `inventory_service_api`, `model` |
+- Business functions are structs implementing the generated servicelib
+  interfaces. Keep their generated method signatures.
+- Pass the received `context.Context` to collectors, senders and callbacks.
+  `context.Background()` and `context.TODO()` are forbidden in business paths.
+- Use generated `Makefile` targets:
+  - regenerate: `make gen`
+  - build: `make build`
+  - test: `make test`
+  - lint: `make lint`
+- Implement generated `*_test.go` files.
+- Import the public transformation API expected by the generated stub; do not
+  bypass it by manually wiring runtime internals.
 
-### `Order Service`
 
-| | |
-|-|-|
-| Module | `github.com/gorundebug/orderservice` |
-| Directory | `orderservice/` |
-| Calls | `inventoryservice` |
-| Uses modules | `inventory_service_api`, `model`, `order_service_api` |
 
-```mermaid
-graph LR
-  orderservice --> inventoryservice
-  inventoryservice -.-> inventory_service_api
-  inventoryservice -.-> model
-  orderservice -.-> inventory_service_api
-  orderservice -.-> model
-  orderservice -.-> order_service_api
-```
 
----
 
-```bash
-# Full graph
-cat example/graph/example.generated.yaml
 
-# All TODO stubs
-grep -rn "TODO" example/*/internal/functions/
-grep -rn "TODO" example/*/pkg/functions/
 
-# Build
-cd example && make build
 
-# Test
-cd example && make test
-```
 
----
 
-## Core rule (HIGHEST PRIORITY)
 
-> Generation artifacts and contracts are fixed.
-> Extension is allowed only via addition, never via modification.
 
-- Do NOT modify generated files (any generated Go code)
-- Do NOT change signatures of generated functions
-- Do NOT change names of generated types
-- Do NOT modify runtime wiring, graph topology, or service bootstrap code
 
----
+## Temporal Workflow determinism
 
-## Import rule
+- A function reached from a `temporalExecutionType: Workflow` endpoint is
+  replayed by Temporal. It must be deterministic even when the same code is
+  also reachable from an ordinary process-side endpoint.
+- Do not perform network or filesystem I/O, read process environment or wall
+  clocks, generate unrestricted random values, access process-side stores, or
+  start native threads, executors, goroutines, asyncio tasks, or detached
+  promises from Workflow business code.
+- Use the existing generated graph APIs. `Delay` selects the official Temporal
+  Workflow timer automatically; `TaskPool` and `PriorityTaskPool` select the
+  generated deterministic workflow-local schedulers.
+- Emit logs, metrics and traces only through the framework interfaces supplied
+  to the Workflow. They are backed by the official replay-safe SDK APIs; never
+  call process exporters from Workflow code.
+- Go Workflow code must pass the generated `golang-workflowcheck` target.
+  Python Workflows run in the official default sandbox. TypeScript Workflows
+  are bundled by the official SDK, but deterministic user code remains the
+  author's responsibility.
 
-Business logic files import **only `transformation`**. Never import `operators` or `runtime` packages directly.
 
----
+## Endpoint and serialization rules
 
-## Serialization rule
-
-Add serde **only** for types persisted to external storage. In-process types must NOT have serde.
-
-Serde stubs are already generated — implement the `Serialize` / `Deserialize` methods inside them, do not create new serde files.
-
-For `EndpointHandler[HandlerState, ReqT, ResR, T, R, E any]`:
-- Do NOT write separate serde for `ReqT` / `ResR`
-- Serialize/deserialize directly inside `ConsumeMessage()` / `HandleResponse()` using `encoding/json`, `proto.Marshal`/`proto.Unmarshal`, or the appropriate codec
-
----
-
-## Function struct lifecycle
-
-Each function struct is instantiated once at startup by its `Make*` constructor.
-Do not hold shared mutable state without synchronisation.
-
----
-
-## Function interfaces
-
-| Type | Method |
-|------|--------|
-| Map | `Map(ctx, stream, value In, out Collect[Out])` |
-| Filter | `Filter(ctx, stream, value T, out Collect[T]) bool` |
-| FlatMap | `FlatMap(ctx, stream, value In, out Collect[Out])` |
-| Process | `Process(ctx, stream, value In, out Collect[Out])` |
-| KeyBy | `KeyBy(ctx, stream, value V) K` |
-| Join | `Join(ctx, stream, key K, left L, right R, out Collect[Out])` |
-| MultiJoin | `MultiJoin(ctx, stream, key K, values []T, out Collect[Out])` |
-| Case | `Case(ctx, stream, value T) int` |
-| Delay | `Delay(ctx, stream, value T) time.Duration` |
-
----
-
-## EndpointHandler
-
-```go
-type EndpointHandler[HandlerState, ReqT, ResR, T, R, E any] interface
-```
-
-- `ReqT`, `ResR` — external transport types (OpenAPI / Protobuf)
-- `T`, `R` — internal stream domain types
-
-HTTP sink lifecycle:
-```
-MakeClient() → BeginRequest() → ConsumeMessage() → [HTTP call] → HandleResponse() → EndRequest()
-```
-
-| Connector | File | `EndpointHandler` line |
-|-----------|------|------------------------|
-| HTTP source | `$SERVICELIB/datasource/http/nethttp.go` | 131 |
-| HTTP sink   | `$SERVICELIB/datasink/http/nethttp.go`   | 85  |
-| gRPC source | `$SERVICELIB/datasource/grpc/grpc.go`    | 197 |
-| gRPC sink   | `$SERVICELIB/datasink/grpc/grpc.go`      | 85  |
-
-```bash
-SERVICELIB=$(go list -m -json github.com/gorundebug/servicelib | grep '"Dir"' | awk -F'"' '{print $4}')
-```
-
----
-
-## Context propagation
-
-```go
-ctx = runtime.WithStreamId(ctx, streamID)  // inject
-id  = runtime.StreamIdFromContext(ctx)     // extract
-```
-
----
-
-## OpenAPI / Proto type rules
-
-- You MAY extend types with additional fields
-- You MAY add helper / derived structures
-- Do NOT rename existing fields or types
-- Do NOT modify generated Go representations directly — change the source schema and regenerate
-
-Do NOT use `bytes message = 1` for structured data. Always use explicit typed fields.
-
----
-
-## Stream (runtime) type rules
-
-- You MAY extend types with additional fields
-- Do NOT rename existing types
-- Do NOT modify generated stream contracts
-
----
-
-## Tests
-
-- You MUST implement all `*_test.go` files
-- You MAY modify test logic and assertions
-- You MAY add helper functions inside test files
-- Do NOT move tests outside their module
-
----
-
-## Allowed scope
-
-- Implement business logic according to function specs
-- Use only `transformation`, standard library, and provided clients
-- Add helper files inside the same bounded module when required
-- Rely on generated types without modifying them
-
----
-
-## Implementation order
-
-1. Pure in-process transformations: Map, Filter, KeyBy, Join
-2. Domain types required by the above
-3. Endpoint handlers: HTTP source/sink, gRPC
-4. Functions depending on external state or other services
-5. Test cases in `*_test.go` stubs
-
----
-
-## Progress tracking rule
-
-**Close each task immediately after implementing it** — do not batch all progress.md updates to the end.
-
-After finishing a task, copy the **exact** append block from that task's checklist into `spec/progress.md`. The format varies:
-
-- Pure transformation tasks → one-liner: `- [x] taskN.md — FunctionName — done`
-- Endpoint tasks (http-source, grpc-source) → multi-line block with `Example call:` section
-
-The endpoint checklist item reads:
-> Verify the endpoint works and append to `spec/progress.md`: …
-
-That multi-line block **must** be used verbatim for endpoint tasks. Do not substitute the one-liner format.
-
----
+- External request/response types belong to protobuf/OpenAPI contracts.
+- Internal stream types belong to the language backend's model package.
+- Convert between external and internal types in endpoint handlers.
+- Add serialization only where data crosses a process/storage boundary.
+- For source endpoints, verify a real request and include the command in the
+  task completion entry when the task asks for it.
 
 ## Priority of truth
 
-1. Task specification (`spec/task*.md`)
-2. Graph definition (`graph/*.yaml`)
-3. Type definitions (generated code)
-4. Runtime behaviour of servicelib
+1. Current task file.
+2. Graph definition.
+3. `.proto`/OpenAPI source contracts.
+4. Generated type signatures.
+5. servicelib runtime semantics for the selected language.
