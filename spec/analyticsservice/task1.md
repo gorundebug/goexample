@@ -6,8 +6,8 @@
 |-------|-------|
 | Language | `Go` |
 | Kind | `process` |
-| File | `analyticsservice/internal/functions/countorderprocessed.go` |
-| Test | `analyticsservice/internal/functions/countorderprocessed_test.go` |
+| File | `analyticsservice/internal/functions/analytics/countorderprocessed.go` |
+| Test | `analyticsservice/internal/functions/analytics/countorderprocessed_test.go` |
 | Service | `Analytics Service` |
 
 
@@ -26,11 +26,11 @@ Count successful and unsuccessful orders independently, then return the event un
 ## Checklist
 
 - [ ] Read [`spec/rules.md`](../rules.md), especially the `Go` section
-- [ ] Open `analyticsservice/internal/functions/countorderprocessed.go` and preserve its generated contract
+- [ ] Open `analyticsservice/internal/functions/analytics/countorderprocessed.go` and preserve its generated contract
 - [ ] Inspect input type `OrderProcessed` in `model/pkg/types/orderprocessed.go`
 - [ ] Inspect output type `OrderProcessed` in `model/pkg/types/orderprocessed.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
-- [ ] Implement meaningful assertions in `analyticsservice/internal/functions/countorderprocessed_test.go`
+- [ ] Implement meaningful assertions in `analyticsservice/internal/functions/analytics/countorderprocessed_test.go`
 - [ ] Re-read this checklist
 - [ ] Append to `spec/progress.md`: `- [x] analyticsservice/task1.md — CountOrderProcessed — Go — done`

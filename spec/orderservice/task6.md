@@ -1,20 +1,20 @@
-# Task 6/8: `ProcessOrderItems`
+# Task 6/8: `MapToOrderState`
 
 > Rules: [`spec/rules.md`](../rules.md)
 
 | Field | Value |
 |-------|-------|
 | Language | `Go` |
-| Kind | `flatMap` |
-| File | `orderservice/internal/functions/processorderitems.go` |
-| Test | `orderservice/internal/functions/processorderitems_test.go` |
+| Kind | `map` |
+| File | `orderservice/internal/functions/order/maptoorderstate.go` |
+| Test | `orderservice/internal/functions/order/maptoorderstate_test.go` |
 | Service | `Order Service` |
 
 
 ## Behaviour
 
-Emit every order item independently for inventory processing.
-Preserve each item's data and assign the parent order ID.
+Produce a TIMED_OUT order result that preserves the order ID and submitted total.
+Do not add item results at this stage; results received before the timeout are included in the final response.
 
 
 
@@ -22,16 +22,16 @@ Preserve each item's data and assign the parent order ID.
 
 ## Stream types
 - Input: `Order` — `orderservice/internal/types/order.go`
-- Output: `OrderItem` — `model/pkg/types/orderitem.go`
+- Output: `OrderState` — `orderservice/internal/types/orderstate.go`
 
 ## Checklist
 
 - [ ] Read [`spec/rules.md`](../rules.md), especially the `Go` section
-- [ ] Open `orderservice/internal/functions/processorderitems.go` and preserve its generated contract
+- [ ] Open `orderservice/internal/functions/order/maptoorderstate.go` and preserve its generated contract
 - [ ] Inspect input type `Order` in `orderservice/internal/types/order.go`
-- [ ] Inspect output type `OrderItem` in `model/pkg/types/orderitem.go`
+- [ ] Inspect output type `OrderState` in `orderservice/internal/types/orderstate.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
-- [ ] Implement meaningful assertions in `orderservice/internal/functions/processorderitems_test.go`
+- [ ] Implement meaningful assertions in `orderservice/internal/functions/order/maptoorderstate_test.go`
 - [ ] Re-read this checklist
-- [ ] Append to `spec/progress.md`: `- [x] orderservice/task6.md — ProcessOrderItems — Go — done`
+- [ ] Append to `spec/progress.md`: `- [x] orderservice/task6.md — MapToOrderState — Go — done`

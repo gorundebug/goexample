@@ -23,24 +23,25 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/gorundebug/analyticsservice/internal/config"
-	"github.com/gorundebug/analyticsservice/internal/functions"
+	"github.com/gorundebug/analyticsservice/internal/functions/analytics"
+	"github.com/gorundebug/analyticsservice/internal/functions/endpoint"
 	"github.com/gorundebug/model/pkg/serdes"
 	"github.com/gorundebug/model/pkg/types"
 )
 
 type serviceMakers struct {
 	//stream function makers
-	countOrderProcessedMaker func(ctx context.Context, cfg *runtimecfg.ProcessStreamConfig, env environment.ServiceEnvironment) (*functions.CountOrderProcessed, error)
+	analyticsCountOrderProcessedMaker func(ctx context.Context, cfg *runtimecfg.ProcessStreamConfig, env environment.ServiceEnvironment) (*analytics.CountOrderProcessed, error)
 	//data source function makers
-	orderProcessedEndpointMaker func(ctx context.Context, cfg *runtimecfg.KafkaEndpointConfig, env environment.ServiceEnvironment) (*functions.OrderProcessedEndpoint, error)
+	endpointOrderProcessedEndpointSourceMaker func(ctx context.Context, cfg *runtimecfg.KafkaEndpointConfig, env environment.ServiceEnvironment) (*endpoint.OrderProcessedEndpointSource, error)
 	//data sink function makers
 }
 
 type serviceFunctions struct {
 	//stream functions
-	countOrderProcessed *functions.CountOrderProcessed
+	analyticsCountOrderProcessed *analytics.CountOrderProcessed
 	//data source functions
-	orderProcessedEndpoint *functions.OrderProcessedEndpoint
+	endpointOrderProcessedEndpointSource *endpoint.OrderProcessedEndpointSource
 	//data sink functions
 }
 
@@ -104,14 +105,14 @@ func (s *Service) Config() *config.Config {
 }
 
 func (s *Service) initMakers(ctx context.Context) error {
-	if s.makers.countOrderProcessedMaker == nil {
-		s.makers.countOrderProcessedMaker = func(ctx context.Context, cfg *runtimecfg.ProcessStreamConfig, env environment.ServiceEnvironment) (*functions.CountOrderProcessed, error) {
-			return functions.MakeCountOrderProcessed(ctx, env, cfg)
+	if s.makers.analyticsCountOrderProcessedMaker == nil {
+		s.makers.analyticsCountOrderProcessedMaker = func(ctx context.Context, cfg *runtimecfg.ProcessStreamConfig, env environment.ServiceEnvironment) (*analytics.CountOrderProcessed, error) {
+			return analytics.MakeCountOrderProcessed(ctx, env, cfg)
 		}
 	}
-	if s.makers.orderProcessedEndpointMaker == nil {
-		s.makers.orderProcessedEndpointMaker = func(ctx context.Context, cfg *runtimecfg.KafkaEndpointConfig, env environment.ServiceEnvironment) (*functions.OrderProcessedEndpoint, error) {
-			return functions.MakeOrderProcessedEndpoint(ctx, env, cfg)
+	if s.makers.endpointOrderProcessedEndpointSourceMaker == nil {
+		s.makers.endpointOrderProcessedEndpointSourceMaker = func(ctx context.Context, cfg *runtimecfg.KafkaEndpointConfig, env environment.ServiceEnvironment) (*endpoint.OrderProcessedEndpointSource, error) {
+			return endpoint.MakeOrderProcessedEndpointSource(ctx, env, cfg)
 		}
 	}
 
@@ -157,13 +158,13 @@ func (s *Service) initStreams(ctx context.Context, cfg *config.Config, env runti
 	if s.streams.consumeOrderProcessed, err = transformation.Input[*types.OrderProcessed, *types.OrderProcessed, error](&cfg.Streams.ConsumeOrderProcessed, env); err != nil {
 		return err
 	}
-	if s.streams.countOrderProcessed, err = transformation.Process[*types.OrderProcessed, *types.OrderProcessed, error](&cfg.Streams.CountOrderProcessed, s.streams.consumeOrderProcessed, s.functions.countOrderProcessed); err != nil {
+	if s.streams.countOrderProcessed, err = transformation.Process[*types.OrderProcessed, *types.OrderProcessed, error](&cfg.Streams.CountOrderProcessed, s.streams.consumeOrderProcessed, s.functions.analyticsCountOrderProcessed); err != nil {
 		return err
 	}
 	if err = s.streams.consumeOrderProcessed.SetSource(s.streams.countOrderProcessed); err != nil {
 		return err
 	}
-	if s.dataConnectors.orderProcessed, err = functions.MakeEndpointConsumerOrderProcessedEndpoint(s.streams.consumeOrderProcessed, s.functions.orderProcessedEndpoint); err != nil {
+	if s.dataConnectors.orderProcessed, err = endpoint.MakeEndpointConsumerOrderProcessedEndpointSource(s.streams.consumeOrderProcessed, s.functions.endpointOrderProcessedEndpointSource); err != nil {
 		return err
 	}
 	_ = err
@@ -173,17 +174,17 @@ func (s *Service) initStreams(ctx context.Context, cfg *config.Config, env runti
 
 func (s *Service) initFunctions(ctx context.Context, cfg *config.Config, env runtime.RuntimeEnvironment) error {
 	eg, egCtx := errgroup.WithContext(ctx)
-	if s.makers.countOrderProcessedMaker != nil {
+	if s.makers.analyticsCountOrderProcessedMaker != nil {
 		eg.Go(func() error {
 			var err error
-			s.functions.countOrderProcessed, err = s.makers.countOrderProcessedMaker(egCtx, &cfg.Streams.CountOrderProcessed, env)
+			s.functions.analyticsCountOrderProcessed, err = s.makers.analyticsCountOrderProcessedMaker(egCtx, &cfg.Streams.CountOrderProcessed, env)
 			return err
 		})
 	}
-	if s.makers.orderProcessedEndpointMaker != nil {
+	if s.makers.endpointOrderProcessedEndpointSourceMaker != nil {
 		eg.Go(func() error {
 			var err error
-			s.functions.orderProcessedEndpoint, err = s.makers.orderProcessedEndpointMaker(egCtx, &cfg.Endpoints.OrderProcessed, env)
+			s.functions.endpointOrderProcessedEndpointSource, err = s.makers.endpointOrderProcessedEndpointSourceMaker(egCtx, &cfg.Endpoints.OrderProcessed, env)
 			return err
 		})
 	}
@@ -218,19 +219,19 @@ func (s *Service) buildWorkflowGraph(ctx context.Context, cfg *config.Config, en
 // service keeps initializer-group goroutines; a Temporal Workflow must not use
 // process goroutines during replayable graph construction.
 func (s *Service) initWorkflowFunctions(ctx context.Context, cfg *config.Config, env runtime.RuntimeEnvironment) error {
-	if s.makers.countOrderProcessedMaker != nil {
-		value, err := s.makers.countOrderProcessedMaker(ctx, &cfg.Streams.CountOrderProcessed, env)
+	if s.makers.analyticsCountOrderProcessedMaker != nil {
+		value, err := s.makers.analyticsCountOrderProcessedMaker(ctx, &cfg.Streams.CountOrderProcessed, env)
 		if err != nil {
 			return err
 		}
-		s.functions.countOrderProcessed = value
+		s.functions.analyticsCountOrderProcessed = value
 	}
-	if s.makers.orderProcessedEndpointMaker != nil {
-		value, err := s.makers.orderProcessedEndpointMaker(ctx, &cfg.Endpoints.OrderProcessed, env)
+	if s.makers.endpointOrderProcessedEndpointSourceMaker != nil {
+		value, err := s.makers.endpointOrderProcessedEndpointSourceMaker(ctx, &cfg.Endpoints.OrderProcessed, env)
 		if err != nil {
 			return err
 		}
-		s.functions.orderProcessedEndpoint = value
+		s.functions.endpointOrderProcessedEndpointSource = value
 	}
 	return nil
 }

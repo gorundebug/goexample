@@ -1,47 +1,37 @@
-# Task 7/8: `ProcessOrderItem`
+# Task 7/8: `ProcessOrderItems`
 
 > Rules: [`spec/rules.md`](../rules.md)
 
 | Field | Value |
 |-------|-------|
 | Language | `Go` |
-| Kind | `grpc-sink` |
-| File | `orderservice/internal/functions/processorderitemsink.go` |
+| Kind | `flatMap` |
+| File | `orderservice/internal/functions/order/processorderitems.go` |
+| Test | `orderservice/internal/functions/order/processorderitems_test.go` |
 | Service | `Order Service` |
 
 
 ## Behaviour
 
-Reserve inventory for one order item using its order ID, item ID, SKU, and quantity.
-Return the available quantity, reservation outcome, and status. The caller combines this response with the original identity, requested quantity, and unit price.
-If the inventory call fails, the caller returns a non-reserved PROCESSING_ERROR result with the failure message.
+Emit every order item independently for inventory processing.
+Preserve each item's data and assign the parent order ID.
 
 
 
-
-## External contract
-
-| Field | Value |
-|-------|-------|
-| Format | `proto` |
-| Source | `inventory_service_api/proto/inventoryserviceapi/processorderitem/processorderitem.proto` |
-| Request | `ProcessOrderItemRequest` |
-| Response | `ProcessOrderItemResponse` |
 
 
 ## Stream types
-- Input: `OrderItem` — `model/pkg/types/orderitem.go`
-- Output: `OrderItemResult` — `model/pkg/types/orderitemresult.go`
+- Input: `Order` — `orderservice/internal/types/order.go`
+- Output: `OrderItem` — `model/pkg/types/orderitem.go`
 
 ## Checklist
 
 - [ ] Read [`spec/rules.md`](../rules.md), especially the `Go` section
-- [ ] Open `orderservice/internal/functions/processorderitemsink.go` and preserve its generated contract
-- [ ] Read `inventory_service_api/proto/inventoryserviceapi/processorderitem/processorderitem.proto`; change the source contract rather than generated bindings
-- [ ] Inspect input type `OrderItem` in `model/pkg/types/orderitem.go`
-- [ ] Inspect output type `OrderItemResult` in `model/pkg/types/orderitemresult.go`
+- [ ] Open `orderservice/internal/functions/order/processorderitems.go` and preserve its generated contract
+- [ ] Inspect input type `Order` in `orderservice/internal/types/order.go`
+- [ ] Inspect output type `OrderItem` in `model/pkg/types/orderitem.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
-- [ ] Verify the endpoint/result lifecycle, including completion and error paths
+- [ ] Implement meaningful assertions in `orderservice/internal/functions/order/processorderitems_test.go`
 - [ ] Re-read this checklist
-- [ ] Append to `spec/progress.md`: `- [x] orderservice/task7.md — ProcessOrderItem — Go — done`
+- [ ] Append to `spec/progress.md`: `- [x] orderservice/task7.md — ProcessOrderItems — Go — done`

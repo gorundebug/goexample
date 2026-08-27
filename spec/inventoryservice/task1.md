@@ -1,25 +1,32 @@
-# Task 1/2: `GetInventoryItemData`
+# Task 1/2: `ProcessOrderItemSource`
 
 > Rules: [`spec/rules.md`](../rules.md)
 
 | Field | Value |
 |-------|-------|
 | Language | `Go` |
-| Kind | `process` |
-| File | `inventoryservice/internal/functions/getinventoryitemdata.go` |
-| Test | `inventoryservice/internal/functions/getinventoryitemdata_test.go` |
+| Kind | `grpc-source` |
+| File | `inventoryservice/internal/functions/endpoint/processorderitemsource.go` |
 | Service | `Inventory Service` |
 
 
 ## Behaviour
 
-Reserve the requested quantity without allowing concurrent orders to overdraw stock.
-On success, return CONFIRMED with the requested quantity available. Otherwise return OUT_OF_STOCK with the current available quantity.
-Preserve the order and item identity, requested quantity, and unit price.
-The example starts with SKU-001: 100, SKU-002: 50, and SKU-003: 25.
+Reserve inventory for one order item using its order ID, item ID, SKU, and quantity.
+Return the available quantity, reservation outcome, and status. The caller combines this response with the original identity, requested quantity, and unit price.
+If the inventory call fails, the caller returns a non-reserved PROCESSING_ERROR result with the failure message.
 
 
 
+
+## External contract
+
+| Field | Value |
+|-------|-------|
+| Format | `proto` |
+| Source | `inventory_service_api/proto/inventoryserviceapi/processorderitem/processorderitem.proto` |
+| Request | `ProcessOrderItemRequest` |
+| Response | `ProcessOrderItemResponse` |
 
 
 ## Stream types
@@ -29,11 +36,12 @@ The example starts with SKU-001: 100, SKU-002: 50, and SKU-003: 25.
 ## Checklist
 
 - [ ] Read [`spec/rules.md`](../rules.md), especially the `Go` section
-- [ ] Open `inventoryservice/internal/functions/getinventoryitemdata.go` and preserve its generated contract
+- [ ] Open `inventoryservice/internal/functions/endpoint/processorderitemsource.go` and preserve its generated contract
+- [ ] Read `inventory_service_api/proto/inventoryserviceapi/processorderitem/processorderitem.proto`; change the source contract rather than generated bindings
 - [ ] Inspect input type `OrderItem` in `model/pkg/types/orderitem.go`
 - [ ] Inspect output type `OrderItemResult` in `model/pkg/types/orderitemresult.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
-- [ ] Implement meaningful assertions in `inventoryservice/internal/functions/getinventoryitemdata_test.go`
+- [ ] Verify the endpoint/result lifecycle, including completion and error paths
 - [ ] Re-read this checklist
-- [ ] Append to `spec/progress.md`: `- [x] inventoryservice/task1.md — GetInventoryItemData — Go — done`
+- [ ] Append to `spec/progress.md`: `- [x] inventoryservice/task1.md — ProcessOrderItemSource — Go — done`

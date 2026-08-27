@@ -1,38 +1,36 @@
-# Task 1/8: `MapOrderItemResultToOrderState`
+# Task 1/8: `OrderProcessedEndpointSink`
 
 > Rules: [`spec/rules.md`](../rules.md)
 
 | Field | Value |
 |-------|-------|
 | Language | `Go` |
-| Kind | `map` |
-| File | `orderservice/internal/functions/maporderitemresulttoorderstate.go` |
-| Test | `orderservice/internal/functions/maporderitemresulttoorderstate_test.go` |
+| Kind | `kafka-sink` |
+| File | `orderservice/internal/functions/endpoint/orderprocessedendpointsink.go` |
 | Service | `Order Service` |
 
 
 ## Behaviour
 
-Produce an order result containing one inventory result and preserving its order ID.
-Mark it CONFIRMED when the item was reserved; otherwise mark it PARTIALLY_CONFIRMED.
-Record the time when this result is produced.
+Exchange OrderProcessed events keyed by order ID.
+Producers include the final status, processing time, total and confirmed item counts, and a failure reason for unsuccessful orders.
+Consumers decode the event and mark its Kafka message processed only after the pipeline handles it successfully.
 
 
 
 
 
 ## Stream types
-- Input: `OrderItemResult` — `model/pkg/types/orderitemresult.go`
-- Output: `OrderState` — `orderservice/internal/types/orderstate.go`
+- Input: `OrderProcessed` — `model/pkg/types/orderprocessed.go`
+- Output: `OrderProcessed` — `model/pkg/types/orderprocessed.go`
 
 ## Checklist
 
 - [ ] Read [`spec/rules.md`](../rules.md), especially the `Go` section
-- [ ] Open `orderservice/internal/functions/maporderitemresulttoorderstate.go` and preserve its generated contract
-- [ ] Inspect input type `OrderItemResult` in `model/pkg/types/orderitemresult.go`
-- [ ] Inspect output type `OrderState` in `orderservice/internal/types/orderstate.go`
+- [ ] Open `orderservice/internal/functions/endpoint/orderprocessedendpointsink.go` and preserve its generated contract
+- [ ] Inspect input type `OrderProcessed` in `model/pkg/types/orderprocessed.go`
+- [ ] Inspect output type `OrderProcessed` in `model/pkg/types/orderprocessed.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
-- [ ] Implement meaningful assertions in `orderservice/internal/functions/maporderitemresulttoorderstate_test.go`
 - [ ] Re-read this checklist
-- [ ] Append to `spec/progress.md`: `- [x] orderservice/task1.md — MapOrderItemResultToOrderState — Go — done`
+- [ ] Append to `spec/progress.md`: `- [x] orderservice/task1.md — OrderProcessedEndpointSink — Go — done`
