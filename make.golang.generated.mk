@@ -33,19 +33,19 @@ LANG_DOCKER_DEV_BUILD_TARGETS += golang-docker-dev-build
 	golang-fmt-go golang-fmt-proto golang-gen golang-codegen golang-gen-proto \
 	golang-gen-openapi golang-clean golang-tools \
 	golang-docker-build golang-docker-dev-build go-mod-tidy go-mod-sync fmt-go fmt-proto gen-proto golang-workflowcheck \
-	gen-openapi docker-build-local-analyticsservice debug-analyticsservice docker-build-local-automationservice debug-automationservice docker-build-local-inventoryservice debug-inventoryservice docker-build-local-orderservice debug-orderservice
+	gen-openapi
 
 golang-build: golang-gen ## Generate transport code and build all Go services
-	@$(MAKE) -C ./analyticsservice -f Makefile service_build PROJECT_DIR="$(PROJECT_DIR)" BIN_DIR="$(BIN_DIR)"
-	@$(MAKE) -C ./automationservice -f Makefile service_build PROJECT_DIR="$(PROJECT_DIR)" BIN_DIR="$(BIN_DIR)"
-	@$(MAKE) -C ./inventoryservice -f Makefile service_build PROJECT_DIR="$(PROJECT_DIR)" BIN_DIR="$(BIN_DIR)"
-	@$(MAKE) -C ./orderservice -f Makefile service_build PROJECT_DIR="$(PROJECT_DIR)" BIN_DIR="$(BIN_DIR)"
+	@$(MAKE) -C ./analyticsservice -f Makefile service_build USE_LOCAL_MODULES=1 PROJECT_DIR="$(PROJECT_DIR)" BIN_DIR="$(BIN_DIR)"
+	@$(MAKE) -C ./automationservice -f Makefile service_build USE_LOCAL_MODULES=1 PROJECT_DIR="$(PROJECT_DIR)" BIN_DIR="$(BIN_DIR)"
+	@$(MAKE) -C ./inventoryservice -f Makefile service_build USE_LOCAL_MODULES=1 PROJECT_DIR="$(PROJECT_DIR)" BIN_DIR="$(BIN_DIR)"
+	@$(MAKE) -C ./orderservice -f Makefile service_build USE_LOCAL_MODULES=1 PROJECT_DIR="$(PROJECT_DIR)" BIN_DIR="$(BIN_DIR)"
 
 golang-test: ## Run tests for all Go services
-	@$(MAKE) -C ./analyticsservice -f Makefile test
-	@$(MAKE) -C ./automationservice -f Makefile test
-	@$(MAKE) -C ./inventoryservice -f Makefile test
-	@$(MAKE) -C ./orderservice -f Makefile test
+	@$(MAKE) -C ./analyticsservice -f Makefile test USE_LOCAL_MODULES=1
+	@$(MAKE) -C ./automationservice -f Makefile test USE_LOCAL_MODULES=1
+	@$(MAKE) -C ./inventoryservice -f Makefile test USE_LOCAL_MODULES=1
+	@$(MAKE) -C ./orderservice -f Makefile test USE_LOCAL_MODULES=1
 
 golang-lint: $(GOLANGCI_LINT) ## Run Go linters
 	@$(MAKE) -C ./analyticsservice -f Makefile lint GOLANGCI_LINT="$(GOLANGCI_LINT)"
@@ -103,13 +103,16 @@ golang-clean: ## Remove Go build artifacts
 	@rm -rf "$(BIN_DIR)"
 
 golang-docker-build: golang-codegen ## Build Go service Docker images entirely in Docker
-	@$(MAKE) -C ./analyticsservice -f Makefile docker-build PROJECT_DIR="$(PROJECT_DIR)"
-	@$(MAKE) -C ./automationservice -f Makefile docker-build PROJECT_DIR="$(PROJECT_DIR)"
-	@$(MAKE) -C ./inventoryservice -f Makefile docker-build PROJECT_DIR="$(PROJECT_DIR)"
-	@$(MAKE) -C ./orderservice -f Makefile docker-build PROJECT_DIR="$(PROJECT_DIR)"
+	@$(MAKE) -C ./analyticsservice -f Makefile docker-build USE_LOCAL_MODULES=1
+	@$(MAKE) -C ./automationservice -f Makefile docker-build USE_LOCAL_MODULES=1
+	@$(MAKE) -C ./inventoryservice -f Makefile docker-build USE_LOCAL_MODULES=1
+	@$(MAKE) -C ./orderservice -f Makefile docker-build USE_LOCAL_MODULES=1
 
 golang-docker-dev-build: golang-codegen ## Build source-mounted Go development images
-	@SERVICEGEN_DOCKER_TARGET=development $(DOCKER_COMPOSE_DEV) build analyticsservice automationservice inventoryservice orderservice
+	@$(MAKE) -C ./analyticsservice -f Makefile docker-build-dev USE_LOCAL_MODULES=1
+	@$(MAKE) -C ./automationservice -f Makefile docker-build-dev USE_LOCAL_MODULES=1
+	@$(MAKE) -C ./inventoryservice -f Makefile docker-build-dev USE_LOCAL_MODULES=1
+	@$(MAKE) -C ./orderservice -f Makefile docker-build-dev USE_LOCAL_MODULES=1
 
 fmt-go: golang-fmt-go ## Format Go code
 
@@ -117,30 +120,6 @@ fmt-proto: golang-fmt-proto ## Format protobuf files
 
 gen-proto: golang-gen-proto ## Generate Go protobuf code
 gen-openapi: golang-gen-openapi ## Generate Go OpenAPI code
-docker-build-local-analyticsservice: golang-build
-	@$(MAKE) -C ./analyticsservice -f Makefile docker-build-local PROJECT_DIR="$(PROJECT_DIR)" BIN_DIR="$(BIN_DIR)"
-
-debug-analyticsservice: ANALYTICS_SERVICE_DEBUG := 1
-debug-analyticsservice: docker-build-local-analyticsservice
-	@docker compose up -d --no-deps --force-recreate analyticsservice
-docker-build-local-automationservice: golang-build
-	@$(MAKE) -C ./automationservice -f Makefile docker-build-local PROJECT_DIR="$(PROJECT_DIR)" BIN_DIR="$(BIN_DIR)"
-
-debug-automationservice: AUTOMATION_SERVICE_DEBUG := 1
-debug-automationservice: docker-build-local-automationservice
-	@docker compose up -d --no-deps --force-recreate automationservice
-docker-build-local-inventoryservice: golang-build
-	@$(MAKE) -C ./inventoryservice -f Makefile docker-build-local PROJECT_DIR="$(PROJECT_DIR)" BIN_DIR="$(BIN_DIR)"
-
-debug-inventoryservice: INVENTORY_SERVICE_DEBUG := 1
-debug-inventoryservice: docker-build-local-inventoryservice
-	@docker compose up -d --no-deps --force-recreate inventoryservice
-docker-build-local-orderservice: golang-build
-	@$(MAKE) -C ./orderservice -f Makefile docker-build-local PROJECT_DIR="$(PROJECT_DIR)" BIN_DIR="$(BIN_DIR)"
-
-debug-orderservice: ORDER_SERVICE_DEBUG := 1
-debug-orderservice: docker-build-local-orderservice
-	@docker compose up -d --no-deps --force-recreate orderservice
 go-mod-tidy: ## Run go mod tidy for all Go modules
 	@cd ./analyticsservice && GOPRIVATE="$(GOPRIVATE)" go mod tidy -e
 	@cd ./automationservice && GOPRIVATE="$(GOPRIVATE)" go mod tidy -e
@@ -167,7 +146,7 @@ $(BUF):
 	tmp=$$(mktemp "$(TOOLS_DIR)/.buf.XXXXXX"); \
 	trap 'rm -f "$$tmp"' EXIT INT TERM; \
 	curl --fail --location --silent --show-error \
-	  "$(SERVICEGEN_GITHUB_RAW_URL)/bufbuild/buf/releases/download/$(BUF_VERSION)/buf-$(OS)-$(ARCH)" \
+	  "$(DEPENDENCY_GITHUB_RAW_URL)/bufbuild/buf/releases/download/$(BUF_VERSION)/buf-$(OS)-$(ARCH)" \
 	  --output "$$tmp"; \
 	chmod +x "$$tmp"; \
 	mv "$$tmp" "$(BUF)"; \
@@ -183,7 +162,7 @@ $(PROTOC):
 	_arch=$$(uname -m | sed 's/arm64/aarch_64/;s/aarch64/aarch_64/'); \
 	_ver=$$(echo "$(PROTOC_VERSION)" | sed 's/v//'); \
 	curl --fail --location --silent --show-error \
-	  "$(SERVICEGEN_GITHUB_RAW_URL)/protocolbuffers/protobuf/releases/download/$(PROTOC_VERSION)/protoc-$${_ver}-$${_os}-$${_arch}.zip" \
+	  "$(DEPENDENCY_GITHUB_RAW_URL)/protocolbuffers/protobuf/releases/download/$(PROTOC_VERSION)/protoc-$${_ver}-$${_os}-$${_arch}.zip" \
 	  --output "$$tmp/protoc.zip"; \
 	unzip -q "$$tmp/protoc.zip" bin/protoc -d "$$tmp/extract"; \
 	chmod +x "$$tmp/extract/bin/protoc"; \

@@ -2,14 +2,16 @@
 
 # Stage 1: Build
 FROM servicelib-source AS servicelib-source
+FROM module-inventory_service_api-source AS module-inventory_service_api-source
+FROM module-model-source AS module-model-source
 
 FROM golang:1.25-bookworm AS builder
 
 ARG SERVICE_DIR=.
 ARG TARGETARCH
 ARG SERVICEGEN_RUNTIME_STRIP=ON
-ARG SERVICEGEN_GITHUB_RAW_URL=https://github.com
-ENV SERVICEGEN_GITHUB_RAW_URL=${SERVICEGEN_GITHUB_RAW_URL}
+ARG DEPENDENCY_GITHUB_RAW_URL=https://github.com
+ENV DEPENDENCY_GITHUB_RAW_URL=${DEPENDENCY_GITHUB_RAW_URL}
 COPY dependency-download-mirrors.generated.env /etc/servicegen/dependency-download-mirrors.generated.env
 COPY dependency-download-mirrors.env /etc/servicegen/dependency-download-mirrors.env
 COPY dependency-download-env.generated.sh /usr/local/bin/servicegen-download-env
@@ -34,16 +36,24 @@ RUN set -eu; \
     if [ -z "$source_dir" ] || [ "$source_dir" = "/" ]; then echo "unsafe servicelib source directory" >&2; exit 1; fi; \
     mkdir -p /servicelib; \
     cp -a "$source_dir/." /servicelib/
+COPY --from=module-inventory_service_api-source / /tmp/module-inventory_service_api-source
+RUN set -eu; source_dir=/tmp/module-inventory_service_api-source; \
+    manifest="$source_dir/go.mod"; \
+    if [ ! -f "$manifest" ]; then manifest=$(find "$source_dir" -mindepth 2 -maxdepth 2 -type f -name go.mod -print -quit); fi; \
+    if [ -z "$manifest" ]; then echo "module context github.com/gorundebug/inventory_service_api has no go.mod" >&2; exit 1; fi; \
+    source_dir=${manifest%/go.mod}; mkdir -p /modules/inventory_service_api; cp -a "$source_dir/." /modules/inventory_service_api/
+COPY --from=module-model-source / /tmp/module-model-source
+RUN set -eu; source_dir=/tmp/module-model-source; \
+    manifest="$source_dir/go.mod"; \
+    if [ ! -f "$manifest" ]; then manifest=$(find "$source_dir" -mindepth 2 -maxdepth 2 -type f -name go.mod -print -quit); fi; \
+    if [ -z "$manifest" ]; then echo "module context github.com/gorundebug/model has no go.mod" >&2; exit 1; fi; \
+    source_dir=${manifest%/go.mod}; mkdir -p /modules/model; cp -a "$source_dir/." /modules/model/
 COPY . /workspace
-WORKDIR /workspace/${SERVICE_DIR}
-RUN if [ -f /workspace/go.work ]; then \
-      cd /workspace \
-      && go work edit \
-        -replace github.com/gorundebug/servicelib=/servicelib; \
-    else \
-      go mod edit \
-        -replace github.com/gorundebug/servicelib=/servicelib; \
-    fi
+WORKDIR /workspace
+RUN go mod edit -replace github.com/gorundebug/servicelib=/servicelib \
+    && go mod edit -replace github.com/gorundebug/inventory_service_api=/modules/inventory_service_api \
+    && go mod edit -replace github.com/gorundebug/model=/modules/model \
+    && true
 RUN --mount=type=cache,id=servicegen-go-mod-v1-${TARGETARCH},target=/go/pkg/mod,sharing=locked \
     go mod download
 
@@ -51,6 +61,7 @@ RUN --mount=type=cache,id=servicegen-go-mod-v1-${TARGETARCH},target=/go/pkg/mod,
 # docker-build path continues in compiler and copies only the resulting binary
 # into the runtime image.
 FROM builder AS development
+RUN go install github.com/go-delve/delve/cmd/dlv@v1.25.2
 
 FROM builder AS compiler
 RUN --mount=type=cache,id=servicegen-go-mod-v1-${TARGETARCH},target=/go/pkg/mod,sharing=locked \
@@ -67,12 +78,12 @@ FROM debian:bookworm-slim AS runtime
 
 ARG SERVICE_DIR=.
 ARG TARGETARCH
-ARG SERVICEGEN_APT_DEBIAN_URL=
-ARG SERVICEGEN_APT_DEBIAN_SECURITY_URL=
-RUN if [ -n "$SERVICEGEN_APT_DEBIAN_URL$SERVICEGEN_APT_DEBIAN_SECURITY_URL" ]; then \
+ARG DEPENDENCY_APT_DEBIAN_URL=
+ARG DEPENDENCY_APT_DEBIAN_SECURITY_URL=
+RUN if [ -n "$DEPENDENCY_APT_DEBIAN_URL$DEPENDENCY_APT_DEBIAN_SECURITY_URL" ]; then \
       find /etc/apt -type f \( -name '*.list' -o -name '*.sources' \) -exec sed -i \
-        -e "s|http://deb.debian.org/debian-security|$SERVICEGEN_APT_DEBIAN_SECURITY_URL|g" \
-        -e "s|http://deb.debian.org/debian|$SERVICEGEN_APT_DEBIAN_URL|g" {} +; \
+        -e "s|http://deb.debian.org/debian-security|$DEPENDENCY_APT_DEBIAN_SECURITY_URL|g" \
+        -e "s|http://deb.debian.org/debian|$DEPENDENCY_APT_DEBIAN_URL|g" {} +; \
     fi
 RUN rm -f /etc/apt/apt.conf.d/docker-clean
 RUN --mount=type=cache,id=servicegen-go-apt-lists-v1-${TARGETARCH},target=/var/lib/apt/lists,sharing=locked \
