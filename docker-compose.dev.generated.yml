@@ -12,12 +12,9 @@ services:
       - >-
         prepare-local-build /workspace/source /workspace/service
         && if [ "$${DEBUG:-0}" = "1" ]; then
-          exec dlv debug ./cmd/service/main.go
-          --headless --listen=:2345 --api-version=2 --accept-multiclient --continue --
-          -config ./config/config.yaml -values ./config/overrides.yaml;
+          exec dlv debug ./cmd/service/main.go --headless --listen=:2345 --api-version=2 --accept-multiclient --allow-non-terminal-interactive=true --continue -- -config ./config/config.yaml -values ./config/overrides.yaml;
         else
-          exec go run ./cmd/service/main.go
-          -config ./config/config.yaml -values ./config/overrides.yaml;
+          exec go run ./cmd/service/main.go -config ./config/config.yaml -values ./config/overrides.yaml;
         fi
     environment:
       GOPROXY: ${GOPROXY:-direct}
@@ -46,12 +43,9 @@ services:
       - >-
         prepare-local-build /workspace/source /workspace/service
         && if [ "$${DEBUG:-0}" = "1" ]; then
-          exec dlv debug ./cmd/service/main.go
-          --headless --listen=:2345 --api-version=2 --accept-multiclient --continue --
-          -config ./config/config.yaml -values ./config/overrides.yaml;
+          exec dlv debug ./cmd/service/main.go --headless --listen=:2345 --api-version=2 --accept-multiclient --allow-non-terminal-interactive=true --continue -- -config ./config/config.yaml -values ./config/overrides.yaml;
         else
-          exec go run ./cmd/service/main.go
-          -config ./config/config.yaml -values ./config/overrides.yaml;
+          exec go run ./cmd/service/main.go -config ./config/config.yaml -values ./config/overrides.yaml;
         fi
     environment:
       GOPROXY: ${GOPROXY:-direct}
@@ -80,12 +74,9 @@ services:
       - >-
         prepare-local-build /workspace/source /workspace/service
         && if [ "$${DEBUG:-0}" = "1" ]; then
-          exec dlv debug ./cmd/service/main.go
-          --headless --listen=:2345 --api-version=2 --accept-multiclient --continue --
-          -config ./config/config.yaml -values ./config/overrides.yaml;
+          exec dlv debug ./cmd/service/main.go --headless --listen=:2345 --api-version=2 --accept-multiclient --allow-non-terminal-interactive=true --continue -- -config ./config/config.yaml -values ./config/overrides.yaml;
         else
-          exec go run ./cmd/service/main.go
-          -config ./config/config.yaml -values ./config/overrides.yaml;
+          exec go run ./cmd/service/main.go -config ./config/config.yaml -values ./config/overrides.yaml;
         fi
     environment:
       GOPROXY: ${GOPROXY:-direct}
@@ -114,12 +105,9 @@ services:
       - >-
         prepare-local-build /workspace/source /workspace/service
         && if [ "$${DEBUG:-0}" = "1" ]; then
-          exec dlv debug ./cmd/service/main.go
-          --headless --listen=:2345 --api-version=2 --accept-multiclient --continue --
-          -config ./config/config.yaml -values ./config/overrides.yaml;
+          exec dlv debug ./cmd/service/main.go --headless --listen=:2345 --api-version=2 --accept-multiclient --allow-non-terminal-interactive=true --continue -- -config ./config/config.yaml -values ./config/overrides.yaml;
         else
-          exec go run ./cmd/service/main.go
-          -config ./config/config.yaml -values ./config/overrides.yaml;
+          exec go run ./cmd/service/main.go -config ./config/config.yaml -values ./config/overrides.yaml;
         fi
     environment:
       GOPROXY: ${GOPROXY:-direct}
