@@ -40,7 +40,7 @@ ifneq ($(strip $(DEPENDENCY_PROXY_DIR)),)
 export GOSERVICELIB_SOURCE_CONTEXT ?= $(DEPENDENCY_PROXY_DOCKER_BASE)/github-raw/gorundebug/servicelib/archive/refs/tags/v0.2.24.tar.gz
 endif
 
-export SERVICEGEN_DOCKER_TARGET := runtime
+export DOCKER_TARGET := runtime
 DOCKER_COMPOSE := docker compose -f docker-compose.yml $(foreach file,$(DOCKER_COMPOSE_RUNTIME_FILES),-f $(file))
 DOCKER_COMPOSE_DEV := docker compose -f docker-compose.yml $(foreach file,$(DOCKER_COMPOSE_DEV_FILES),-f $(file))
 
@@ -113,22 +113,22 @@ docker-up-dev: docker-build-dev grafana-dashboards ## Start source-mounted devel
 
 debug-analyticsservice: ## Start only Analytics Service with its remote debugger on localhost:2345
 	@ANALYTICS_SERVICE_DEBUG=1 \
-		SERVICEGEN_DOCKER_TARGET=development $(DOCKER_COMPOSE_DEV) \
+		DOCKER_TARGET=development $(DOCKER_COMPOSE_DEV) \
 		up -d --no-deps --build --force-recreate analyticsservice
 
 debug-automationservice: ## Start only Automation Service with its remote debugger on localhost:2346
 	@AUTOMATION_SERVICE_DEBUG=1 \
-		SERVICEGEN_DOCKER_TARGET=development $(DOCKER_COMPOSE_DEV) \
+		DOCKER_TARGET=development $(DOCKER_COMPOSE_DEV) \
 		up -d --no-deps --build --force-recreate automationservice
 
 debug-inventoryservice: ## Start only Inventory Service with its remote debugger on localhost:2347
 	@INVENTORY_SERVICE_DEBUG=1 \
-		SERVICEGEN_DOCKER_TARGET=development $(DOCKER_COMPOSE_DEV) \
+		DOCKER_TARGET=development $(DOCKER_COMPOSE_DEV) \
 		up -d --no-deps --build --force-recreate inventoryservice
 
 debug-orderservice: ## Start only Order Service with its remote debugger on localhost:2348
 	@ORDER_SERVICE_DEBUG=1 \
-		SERVICEGEN_DOCKER_TARGET=development $(DOCKER_COMPOSE_DEV) \
+		DOCKER_TARGET=development $(DOCKER_COMPOSE_DEV) \
 		up -d --no-deps --build --force-recreate orderservice
 
 
