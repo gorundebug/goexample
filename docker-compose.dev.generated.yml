@@ -5,12 +5,13 @@ services:
   analyticsservice:
     image: analyticsservice-development:latest
     build: !reset null
-    working_dir: /workspace
+    working_dir: /workspace/service
     command:
       - /bin/sh
       - -c
       - >-
-        if [ "$${DEBUG:-0}" = "1" ]; then
+        prepare-local-build /workspace/source /workspace/service
+        && if [ "$${DEBUG:-0}" = "1" ]; then
           exec dlv debug ./cmd/service/main.go
           --headless --listen=:2345 --api-version=2 --accept-multiclient --continue --
           -config ./config/config.yaml -values ./config/overrides.yaml;
@@ -27,7 +28,8 @@ services:
       GIT_CONFIG_KEY_1: ${GIT_CONFIG_KEY_1:-}
       GIT_CONFIG_VALUE_1: ${GIT_CONFIG_VALUE_1:-}
     volumes:
-      - ./analyticsservice:/workspace:ro
+      - ./analyticsservice:/workspace/source:ro
+      - go-dev-worktree-analyticsservice:/workspace/service
       - go-dev-mod-cache:/go/pkg/mod
       - go-dev-build-cache:/root/.cache/go-build
     security_opt:
@@ -37,12 +39,13 @@ services:
   automationservice:
     image: automationservice-development:latest
     build: !reset null
-    working_dir: /workspace
+    working_dir: /workspace/service
     command:
       - /bin/sh
       - -c
       - >-
-        if [ "$${DEBUG:-0}" = "1" ]; then
+        prepare-local-build /workspace/source /workspace/service
+        && if [ "$${DEBUG:-0}" = "1" ]; then
           exec dlv debug ./cmd/service/main.go
           --headless --listen=:2345 --api-version=2 --accept-multiclient --continue --
           -config ./config/config.yaml -values ./config/overrides.yaml;
@@ -59,7 +62,8 @@ services:
       GIT_CONFIG_KEY_1: ${GIT_CONFIG_KEY_1:-}
       GIT_CONFIG_VALUE_1: ${GIT_CONFIG_VALUE_1:-}
     volumes:
-      - ./automationservice:/workspace:ro
+      - ./automationservice:/workspace/source:ro
+      - go-dev-worktree-automationservice:/workspace/service
       - go-dev-mod-cache:/go/pkg/mod
       - go-dev-build-cache:/root/.cache/go-build
     security_opt:
@@ -69,12 +73,13 @@ services:
   inventoryservice:
     image: inventoryservice-development:latest
     build: !reset null
-    working_dir: /workspace
+    working_dir: /workspace/service
     command:
       - /bin/sh
       - -c
       - >-
-        if [ "$${DEBUG:-0}" = "1" ]; then
+        prepare-local-build /workspace/source /workspace/service
+        && if [ "$${DEBUG:-0}" = "1" ]; then
           exec dlv debug ./cmd/service/main.go
           --headless --listen=:2345 --api-version=2 --accept-multiclient --continue --
           -config ./config/config.yaml -values ./config/overrides.yaml;
@@ -91,7 +96,8 @@ services:
       GIT_CONFIG_KEY_1: ${GIT_CONFIG_KEY_1:-}
       GIT_CONFIG_VALUE_1: ${GIT_CONFIG_VALUE_1:-}
     volumes:
-      - ./inventoryservice:/workspace:ro
+      - ./inventoryservice:/workspace/source:ro
+      - go-dev-worktree-inventoryservice:/workspace/service
       - go-dev-mod-cache:/go/pkg/mod
       - go-dev-build-cache:/root/.cache/go-build
     security_opt:
@@ -101,12 +107,13 @@ services:
   orderservice:
     image: orderservice-development:latest
     build: !reset null
-    working_dir: /workspace
+    working_dir: /workspace/service
     command:
       - /bin/sh
       - -c
       - >-
-        if [ "$${DEBUG:-0}" = "1" ]; then
+        prepare-local-build /workspace/source /workspace/service
+        && if [ "$${DEBUG:-0}" = "1" ]; then
           exec dlv debug ./cmd/service/main.go
           --headless --listen=:2345 --api-version=2 --accept-multiclient --continue --
           -config ./config/config.yaml -values ./config/overrides.yaml;
@@ -123,7 +130,8 @@ services:
       GIT_CONFIG_KEY_1: ${GIT_CONFIG_KEY_1:-}
       GIT_CONFIG_VALUE_1: ${GIT_CONFIG_VALUE_1:-}
     volumes:
-      - ./orderservice:/workspace:ro
+      - ./orderservice:/workspace/source:ro
+      - go-dev-worktree-orderservice:/workspace/service
       - go-dev-mod-cache:/go/pkg/mod
       - go-dev-build-cache:/root/.cache/go-build
     security_opt:
@@ -136,3 +144,7 @@ volumes:
   go-dev-build-cache:
   rust-dev-cargo-registry:
   rust-dev-cargo-git:
+  go-dev-worktree-analyticsservice:
+  go-dev-worktree-automationservice:
+  go-dev-worktree-inventoryservice:
+  go-dev-worktree-orderservice:
