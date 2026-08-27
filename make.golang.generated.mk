@@ -27,11 +27,12 @@ LANG_CLEAN_TARGETS += golang-clean
 LANG_TOOL_TARGETS += golang-tools
 LANG_HOST_PREP_TARGETS += golang-gen golang-codegen golang-tools
 LANG_DOCKER_BUILD_TARGETS += golang-docker-build
+LANG_DOCKER_DEV_BUILD_TARGETS += golang-docker-dev-build
 
 .PHONY: golang-build golang-test golang-lint golang-lint-fix golang-fmt \
 	golang-fmt-go golang-fmt-proto golang-gen golang-codegen golang-gen-proto \
 	golang-gen-openapi golang-clean golang-tools \
-	golang-docker-build go-mod-tidy go-mod-sync fmt-go fmt-proto gen-proto golang-workflowcheck \
+	golang-docker-build golang-docker-dev-build go-mod-tidy go-mod-sync fmt-go fmt-proto gen-proto golang-workflowcheck \
 	gen-openapi docker-build-local-analyticsservice debug-analyticsservice docker-build-local-automationservice debug-automationservice docker-build-local-inventoryservice debug-inventoryservice docker-build-local-orderservice debug-orderservice
 
 golang-build: golang-gen ## Generate transport code and build all Go services
@@ -106,6 +107,9 @@ golang-docker-build: golang-codegen ## Build Go service Docker images entirely i
 	@$(MAKE) -C ./automationservice -f Makefile docker-build PROJECT_DIR="$(PROJECT_DIR)"
 	@$(MAKE) -C ./inventoryservice -f Makefile docker-build PROJECT_DIR="$(PROJECT_DIR)"
 	@$(MAKE) -C ./orderservice -f Makefile docker-build PROJECT_DIR="$(PROJECT_DIR)"
+
+golang-docker-dev-build: golang-codegen ## Build source-mounted Go development images
+	@SERVICEGEN_DOCKER_TARGET=development $(DOCKER_COMPOSE_DEV) build analyticsservice automationservice inventoryservice orderservice
 
 fmt-go: golang-fmt-go ## Format Go code
 
