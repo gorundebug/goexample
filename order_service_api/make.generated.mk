@@ -2,7 +2,7 @@
 MODULE_DIR := $(abspath .)
 TOOLS_DIR ?= $(abspath ../tools)
 BUF := $(TOOLS_DIR)/buf
-PROTOC ?= $(TOOLS_DIR)/protoc
+PROTOC ?= $(or $(shell command -v protoc 2>/dev/null),$(TOOLS_DIR)/protoc)
 DEPENDENCY_DOCKER_TARGETS :=
 include dependency-proxy.generated.mk
 OAPI_CODEGEN_VERSION := v2.4.1
@@ -12,10 +12,10 @@ OAPI_CODEGEN := $(TOOLS_DIR)/oapi-codegen
 
 all: gen-proto gen-openapi
 
-build: ## [host] Compile every package in this module
+build: all ## [host] Compile every package in this module
 	@go test -run '^$$' ./...
 
-test: ## [host] Run this module's tests
+test: all ## [host] Run this module's tests
 	@go test ./...
 
 gen-proto:
