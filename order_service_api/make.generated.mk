@@ -8,9 +8,15 @@ include dependency-proxy.generated.mk
 OAPI_CODEGEN_VERSION := v2.4.1
 OAPI_CODEGEN := $(TOOLS_DIR)/oapi-codegen
 
-.PHONY: all gen-proto fmt-proto gen-openapi
+.PHONY: all build test gen-proto fmt-proto gen-openapi
 
 all: gen-proto gen-openapi
+
+build: ## Compile every package in this module
+	@go test -run '^$$' ./...
+
+test: ## Run this module's tests
+	@go test ./...
 
 gen-proto:
 	@find . -type f -name 'go.generated.proto.mk' | while read mkfile; do \
