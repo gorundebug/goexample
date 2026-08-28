@@ -12,10 +12,10 @@ OAPI_CODEGEN := $(TOOLS_DIR)/oapi-codegen
 
 all: gen-proto gen-openapi
 
-build: ## Compile every package in this module
+build: ## [host] Compile every package in this module
 	@go test -run '^$$' ./...
 
-test: ## Run this module's tests
+test: ## [host] Run this module's tests
 	@go test ./...
 
 gen-proto:
