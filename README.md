@@ -1,120 +1,203 @@
 # Example
 
+Generated ServiceLib project. The root is a development workspace and an
+orchestration layer; every service directory owns its build, Docker and
+debugging commands and can be packaged or checked out independently.
+
 ## Services
 
-- [Analytics Service](https://github.com/gorundebug/analyticsservice/blob/main/README.md)
-- [Inventory Service](https://github.com/gorundebug/inventoryservice/blob/main/README.md)
-- [Order Service](https://github.com/gorundebug/orderservice/blob/main/README.md)
 
-## Modules
+- [`analyticsservice`](./analyticsservice/README.md) — Analytics Service
 
-- [inventory_service_api](https://github.com/gorundebug/inventory_service_api/blob/main/README.md)
-- [model_go](https://github.com/gorundebug/model_go/blob/main/README.md)
-- [order_service_api](https://github.com/gorundebug/order_service_api/blob/main/README.md)
+- [`automationservice`](./automationservice/README.md) — Automation Service
 
-## Local development
+- [`inventoryservice`](./inventoryservice/README.md) — Inventory Service
 
-```bash
-make tools        # install buf, golangci-lint, act (once)
-make build        # build all services
-make run          # run all services locally
-make test         # run tests
-make lint         # run linter
+- [`orderservice`](./orderservice/README.md) — Order Service
+
+
+## Prerequisites
+
+- Git;
+- GNU Make;
+- Docker with Docker Compose v2;
+- language toolchains only for host-side build, test, lint or formatting
+  commands. Docker runtime builds do not require host language toolchains.
+
+Run `make help` to list the targets generated for the languages present in this
+project.
+
+## First local run
+
+```sh
+make tools
+make build
+make test
+make docker-up
 ```
 
-## Local CI with act
+The project Makefile explicitly uses `USE_LOCAL_MODULES=1`, so a freshly
+generated project builds against its sibling contract/model modules without
+publishing them first. `make docker-up` builds production-style runtime images
+from copied sources, generates Grafana dashboards and starts the complete
+project infrastructure and all services.
 
-Runs GitHub Actions locally in Docker — uses `go.work` to resolve local modules,
-Athens to cache public packages. No external registry needed during development.
-
-### First-time setup (once)
-
-```bash
-make docker-up      # start Athens, Prometheus, Grafana and all services
+```sh
+make docker-down       # stop the runtime stack, preserve volumes
+make docker-restart    # rebuild and restart the runtime stack
+make docker-clean      # stop the stack and remove project volumes
 ```
 
-### Run CI
+## Build modes
 
-```bash
-make act            # run CI for all services
+Runtime, development and debugger modes are intentionally separate:
+
+```sh
+make docker-build      # build autonomous runtime images from copied sources
+make docker-up         # build and start the complete runtime stack
+make docker-up-dev     # build/start services with read-only source mounts
+make docker-down-dev   # stop the development stack
+
+make debug-analyticsservice ANALYTICS_SERVICE_DEBUG_PORT=2345 # debug only Analytics Service
+
+make debug-automationservice AUTOMATION_SERVICE_DEBUG_PORT=2346 # debug only Automation Service
+
+make debug-inventoryservice INVENTORY_SERVICE_DEBUG_PORT=2347 # debug only Inventory Service
+
+make debug-orderservice ORDER_SERVICE_DEBUG_PORT=2348 # debug only Order Service
+
 ```
 
-### Publish modules and services to GitHub
+A debug target changes only the selected service. Other services and shared
+infrastructure keep their ordinary project configuration. Override the shown
+host-port variable directly in the Make invocation to run several debuggers at
+once; the debugger keeps listening on port `2345` inside each container.
 
-Each module and service lives in its own GitHub repository. Push all at once or individually:
+Application listener ports and Docker host forwarding are independent:
 
-```bash
-make git-push                    # push everything (requires: make tools && gh auth login)
-make git-push-inventory_service_api      # push module inventory_service_api → github.com/gorundebug/inventory_service_api
-make git-push-model      # push module model → github.com/gorundebug/model
-make git-push-order_service_api      # push module order_service_api → github.com/gorundebug/order_service_api
-make git-push-inventoryservice   # push service Inventory Service → github.com/gorundebug/inventoryservice
-make git-push-orderservice   # push service Order Service → github.com/gorundebug/orderservice
+| Service | Container HTTP | Host HTTP default | Container gRPC | Host gRPC default |
+|---|---:|---:|---:|---:|
+| Analytics Service | 9093 | 9093 | 9203 | 9203 |
+| Automation Service | 9094 | 9094 | 9204 | 9204 |
+| Inventory Service | 9092 | 9092 | 9202 | 9202 |
+| Order Service | 9091 | 9091 | 9201 | 9201 |
+
+
+`<SERVICE>_HTTP_PORT` and `<SERVICE>_GRPC_PORT` override the application
+listeners and the container side of each mapping. `<SERVICE>_HOST_HTTP_PORT`
+and `<SERVICE>_HOST_GRPC_PORT` override only the host side. For example,
+`ORDER_SERVICE_HTTP_PORT=8080 ORDER_SERVICE_HOST_HTTP_PORT=18080 make
+docker-up` makes the service listen on `8080` in its container and publishes it
+as `localhost:18080`. Generated Dockerfiles deliberately do not use static
+`EXPOSE` metadata for configurable ports.
+
+## Local modules and published modules
+
+There is no filesystem auto-detection and no fallback between modes:
+
+- project commands default to `USE_LOCAL_MODULES=1`;
+- a command run inside an independent service defaults to
+  `USE_LOCAL_MODULES=0`;
+- `USE_LOCAL_MODULES=1` requires every referenced unpublished module in the
+  generated sibling layout;
+- `USE_LOCAL_MODULES=0` resolves every module at the repository and revision
+  pinned by the generated service.
+
+To verify this workspace against published modules:
+
+```sh
+make build USE_LOCAL_MODULES=0
+make test USE_LOCAL_MODULES=0
+make docker-up USE_LOCAL_MODULES=0
 ```
 
-Prerequisites: run `make tools` once to install `gh` CLI, then authenticate if needed:
+To move a project from local to repository modules, publish the modules at the
+version declared by the DSL, regenerate the project so every service pins that
+version, then use `USE_LOCAL_MODULES=0`. Do not edit generated dependency files
+by hand.
 
-```bash
-./tools/gh auth login   # select GitHub.com → HTTPS → token
+For a separately obtained service and separately obtained unpublished modules,
+place them under one parent directory using their generated directory names:
+
+```text
+checkout/
+  orderservice/
+  inventory_service_api/
+  model_<language>/
+  order_service_api/
 ```
 
-The token needs the **`repo`** scope (required to create private repositories).
+Then run the service's Make command explicitly in local mode, for example:
 
-
-## Docker
-
-```bash
-make docker-up      # build images and start all services
-make docker-up RUNTIME_IMAGE=1 # start minimal runtime images without sources or build tools
-make docker-down    # stop all services
-make docker-restart # restart all services
-make docker-clean   # stop services and remove all volumes (wipes persistent data)
-make debug-inventoryservice  # rebuild and restart Inventory Service in debug mode (Delve on port 2345)
-make debug-orderservice  # rebuild and restart Order Service in debug mode (Delve on port 2346)
+```sh
+make -C orderservice build USE_LOCAL_MODULES=1
+make -C orderservice docker-build USE_LOCAL_MODULES=1
 ```
 
-`RUNTIME_IMAGE=1` selects the final multi-stage runtime target. Benchmark and
-profiling tools select it automatically. The default remains the development
-layout with debugger/source mounts where the language supports them.
+## Quality and generated code
 
-## Optional order analytics through Kafka
-
-The shared `orderProcessed` Kafka endpoint is disabled in Order Service by
-default, so it completes without creating a producer. To publish order results
-to Redpanda, set this in `orderservice/config/overrides.yaml`:
-
-```yaml
-endpoints:
-  orderProcessed:
-    enabled: true
+```sh
+make gen             # regenerate transport and schema-owned sources
+make build           # build every service
+make test            # run every service test suite
+make lint            # run all configured linters/type checks
+make lint-fix        # apply supported automatic fixes
+make fmt             # format generated-language sources
+make ci              # tools + build + test + lint
+make integration-test
+make clean           # remove language build artifacts
 ```
 
-`analyticsservice` consumes the `order-processed` topic and counts successful
-and unsuccessful orders. The compose workspace includes its Redpanda broker.
 
-## Call the Order Service
+### Go
 
-After `make docker-up`, submit an order that can be reserved from the initial
-inventory:
-
-```bash
-curl --fail-with-body \
-  -X POST http://localhost:9091/v1/processorder \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "customer_id": "customer-1",
-    "items": [
-      {
-        "item_id": "item-1",
-        "sku": "SKU-001",
-        "quantity": 2,
-        "unit_price": 799.0
-      }
-    ]
-  }'
+```sh
+make golang-build
+make golang-test
+make golang-lint
+make golang-lint-fix
+make golang-codegen
+make go-mod-sync
 ```
 
-The response has order status `CONFIRMED`; its item has `reserved: true` and
-status `CONFIRMED`. Initial inventory is `SKU-001: 100`, `SKU-002: 50`, and
-`SKU-003: 25`. Successful requests reduce that inventory until the Inventory
-Service is restarted.
+
+
+
+
+
+
+## Optional dependency proxy
+
+Proxy use is selected only by the caller environment and does not change local
+module selection. Without `DEPENDENCY_PROXY_DIR`, builds use normal upstream
+registries. With it, package, archive and Git downloads use the persistent
+Nexus/Git-mirror stack and never bypass it.
+
+```sh
+export DEPENDENCY_PROXY_DIR=/absolute/path/to/dependency-proxy-data
+make DEPENDENCY_PROXY_ACCEPT_EULA=true dependency-cache-up # first start only
+make dependency-cache-status
+make dependency-cache-refresh  # refresh every mirrored Git repository
+make dependency-cache-docker-build
+make dependency-cache-down     # preserve cached data
+```
+
+See [`dependency-cache/README.generated.md`](./dependency-cache/README.generated.md)
+for setup, routing, retry, Linux/macOS Docker-host details and cache
+maintenance.
+
+## Kubernetes
+
+```sh
+make kubernetes-up      # build, deploy and verify the local cluster
+make kubernetes-build   # build and publish images to its local registry
+make kubernetes-deploy  # install infrastructure and service Helm releases
+make kubernetes-test    # verify rollouts and metrics
+make kubernetes-status
+make kubernetes-down    # preserve cluster volumes
+make kubernetes-clean   # remove the cluster and its volumes
+```
+
+The shorter `k8s-*` aliases provide the same operations. Kubernetes-specific
+details are in
+[`kubernetes/README.generated.md`](./kubernetes/README.generated.md).
