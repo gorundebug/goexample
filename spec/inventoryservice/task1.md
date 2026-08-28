@@ -30,16 +30,16 @@ If the inventory call fails, the caller returns a non-reserved PROCESSING_ERROR 
 
 
 ## Stream types
-- Input: `OrderItem` — `model/pkg/types/orderitem.go`
-- Output: `OrderItemResult` — `model/pkg/types/orderitemresult.go`
+- Input: `OrderItem` — `model_go/pkg/types/orderitem.go`
+- Output: `OrderItemResult` — `model_go/pkg/types/orderitemresult.go`
 
 ## Checklist
 
 - [ ] Read [`spec/rules.md`](../rules.md), especially the `Go` section
 - [ ] Open `inventoryservice/internal/functions/endpoint/processorderitemsource.go` and preserve its generated contract
 - [ ] Read `inventory_service_api/proto/inventoryserviceapi/processorderitem/processorderitem.proto`; change the source contract rather than generated bindings
-- [ ] Inspect input type `OrderItem` in `model/pkg/types/orderitem.go`
-- [ ] Inspect output type `OrderItemResult` in `model/pkg/types/orderitemresult.go`
+- [ ] Inspect input type `OrderItem` in `model_go/pkg/types/orderitem.go`
+- [ ] Inspect output type `OrderItemResult` in `model_go/pkg/types/orderitemresult.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
 - [ ] Verify the endpoint/result lifecycle, including completion and error paths

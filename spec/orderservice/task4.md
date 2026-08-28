@@ -22,14 +22,14 @@ Record the time when this result is produced.
 
 
 ## Stream types
-- Input: `OrderItemResult` — `model/pkg/types/orderitemresult.go`
+- Input: `OrderItemResult` — `model_go/pkg/types/orderitemresult.go`
 - Output: `OrderState` — `orderservice/internal/types/orderstate.go`
 
 ## Checklist
 
 - [ ] Read [`spec/rules.md`](../rules.md), especially the `Go` section
 - [ ] Open `orderservice/internal/functions/order/maporderitemresulttoorderstate.go` and preserve its generated contract
-- [ ] Inspect input type `OrderItemResult` in `model/pkg/types/orderitemresult.go`
+- [ ] Inspect input type `OrderItemResult` in `model_go/pkg/types/orderitemresult.go`
 - [ ] Inspect output type `OrderState` in `orderservice/internal/types/orderstate.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`

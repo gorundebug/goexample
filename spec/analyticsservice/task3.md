@@ -1,13 +1,13 @@
-# Task 1/8: `OrderProcessedEndpointSink`
+# Task 3/3: `OrderProcessedEndpointSource`
 
 > Rules: [`spec/rules.md`](../rules.md)
 
 | Field | Value |
 |-------|-------|
 | Language | `Go` |
-| Kind | `kafka-sink` |
-| File | `orderservice/internal/functions/endpoint/orderprocessedendpointsink.go` |
-| Service | `Order Service` |
+| Kind | `kafka-source` |
+| File | `analyticsservice/internal/functions/endpoint/orderprocessedendpointsource.go` |
+| Service | `Analytics Service` |
 
 
 ## Behaviour
@@ -27,10 +27,10 @@ Consumers decode the event and mark its Kafka message processed only after the p
 ## Checklist
 
 - [ ] Read [`spec/rules.md`](../rules.md), especially the `Go` section
-- [ ] Open `orderservice/internal/functions/endpoint/orderprocessedendpointsink.go` and preserve its generated contract
+- [ ] Open `analyticsservice/internal/functions/endpoint/orderprocessedendpointsource.go` and preserve its generated contract
 - [ ] Inspect input type `OrderProcessed` in `model_go/pkg/types/orderprocessed.go`
 - [ ] Inspect output type `OrderProcessed` in `model_go/pkg/types/orderprocessed.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
 - [ ] Re-read this checklist
-- [ ] Append to `spec/progress.md`: `- [x] orderservice/task1.md — OrderProcessedEndpointSink — Go — done`
+- [ ] Append to `spec/progress.md`: `- [x] analyticsservice/task3.md — OrderProcessedEndpointSource — Go — done`

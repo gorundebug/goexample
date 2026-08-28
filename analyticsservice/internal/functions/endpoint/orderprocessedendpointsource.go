@@ -9,7 +9,7 @@ import (
 	runtimecfg "github.com/gorundebug/servicelib/runtime/config"
 	"github.com/gorundebug/servicelib/runtime/environment"
 
-	"github.com/gorundebug/model/pkg/types"
+	"github.com/gorundebug/model_go/pkg/types"
 )
 
 // orderProcessedEndpointHandler is a type alias for the EndpointHandler generic instantiation used throughout this file.

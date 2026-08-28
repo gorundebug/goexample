@@ -41,7 +41,7 @@ golang-build: golang-gen ## Generate transport code and build all Go services
 	@$(MAKE) -C ./inventoryservice -f Makefile service_build USE_LOCAL_MODULES=1 PROJECT_DIR="$(PROJECT_DIR)" BIN_DIR="$(BIN_DIR)"
 	@$(MAKE) -C ./orderservice -f Makefile service_build USE_LOCAL_MODULES=1 PROJECT_DIR="$(PROJECT_DIR)" BIN_DIR="$(BIN_DIR)"
 
-golang-test: ## Run tests for all Go services
+golang-test: golang-codegen ## Generate transport code and run tests for all Go services
 	@$(MAKE) -C ./analyticsservice -f Makefile test USE_LOCAL_MODULES=1
 	@$(MAKE) -C ./automationservice -f Makefile test USE_LOCAL_MODULES=1
 	@$(MAKE) -C ./inventoryservice -f Makefile test USE_LOCAL_MODULES=1
@@ -67,7 +67,7 @@ golang-fmt-go: ## Format Go code
 	@gofmt -w ./inventoryservice
 	@gofmt -w ./orderservice
 	@gofmt -w ./inventory_service_api
-	@gofmt -w ./model
+	@gofmt -w ./model_go
 	@gofmt -w ./order_service_api
 
 golang-fmt-proto: $(BUF) ## Format protobuf files used by Go
@@ -76,7 +76,7 @@ golang-fmt-proto: $(BUF) ## Format protobuf files used by Go
 	@$(MAKE) -C ./inventoryservice -f Makefile fmt-proto TOOLS_DIR="$(TOOLS_DIR)"
 	@$(MAKE) -C ./orderservice -f Makefile fmt-proto TOOLS_DIR="$(TOOLS_DIR)"
 	@$(MAKE) -C ./inventory_service_api -f make.generated.mk fmt-proto TOOLS_DIR="$(TOOLS_DIR)"
-	@$(MAKE) -C ./model -f make.generated.mk fmt-proto TOOLS_DIR="$(TOOLS_DIR)"
+	@$(MAKE) -C ./model_go -f make.generated.mk fmt-proto TOOLS_DIR="$(TOOLS_DIR)"
 	@$(MAKE) -C ./order_service_api -f make.generated.mk fmt-proto TOOLS_DIR="$(TOOLS_DIR)"
 
 golang-fmt: golang-fmt-go golang-fmt-proto ## Format all Go-owned sources
@@ -87,7 +87,7 @@ golang-gen-proto: $(PROTOC) $(PROTOC_GEN_GO) $(PROTOC_GEN_GO_GRPC) ## Generate G
 	@$(MAKE) -C ./inventoryservice -f Makefile gen-proto PROTOC="$(PROTOC)"
 	@$(MAKE) -C ./orderservice -f Makefile gen-proto PROTOC="$(PROTOC)"
 	@$(MAKE) -C ./inventory_service_api -f make.generated.mk gen-proto PROTOC="$(PROTOC)"
-	@$(MAKE) -C ./model -f make.generated.mk gen-proto PROTOC="$(PROTOC)"
+	@$(MAKE) -C ./model_go -f make.generated.mk gen-proto PROTOC="$(PROTOC)"
 	@$(MAKE) -C ./order_service_api -f make.generated.mk gen-proto PROTOC="$(PROTOC)"
 golang-gen-openapi: $(OAPI_CODEGEN) ## Generate Go OpenAPI code
 	@$(MAKE) -C ./order_service_api -f Makefile gen-openapi TOOLS_DIR="$(TOOLS_DIR)"
@@ -126,13 +126,13 @@ go-mod-tidy: ## Run go mod tidy for all Go modules
 	@cd ./inventoryservice && GOPRIVATE="$(GOPRIVATE)" go mod tidy -e
 	@cd ./orderservice && GOPRIVATE="$(GOPRIVATE)" go mod tidy -e
 	@cd ./inventory_service_api && GOPRIVATE="$(GOPRIVATE)" go mod tidy -e
-	@cd ./model && GOPRIVATE="$(GOPRIVATE)" go mod tidy -e
+	@cd ./model_go && GOPRIVATE="$(GOPRIVATE)" go mod tidy -e
 	@cd ./order_service_api && GOPRIVATE="$(GOPRIVATE)" go mod tidy -e
 	@go work use
 
 go-mod-sync: ## Sync Go modules with published versions after git-push
 	@cd ./inventory_service_api && GOWORK=off GOPRIVATE="$(GOPRIVATE)" go mod tidy -e
-	@cd ./model && GOWORK=off GOPRIVATE="$(GOPRIVATE)" go mod tidy -e
+	@cd ./model_go && GOWORK=off GOPRIVATE="$(GOPRIVATE)" go mod tidy -e
 	@cd ./order_service_api && GOWORK=off GOPRIVATE="$(GOPRIVATE)" go mod tidy -e
 	@cd ./analyticsservice && GOWORK=off GOPRIVATE="$(GOPRIVATE)" go mod tidy -e
 	@cd ./automationservice && GOWORK=off GOPRIVATE="$(GOPRIVATE)" go mod tidy -e

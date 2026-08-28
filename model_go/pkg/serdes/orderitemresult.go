@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/gorundebug/model/pkg/types"
+	"github.com/gorundebug/model_go/pkg/types"
 )
 
 type OrderItemResultSerde struct{}
@@ -30,9 +30,9 @@ func (s *OrderItemResultSerde) Serialize(value *types.OrderItemResult, _ []byte)
 }
 
 func (s *OrderItemResultSerde) Deserialize(data []byte) (*types.OrderItemResult, error) {
-	var v types.OrderItemResult
-	if err := json.Unmarshal(data, &v); err != nil {
+	var value types.OrderItemResult
+	if err := json.Unmarshal(data, &value); err != nil {
 		return nil, err
 	}
-	return &v, nil
+	return &value, nil
 }

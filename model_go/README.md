@@ -1,6 +1,6 @@
 # model
 
-Go module path: `github.com/gorundebug/model`
+Go module path: `github.com/gorundebug/model_go`
 
 ## Make commands
 

@@ -19,18 +19,21 @@ const (
 
 // Stream IDs
 const (
-	consumeOrderProcessedStreamID = iota + 1
+	analyticsScheduleStreamID = iota + 1
+	consumeOrderProcessedStreamID
 	countOrderProcessedStreamID
 )
 
 // Endpoint IDs
 const (
-	orderProcessedEndpointID = iota + 1
+	analyticsScheduleEndpointID = iota + 1
+	orderProcessedEndpointID
 )
 
 // Connector IDs
 const (
-	orderEventsConnectorID = iota + 1
+	localCronConnectorID = iota + 1
+	orderEventsConnectorID
 )
 
 type Config struct {
@@ -39,15 +42,19 @@ type Config struct {
 	} `yaml:"services" mapstructure:"services"`
 
 	Streams struct {
+		AnalyticsSchedule     cfg.InputStreamConfig   `yaml:"analyticsSchedule" mapstructure:"analyticsSchedule"`
 		ConsumeOrderProcessed cfg.InputStreamConfig   `yaml:"consumeOrderProcessed" mapstructure:"consumeOrderProcessed"`
 		CountOrderProcessed   cfg.ProcessStreamConfig `yaml:"countOrderProcessed" mapstructure:"countOrderProcessed"`
 	} `yaml:"streams" mapstructure:"streams"`
 
 	DataConnectors struct {
+		LocalCron   cfg.CronDataConnectorConfig  `yaml:"localCron" mapstructure:"localCron"`
 		OrderEvents cfg.KafkaDataConnectorConfig `yaml:"orderEvents" mapstructure:"orderEvents"`
 	} `yaml:"dataConnectors" mapstructure:"dataConnectors"`
 
 	Endpoints struct {
+		AnalyticsSchedule cfg.CronEndpointConfig `yaml:"analyticsSchedule" mapstructure:"analyticsSchedule"`
+
 		OrderProcessed cfg.KafkaEndpointConfig `yaml:"orderProcessed" mapstructure:"orderProcessed"`
 	} `yaml:"endpoints" mapstructure:"endpoints"`
 
@@ -64,6 +71,7 @@ type Config struct {
 	} `yaml:"modules" mapstructure:"modules"`
 
 	Types struct {
+		AutomationJob  cfg.TypeConfig `yaml:"automationJob" mapstructure:"automationJob"`
 		OrderProcessed cfg.TypeConfig `yaml:"orderProcessed" mapstructure:"orderProcessed"`
 	} `yaml:"types" mapstructure:"types"`
 
@@ -83,6 +91,7 @@ func (c *Config) GetServices() []*cfg.ServiceConfig {
 
 func (c *Config) GetStreams() []cfg.StreamConfig {
 	return []cfg.StreamConfig{
+		&c.Streams.AnalyticsSchedule,
 		&c.Streams.ConsumeOrderProcessed,
 		&c.Streams.CountOrderProcessed,
 	}
@@ -90,12 +99,14 @@ func (c *Config) GetStreams() []cfg.StreamConfig {
 
 func (c *Config) GetDataConnectors() []cfg.DataConnectorConfig {
 	return []cfg.DataConnectorConfig{
+		&c.DataConnectors.LocalCron,
 		&c.DataConnectors.OrderEvents,
 	}
 }
 
 func (c *Config) GetEndpoints() []cfg.EndpointConfig {
 	return []cfg.EndpointConfig{
+		&c.Endpoints.AnalyticsSchedule,
 		&c.Endpoints.OrderProcessed,
 	}
 }
@@ -118,11 +129,18 @@ func (c *Config) GetModules() []*cfg.ModuleConfig {
 
 func (c *Config) GetTypes() []*cfg.TypeConfig {
 	return []*cfg.TypeConfig{
+		&c.Types.AutomationJob,
 		&c.Types.OrderProcessed,
 	}
 }
 
 func (c *Config) ApplyEnvironment() error {
+	if err := c.applyAnalyticsScheduleEnabled(); err != nil {
+		return err
+	}
+	if err := c.applyAnalyticsScheduleTracingEnabled(); err != nil {
+		return err
+	}
 	if err := c.applyAnalyticsServiceDefaultGrpcTimeout(); err != nil {
 		return err
 	}
@@ -159,6 +177,36 @@ func (c *Config) ApplyEnvironment() error {
 	if err := c.applyOrderProcessedEnabled(); err != nil {
 		return err
 	}
+	return nil
+}
+
+func (c *Config) applyAnalyticsScheduleEnabled() error {
+	value, exists := os.LookupEnv("ANALYTICS_SCHEDULE_ENABLED")
+	if !exists {
+		return nil
+	}
+
+	boolVal, err := strconv.ParseBool(value)
+	if err != nil {
+		return fmt.Errorf("failed to convert ANALYTICS_SCHEDULE_ENABLED to bool: %w", err)
+	}
+	c.Endpoints.AnalyticsSchedule.Enabled = boolVal
+
+	return nil
+}
+
+func (c *Config) applyAnalyticsScheduleTracingEnabled() error {
+	value, exists := os.LookupEnv("ANALYTICS_SCHEDULE_TRACING_ENABLED")
+	if !exists {
+		return nil
+	}
+
+	boolVal, err := strconv.ParseBool(value)
+	if err != nil {
+		return fmt.Errorf("failed to convert ANALYTICS_SCHEDULE_TRACING_ENABLED to bool: %w", err)
+	}
+	c.Endpoints.AnalyticsSchedule.TracingEnabled = boolVal
+
 	return nil
 }
 
@@ -338,9 +386,21 @@ func MakeConfig() *Config {
 			},
 		},
 		Streams: struct {
+			AnalyticsSchedule     cfg.InputStreamConfig   `yaml:"analyticsSchedule" mapstructure:"analyticsSchedule"`
 			ConsumeOrderProcessed cfg.InputStreamConfig   `yaml:"consumeOrderProcessed" mapstructure:"consumeOrderProcessed"`
 			CountOrderProcessed   cfg.ProcessStreamConfig `yaml:"countOrderProcessed" mapstructure:"countOrderProcessed"`
 		}{
+			AnalyticsSchedule: cfg.InputStreamConfig{
+				ID:         analyticsScheduleStreamID,
+				Name:       "Analytics Schedule",
+				Pipeline:   "analytics",
+				IdService:  analyticsServiceServiceID,
+				XPos:       -1600,
+				YPos:       -205,
+				ValueType:  "AutomationJob",
+				IdEndpoint: analyticsScheduleEndpointID,
+			},
+
 			ConsumeOrderProcessed: cfg.InputStreamConfig{
 				ID:         consumeOrderProcessedStreamID,
 				Name:       "Consume Order Processed",
@@ -367,8 +427,15 @@ func MakeConfig() *Config {
 			},
 		},
 		DataConnectors: struct {
+			LocalCron   cfg.CronDataConnectorConfig  `yaml:"localCron" mapstructure:"localCron"`
 			OrderEvents cfg.KafkaDataConnectorConfig `yaml:"orderEvents" mapstructure:"orderEvents"`
 		}{
+			LocalCron: cfg.CronDataConnectorConfig{
+				ID:             localCronConnectorID,
+				Name:           "Local Cron",
+				Implementation: api.DataConnectorImplementationGoGocron,
+			},
+
 			OrderEvents: cfg.KafkaDataConnectorConfig{
 				ID:               orderEventsConnectorID,
 				Name:             "Order Events",
@@ -381,8 +448,20 @@ func MakeConfig() *Config {
 			},
 		},
 		Endpoints: struct {
-			OrderProcessed cfg.KafkaEndpointConfig `yaml:"orderProcessed" mapstructure:"orderProcessed"`
+			AnalyticsSchedule cfg.CronEndpointConfig  `yaml:"analyticsSchedule" mapstructure:"analyticsSchedule"`
+			OrderProcessed    cfg.KafkaEndpointConfig `yaml:"orderProcessed" mapstructure:"orderProcessed"`
 		}{
+			AnalyticsSchedule: cfg.CronEndpointConfig{
+				ID:              analyticsScheduleEndpointID,
+				Name:            "Analytics Schedule",
+				IdDataConnector: localCronConnectorID,
+				Enabled:         true,
+				Schedule:        "*/5 * * * *",
+				Timezone:        "UTC",
+				OverlapPolicy:   api.ScheduleOverlapPolicySkip,
+				MissedRunPolicy: api.ScheduleMissedRunPolicyFireOnce,
+			},
+
 			OrderProcessed: cfg.KafkaEndpointConfig{
 				ID:                  orderProcessedEndpointID,
 				Name:                "Order Processed",
@@ -413,7 +492,7 @@ func MakeConfig() *Config {
 			},
 			Model: cfg.ModuleConfig{
 				Name: "model",
-				Path: "github.com/gorundebug/model",
+				Path: "github.com/gorundebug/model_go",
 			},
 			OrderServiceApi: cfg.ModuleConfig{
 				Name: "order_service_api",
@@ -421,8 +500,16 @@ func MakeConfig() *Config {
 			},
 		},
 		Types: struct {
+			AutomationJob  cfg.TypeConfig `yaml:"automationJob" mapstructure:"automationJob"`
 			OrderProcessed cfg.TypeConfig `yaml:"orderProcessed" mapstructure:"orderProcessed"`
 		}{
+			AutomationJob: cfg.TypeConfig{
+				Name:       "AutomationJob",
+				Type:       api.DataTypeString,
+				Module:     "model",
+				PublicType: true,
+			},
+
 			OrderProcessed: cfg.TypeConfig{
 				Name:             "OrderProcessed",
 				Type:             api.DataTypeStruct,

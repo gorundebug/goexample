@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/gorundebug/model/pkg/types"
+	"github.com/gorundebug/model_go/pkg/types"
 )
 
 type OrderProcessedSerde struct{}

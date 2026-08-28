@@ -9,7 +9,7 @@
 ## Modules
 
 - [inventory_service_api](https://github.com/gorundebug/inventory_service_api/blob/main/README.md)
-- [model](https://github.com/gorundebug/model/blob/main/README.md)
+- [model_go](https://github.com/gorundebug/model_go/blob/main/README.md)
 - [order_service_api](https://github.com/gorundebug/order_service_api/blob/main/README.md)
 
 ## Local development

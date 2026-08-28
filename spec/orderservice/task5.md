@@ -22,14 +22,14 @@ Preserve the order ID, status, and processing time. Count all item results and r
 
 ## Stream types
 - Input: `OrderState` — `orderservice/internal/types/orderstate.go`
-- Output: `OrderProcessed` — `model/pkg/types/orderprocessed.go`
+- Output: `OrderProcessed` — `model_go/pkg/types/orderprocessed.go`
 
 ## Checklist
 
 - [ ] Read [`spec/rules.md`](../rules.md), especially the `Go` section
 - [ ] Open `orderservice/internal/functions/order/maptoorderprocessed.go` and preserve its generated contract
 - [ ] Inspect input type `OrderState` in `orderservice/internal/types/orderstate.go`
-- [ ] Inspect output type `OrderProcessed` in `model/pkg/types/orderprocessed.go`
+- [ ] Inspect output type `OrderProcessed` in `model_go/pkg/types/orderprocessed.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
 - [ ] Implement meaningful assertions in `orderservice/internal/functions/order/maptoorderprocessed_test.go`

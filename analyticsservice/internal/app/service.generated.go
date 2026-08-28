@@ -24,15 +24,17 @@ import (
 
 	"github.com/gorundebug/analyticsservice/internal/config"
 	"github.com/gorundebug/analyticsservice/internal/functions/analytics"
+	"github.com/gorundebug/analyticsservice/internal/functions/cron"
 	"github.com/gorundebug/analyticsservice/internal/functions/endpoint"
-	"github.com/gorundebug/model/pkg/serdes"
-	"github.com/gorundebug/model/pkg/types"
+	"github.com/gorundebug/model_go/pkg/serdes"
+	"github.com/gorundebug/model_go/pkg/types"
 )
 
 type serviceMakers struct {
 	//stream function makers
 	analyticsCountOrderProcessedMaker func(ctx context.Context, cfg *runtimecfg.ProcessStreamConfig, env environment.ServiceEnvironment) (*analytics.CountOrderProcessed, error)
 	//data source function makers
+	cronAnalyticsScheduleSourceMaker          func(ctx context.Context, cfg *runtimecfg.CronEndpointConfig, env environment.ServiceEnvironment) (*cron.AnalyticsScheduleSource, error)
 	endpointOrderProcessedEndpointSourceMaker func(ctx context.Context, cfg *runtimecfg.KafkaEndpointConfig, env environment.ServiceEnvironment) (*endpoint.OrderProcessedEndpointSource, error)
 	//data sink function makers
 }
@@ -41,12 +43,14 @@ type serviceFunctions struct {
 	//stream functions
 	analyticsCountOrderProcessed *analytics.CountOrderProcessed
 	//data source functions
+	cronAnalyticsScheduleSource          *cron.AnalyticsScheduleSource
 	endpointOrderProcessedEndpointSource *endpoint.OrderProcessedEndpointSource
 	//data sink functions
 }
 
 type serviceStreams struct {
 	//streams
+	analyticsSchedule     runtime.TypedInputStream[string, any, error]
 	consumeOrderProcessed runtime.TypedInputStream[*types.OrderProcessed, *types.OrderProcessed, error]
 	countOrderProcessed   runtime.TypedProcessConsumedStream[*types.OrderProcessed, *types.OrderProcessed, error]
 }
@@ -57,7 +61,8 @@ type serviceHandlers struct {
 
 type serviceDataConnectors struct {
 	//data sources
-	orderProcessed runtime.Consumer[*types.OrderProcessed]
+	analyticsSchedule runtime.Consumer[string]
+	orderProcessed    runtime.Consumer[*types.OrderProcessed]
 	//data sinks
 }
 
@@ -110,6 +115,11 @@ func (s *Service) initMakers(ctx context.Context) error {
 			return analytics.MakeCountOrderProcessed(ctx, env, cfg)
 		}
 	}
+	if s.makers.cronAnalyticsScheduleSourceMaker == nil {
+		s.makers.cronAnalyticsScheduleSourceMaker = func(ctx context.Context, cfg *runtimecfg.CronEndpointConfig, env environment.ServiceEnvironment) (*cron.AnalyticsScheduleSource, error) {
+			return cron.MakeAnalyticsScheduleSource(ctx, env, cfg)
+		}
+	}
 	if s.makers.endpointOrderProcessedEndpointSourceMaker == nil {
 		s.makers.endpointOrderProcessedEndpointSourceMaker = func(ctx context.Context, cfg *runtimecfg.KafkaEndpointConfig, env environment.ServiceEnvironment) (*endpoint.OrderProcessedEndpointSource, error) {
 			return endpoint.MakeOrderProcessedEndpointSource(ctx, env, cfg)
@@ -155,6 +165,9 @@ func (s *Service) buildRuntime(ctx context.Context) error {
 
 func (s *Service) initStreams(ctx context.Context, cfg *config.Config, env runtime.RuntimeEnvironment) error {
 	var err error
+	if s.streams.analyticsSchedule, err = transformation.Input[string, any, error](&cfg.Streams.AnalyticsSchedule, env); err != nil {
+		return err
+	}
 	if s.streams.consumeOrderProcessed, err = transformation.Input[*types.OrderProcessed, *types.OrderProcessed, error](&cfg.Streams.ConsumeOrderProcessed, env); err != nil {
 		return err
 	}
@@ -162,6 +175,9 @@ func (s *Service) initStreams(ctx context.Context, cfg *config.Config, env runti
 		return err
 	}
 	if err = s.streams.consumeOrderProcessed.SetSource(s.streams.countOrderProcessed); err != nil {
+		return err
+	}
+	if s.dataConnectors.analyticsSchedule, err = cron.MakeEndpointConsumerAnalyticsScheduleSource(s.streams.analyticsSchedule, s.functions.cronAnalyticsScheduleSource); err != nil {
 		return err
 	}
 	if s.dataConnectors.orderProcessed, err = endpoint.MakeEndpointConsumerOrderProcessedEndpointSource(s.streams.consumeOrderProcessed, s.functions.endpointOrderProcessedEndpointSource); err != nil {
@@ -178,6 +194,13 @@ func (s *Service) initFunctions(ctx context.Context, cfg *config.Config, env run
 		eg.Go(func() error {
 			var err error
 			s.functions.analyticsCountOrderProcessed, err = s.makers.analyticsCountOrderProcessedMaker(egCtx, &cfg.Streams.CountOrderProcessed, env)
+			return err
+		})
+	}
+	if s.makers.cronAnalyticsScheduleSourceMaker != nil {
+		eg.Go(func() error {
+			var err error
+			s.functions.cronAnalyticsScheduleSource, err = s.makers.cronAnalyticsScheduleSourceMaker(egCtx, &cfg.Endpoints.AnalyticsSchedule, env)
 			return err
 		})
 	}
@@ -225,6 +248,13 @@ func (s *Service) initWorkflowFunctions(ctx context.Context, cfg *config.Config,
 			return err
 		}
 		s.functions.analyticsCountOrderProcessed = value
+	}
+	if s.makers.cronAnalyticsScheduleSourceMaker != nil {
+		value, err := s.makers.cronAnalyticsScheduleSourceMaker(ctx, &cfg.Endpoints.AnalyticsSchedule, env)
+		if err != nil {
+			return err
+		}
+		s.functions.cronAnalyticsScheduleSource = value
 	}
 	if s.makers.endpointOrderProcessedEndpointSourceMaker != nil {
 		value, err := s.makers.endpointOrderProcessedEndpointSourceMaker(ctx, &cfg.Endpoints.OrderProcessed, env)

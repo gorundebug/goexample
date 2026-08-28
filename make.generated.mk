@@ -38,7 +38,7 @@ DEPENDENCY_HOST_TARGETS := $(LANG_HOST_PREP_TARGETS)
 include dependency-proxy.generated.mk
 
 ifneq ($(strip $(DEPENDENCY_PROXY_DIR)),)
-export GOSERVICELIB_SOURCE_CONTEXT ?= $(DEPENDENCY_PROXY_DOCKER_BASE)/github-raw/gorundebug/servicelib/archive/refs/tags/v0.2.25.tar.gz
+export GOSERVICELIB_SOURCE_CONTEXT ?= $(DEPENDENCY_PROXY_DOCKER_BASE)/github-raw/gorundebug/servicelib/archive/refs/tags/v0.2.27.tar.gz
 endif
 
 export DOCKER_TARGET := runtime
@@ -64,7 +64,7 @@ GLAB := $(TOOLS_DIR)/glab
 	dependency-cache-docker-env dependency-cache-docker-build \
 	dependency-cache-down dependency-cache-clean \
 	dependency-source-cache-invalidate \
-	git-push git-delete debug-analyticsservice debug-automationservice debug-inventoryservice debug-orderservice git-push-inventory_service_api git-delete-inventory_service_api git-push-model git-delete-model git-push-order_service_api git-delete-order_service_api git-push-analyticsservice git-delete-analyticsservice git-push-automationservice git-delete-automationservice git-push-inventoryservice git-delete-inventoryservice git-push-orderservice git-delete-orderservice git-push-project git-delete-project
+	git-push git-delete debug-analyticsservice debug-automationservice debug-inventoryservice debug-orderservice git-push-inventory_service_api git-delete-inventory_service_api git-push-model_go git-delete-model_go git-push-order_service_api git-delete-order_service_api git-push-analyticsservice git-delete-analyticsservice git-push-automationservice git-delete-automationservice git-push-inventoryservice git-delete-inventoryservice git-push-orderservice git-delete-orderservice git-push-project git-delete-project
 
 all: build ## Build all services (default)
 
@@ -296,11 +296,11 @@ git-delete-inventory_service_api: $(GH) ## Delete module inventory_service_api f
 	@$(GH) repo delete gorundebug/inventory_service_api --yes 2>/dev/null || true
 
 
-git-push-model: $(GH) ## Push module model to github.com/gorundebug/model
-	$(call git-push-dir,model,$(MODULE_VERSION),github.com,gorundebug/model)
+git-push-model_go: $(GH) ## Push module model_go to github.com/gorundebug/model_go
+	$(call git-push-dir,model_go,$(MODULE_VERSION),github.com,gorundebug/model_go)
 
-git-delete-model: $(GH) ## Delete module model from remote
-	@$(GH) repo delete gorundebug/model --yes 2>/dev/null || true
+git-delete-model_go: $(GH) ## Delete module model_go from remote
+	@$(GH) repo delete gorundebug/model_go --yes 2>/dev/null || true
 
 
 git-push-order_service_api: $(GH) ## Push module order_service_api to github.com/gorundebug/order_service_api
@@ -348,10 +348,10 @@ git-delete-project: $(GH) ## Delete project repository github.com/gorundebug/goe
 git-push: gen $(GH) ## Generate and push all modules, services, and project repositories
 	@$(GH) auth status >/dev/null 2>&1 || { echo "ERROR: authenticate first with: $(GH) auth login"; exit 1; }
 
-	@$(MAKE) git-push-inventory_service_api git-push-model git-push-order_service_api git-push-analyticsservice git-push-automationservice git-push-inventoryservice git-push-orderservice git-push-project
+	@$(MAKE) git-push-inventory_service_api git-push-model_go git-push-order_service_api git-push-analyticsservice git-push-automationservice git-push-inventoryservice git-push-orderservice git-push-project
 
 git-delete: $(GH) ## Delete all generated remote repositories
-	@$(MAKE) git-delete-inventory_service_api git-delete-model git-delete-order_service_api git-delete-analyticsservice git-delete-automationservice git-delete-inventoryservice git-delete-orderservice git-delete-project
+	@$(MAKE) git-delete-inventory_service_api git-delete-model_go git-delete-order_service_api git-delete-analyticsservice git-delete-automationservice git-delete-inventoryservice git-delete-orderservice git-delete-project
 
 help: ## Show this help
 	@grep -hE '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-32s %s\n", $$1, $$2}'

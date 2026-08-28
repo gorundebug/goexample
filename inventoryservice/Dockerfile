@@ -3,7 +3,7 @@ ARG DEPENDENCY_DOCKER_REGISTRY=docker.io
 # Stage 1: Build
 FROM servicelib-source AS servicelib-source
 FROM module-inventory_service_api-source AS module-inventory_service_api-source
-FROM module-model-source AS module-model-source
+FROM module-model_go-source AS module-model_go-source
 
 FROM ${DEPENDENCY_DOCKER_REGISTRY}/library/golang:1.25-bookworm AS builder
 
@@ -74,12 +74,12 @@ RUN set -eu; source_dir=/tmp/module-inventory_service_api-source; \
     if [ ! -f "$manifest" ]; then manifest=$(find "$source_dir" -mindepth 2 -maxdepth 2 -type f -name go.mod -print -quit); fi; \
     if [ -z "$manifest" ]; then echo "module context github.com/gorundebug/inventory_service_api has no go.mod" >&2; exit 1; fi; \
     source_dir=${manifest%/go.mod}; mkdir -p /modules/inventory_service_api; cp -a "$source_dir/." /modules/inventory_service_api/
-COPY --from=module-model-source / /tmp/module-model-source
-RUN set -eu; source_dir=/tmp/module-model-source; \
+COPY --from=module-model_go-source / /tmp/module-model_go-source
+RUN set -eu; source_dir=/tmp/module-model_go-source; \
     manifest="$source_dir/go.mod"; \
     if [ ! -f "$manifest" ]; then manifest=$(find "$source_dir" -mindepth 2 -maxdepth 2 -type f -name go.mod -print -quit); fi; \
-    if [ -z "$manifest" ]; then echo "module context github.com/gorundebug/model has no go.mod" >&2; exit 1; fi; \
-    source_dir=${manifest%/go.mod}; mkdir -p /modules/model; cp -a "$source_dir/." /modules/model/
+    if [ -z "$manifest" ]; then echo "module context github.com/gorundebug/model_go has no go.mod" >&2; exit 1; fi; \
+    source_dir=${manifest%/go.mod}; mkdir -p /modules/model_go; cp -a "$source_dir/." /modules/model_go/
 RUN set -eu; \
     for module in /modules/*; do \
       if [ -f "$module/Makefile" ]; then \
@@ -91,7 +91,7 @@ COPY . /workspace
 WORKDIR /workspace
 RUN go mod edit -replace github.com/gorundebug/servicelib=/servicelib \
     && go mod edit -replace github.com/gorundebug/inventory_service_api=/modules/inventory_service_api \
-    && go mod edit -replace github.com/gorundebug/model=/modules/model \
+    && go mod edit -replace github.com/gorundebug/model_go=/modules/model_go \
     && true
 RUN make -f make.generated.mk gen-proto TOOLS_DIR=/usr/local/bin PROTOC=/usr/local/bin/protoc
 RUN --mount=type=cache,id=servicegen-go-mod-v1-${TARGETARCH},target=/go/pkg/mod,sharing=locked \
@@ -136,10 +136,7 @@ WORKDIR /app
 COPY --from=compiler /app/service .
 COPY ${SERVICE_DIR}/config/ ./config/
 
-EXPOSE 9092
-EXPOSE 9202
-
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD wget -qO/dev/null http://localhost:9092/status || exit 1
+  CMD wget -qO/dev/null http://localhost:${INVENTORY_SERVICE_HTTP_PORT:-9092}/status || exit 1
 
 ENTRYPOINT ["./service", "-config", "./config/config.yaml", "-values", "./config/overrides.yaml"]

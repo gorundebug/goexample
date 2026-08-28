@@ -26,7 +26,7 @@ clone_if_missing "orderservice" "https://github.com/gorundebug/orderservice.git"
 
 echo "==> Cloning modules..."
 clone_if_missing "inventory_service_api" "https://github.com/gorundebug/inventory_service_api.git" "v0.2.14"
-clone_if_missing "model" "https://github.com/gorundebug/model.git" "v0.2.14"
+clone_if_missing "model_go" "https://github.com/gorundebug/model_go.git" "v0.2.14"
 clone_if_missing "order_service_api" "https://github.com/gorundebug/order_service_api.git" "v0.2.14"
 
 echo "==> Done."
