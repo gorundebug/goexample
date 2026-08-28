@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# clone.generated.sh — clone services and modules that are listed in .gitignore.
-# Run this after cloning the project to restore all dependencies.
+# clone.generated.sh — restore separately published Go services and modules.
+# Other languages keep every component in the project repository.
 #
 # Usage: bash clone.generated.sh
 
