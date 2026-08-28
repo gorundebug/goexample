@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.7
+ARG DEPENDENCY_DOCKER_REGISTRY=docker.io
 
 # Stage 1: Build
 FROM servicelib-source AS servicelib-source
@@ -6,7 +6,7 @@ FROM module-inventory_service_api-source AS module-inventory_service_api-source
 FROM module-model-source AS module-model-source
 FROM module-order_service_api-source AS module-order_service_api-source
 
-FROM golang:1.25-bookworm AS builder
+FROM ${DEPENDENCY_DOCKER_REGISTRY}/library/golang:1.25-bookworm AS builder
 
 ARG SERVICE_DIR=.
 ARG TARGETARCH
@@ -122,7 +122,7 @@ RUN --mount=type=cache,id=servicegen-go-mod-v1-${TARGETARCH},target=/go/pkg/mod,
     && CGO_ENABLED=0 GOOS=linux go build -ldflags="${GO_LINKER_FLAGS}" -o /app/service ./cmd/service/main.go
 
 # Stage 2: Runtime
-FROM debian:bookworm-slim AS runtime
+FROM ${DEPENDENCY_DOCKER_REGISTRY}/library/debian:bookworm-slim AS runtime
 
 ARG SERVICE_DIR=.
 ARG TARGETARCH
