@@ -8,6 +8,7 @@ include dependency-proxy.generated.mk
 OAPI_CODEGEN_VERSION := v2.4.1
 OAPI_CODEGEN := $(TOOLS_DIR)/oapi-codegen
 
+
 .PHONY: all build test gen-proto fmt-proto gen-openapi
 
 all: gen-proto gen-openapi
