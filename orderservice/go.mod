@@ -3,9 +3,9 @@ module github.com/gorundebug/orderservice
 go 1.25.4
 
 require (
-	github.com/gorundebug/model_go v0.2.14
 	github.com/google/uuid v1.6.0
 	github.com/gorundebug/inventory_service_api v0.2.28
+	github.com/gorundebug/model_go v0.2.28
 	github.com/gorundebug/order_service_api v0.2.28
 	github.com/gorundebug/servicelib v0.2.28
 	github.com/stretchr/testify v1.12.1
