@@ -29,6 +29,8 @@ services:
       - go-dev-worktree-analyticsservice:/workspace/service
       - go-dev-mod-cache:/go/pkg/mod
       - go-dev-build-cache:/root/.cache/go-build
+    ports:
+      - "${ANALYTICS_SERVICE_DEBUG_PORT:-2345}:2345"
     security_opt:
       - seccomp:unconfined
     cap_add:
@@ -60,6 +62,8 @@ services:
       - go-dev-worktree-automationservice:/workspace/service
       - go-dev-mod-cache:/go/pkg/mod
       - go-dev-build-cache:/root/.cache/go-build
+    ports:
+      - "${AUTOMATION_SERVICE_DEBUG_PORT:-2346}:2345"
     security_opt:
       - seccomp:unconfined
     cap_add:
@@ -91,6 +95,8 @@ services:
       - go-dev-worktree-inventoryservice:/workspace/service
       - go-dev-mod-cache:/go/pkg/mod
       - go-dev-build-cache:/root/.cache/go-build
+    ports:
+      - "${INVENTORY_SERVICE_DEBUG_PORT:-2347}:2345"
     security_opt:
       - seccomp:unconfined
     cap_add:
@@ -122,6 +128,8 @@ services:
       - go-dev-worktree-orderservice:/workspace/service
       - go-dev-mod-cache:/go/pkg/mod
       - go-dev-build-cache:/root/.cache/go-build
+    ports:
+      - "${ORDER_SERVICE_DEBUG_PORT:-2348}:2345"
     security_opt:
       - seccomp:unconfined
     cap_add:
