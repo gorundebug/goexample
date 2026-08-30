@@ -1,0 +1,13 @@
+services:
+  analyticsservice:
+    image: analyticsservice:race
+    restart: "no"
+  automationservice:
+    image: automationservice:race
+    restart: "no"
+  inventoryservice:
+    image: inventoryservice:race
+    restart: "no"
+  orderservice:
+    image: orderservice:race
+    restart: "no"

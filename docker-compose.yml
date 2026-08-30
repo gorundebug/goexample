@@ -1,6 +1,6 @@
 services:
   analyticsservice:
-    image: analyticsservice:latest
+    image: analyticsservice:local
     restart: unless-stopped
     environment:
       - DEBUG=${ANALYTICS_SERVICE_DEBUG:-0}
@@ -15,7 +15,7 @@ services:
       - app_net
 
   automationservice:
-    image: automationservice:latest
+    image: automationservice:local
     restart: unless-stopped
     environment:
       - DEBUG=${AUTOMATION_SERVICE_DEBUG:-0}
@@ -34,7 +34,7 @@ services:
       - app_net
 
   inventoryservice:
-    image: inventoryservice:latest
+    image: inventoryservice:local
     restart: unless-stopped
     environment:
       - DEBUG=${INVENTORY_SERVICE_DEBUG:-0}
@@ -49,7 +49,7 @@ services:
       - app_net
 
   orderservice:
-    image: orderservice:latest
+    image: orderservice:local
     restart: unless-stopped
     environment:
       - DEBUG=${ORDER_SERVICE_DEBUG:-0}
@@ -184,7 +184,7 @@ services:
       - app_net
 
   prometheus:
-    image: ${DEPENDENCY_DOCKER_REGISTRY:-docker.io}/prom/prometheus:latest
+    image: ${DEPENDENCY_DOCKER_REGISTRY:-docker.io}/prom/prometheus:v3.14.0
     restart: unless-stopped
     ports:
       - "${PROMETHEUS_PORT:-9090}:9090"
@@ -194,7 +194,7 @@ services:
       - app_net
 
   grafana:
-    image: ${DEPENDENCY_DOCKER_REGISTRY:-docker.io}/grafana/grafana:latest
+    image: ${DEPENDENCY_DOCKER_REGISTRY:-docker.io}/grafana/grafana:13.2.0
     restart: unless-stopped
     ports:
       - "${GRAFANA_PORT:-3000}:3000"

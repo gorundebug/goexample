@@ -29,11 +29,13 @@ LANG_HOST_PREP_TARGETS += golang-gen golang-codegen golang-tools
 LANG_DOCKER_BUILD_TARGETS += golang-docker-build
 LANG_DOCKER_DEV_BUILD_TARGETS += golang-docker-dev-build
 
+GO_RACE_COMPOSE := docker compose --project-name goexample-race -f docker-compose.yml -f docker-compose.golang-race.generated.yml
+
 .PHONY: golang-build golang-test golang-lint golang-lint-fix golang-fmt \
 	golang-fmt-go golang-fmt-proto golang-gen golang-codegen golang-gen-proto \
 	golang-gen-openapi golang-clean golang-tools \
 	golang-docker-build golang-docker-dev-build go-mod-tidy go-mod-sync fmt-go fmt-proto gen-proto golang-workflowcheck \
-	gen-openapi
+	gen-openapi golang-race-build golang-race-start golang-race-up golang-race-down
 
 golang-build: golang-gen ## [host] Generate transport code and build all Go services
 	@$(MAKE) -C ./analyticsservice -f Makefile service_build USE_LOCAL_MODULES="$(USE_LOCAL_MODULES)" PROJECT_DIR="$(PROJECT_DIR)" BIN_DIR="$(BIN_DIR)"
@@ -113,6 +115,28 @@ golang-docker-dev-build: golang-codegen ## Build source-mounted Go development i
 	@$(MAKE) -C ./automationservice -f Makefile docker-build-dev USE_LOCAL_MODULES="$(USE_LOCAL_MODULES)"
 	@$(MAKE) -C ./inventoryservice -f Makefile docker-build-dev USE_LOCAL_MODULES="$(USE_LOCAL_MODULES)"
 	@$(MAKE) -C ./orderservice -f Makefile docker-build-dev USE_LOCAL_MODULES="$(USE_LOCAL_MODULES)"
+
+golang-race-build: golang-codegen ## [Docker] Build every Go service with -race
+	@$(MAKE) -C ./analyticsservice -f Makefile race-build USE_LOCAL_MODULES="$(USE_LOCAL_MODULES)"
+	@$(MAKE) -C ./automationservice -f Makefile race-build USE_LOCAL_MODULES="$(USE_LOCAL_MODULES)"
+	@$(MAKE) -C ./inventoryservice -f Makefile race-build USE_LOCAL_MODULES="$(USE_LOCAL_MODULES)"
+	@$(MAKE) -C ./orderservice -f Makefile race-build USE_LOCAL_MODULES="$(USE_LOCAL_MODULES)"
+
+golang-race-up: golang-race-build ## [Docker] Build and start the full project with Go -race services
+	@$(MAKE) golang-race-start USE_LOCAL_MODULES="$(USE_LOCAL_MODULES)"
+
+golang-race-start: ## [Docker] Start the full project using already-built Go -race images
+	@$(GO_RACE_COMPOSE) up -d --no-build
+
+golang-race-stop: ## [Docker] Send one SIGTERM to all Go race services and validate shutdown
+	@RACE_STOP_TIMEOUT="$${RACE_STOP_TIMEOUT:-7}" bash scripts/golang-race-down.generated.sh stop
+
+golang-race-clean: ## [Docker] Remove Go race test infrastructure after services stopped
+	@RACE_STOP_TIMEOUT="$${RACE_STOP_TIMEOUT:-7}" bash scripts/golang-race-down.generated.sh clean
+
+golang-race-down: ## [Docker] Stop Go race services, validate logs/exits, then remove infrastructure
+	@$(MAKE) golang-race-stop
+	@$(MAKE) golang-race-clean
 
 fmt-go: golang-fmt-go ## Format Go code
 

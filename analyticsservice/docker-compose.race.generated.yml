@@ -1,0 +1,6 @@
+services:
+  analyticsservice:
+    image: analyticsservice:race
+    restart: "no"
+    build:
+      target: race

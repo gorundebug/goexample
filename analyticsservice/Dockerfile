@@ -4,7 +4,7 @@ ARG DEPENDENCY_DOCKER_REGISTRY=docker.io
 FROM servicelib-source AS servicelib-source
 FROM module-model_go-source AS module-model_go-source
 
-FROM ${DEPENDENCY_DOCKER_REGISTRY}/library/golang:1.25-bookworm AS builder
+FROM ${DEPENDENCY_DOCKER_REGISTRY}/library/golang:1.25.4-bookworm AS builder
 
 ARG SERVICE_DIR=.
 ARG TARGETARCH
@@ -108,6 +108,14 @@ RUN --mount=type=cache,id=servicegen-go-mod-v1-${TARGETARCH},target=/go/pkg/mod,
     fi \
     && CGO_ENABLED=0 GOOS=linux go build -mod=mod -ldflags="${GO_LINKER_FLAGS}" -o /app/service ./cmd/service/main.go
 
+# The race image is a real runtime build, not a unit-test-only probe. Go's race
+# detector requires CGO and therefore deliberately uses the pinned Debian
+# toolchain from the ordinary builder stage.
+FROM builder AS race-compiler
+RUN --mount=type=cache,id=servicegen-go-mod-v1-${TARGETARCH},target=/go/pkg/mod,sharing=locked \
+    --mount=type=cache,id=servicegen-go-race-build-v1-${TARGETARCH},target=/root/.cache/go-build,sharing=locked \
+    CGO_ENABLED=1 GOOS=linux go build -mod=mod -race -o /app/service ./cmd/service/main.go
+
 # Stage 2: Runtime
 FROM ${DEPENDENCY_DOCKER_REGISTRY}/library/debian:bookworm-slim AS runtime
 
@@ -135,3 +143,9 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD wget -qO/dev/null http://localhost:${ANALYTICS_SERVICE_HTTP_PORT:-9093}/status || exit 1
 
 ENTRYPOINT ["./service", "-config", "./config/config.yaml", "-values", "./config/overrides.yaml"]
+
+# Keep the same runtime filesystem, configuration and entrypoint as production;
+# only the executable is replaced by the race-instrumented build.
+FROM runtime AS race
+COPY --from=race-compiler /app/service /app/service
+ENV GORACE=halt_on_error=1

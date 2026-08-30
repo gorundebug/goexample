@@ -160,22 +160,22 @@ build_images() {
   progress "building existing minimal runtime images"
   make docker-build
   progress "publishing analyticsservice image"
-  docker tag "analyticsservice:latest" \
+  docker tag "analyticsservice:local" \
     "${HOST_REGISTRY}/goexample/analyticsservice:${IMAGE_TAG}"
   docker push \
     "${HOST_REGISTRY}/goexample/analyticsservice:${IMAGE_TAG}"
   progress "publishing automationservice image"
-  docker tag "automationservice:latest" \
+  docker tag "automationservice:local" \
     "${HOST_REGISTRY}/goexample/automationservice:${IMAGE_TAG}"
   docker push \
     "${HOST_REGISTRY}/goexample/automationservice:${IMAGE_TAG}"
   progress "publishing inventoryservice image"
-  docker tag "inventoryservice:latest" \
+  docker tag "inventoryservice:local" \
     "${HOST_REGISTRY}/goexample/inventoryservice:${IMAGE_TAG}"
   docker push \
     "${HOST_REGISTRY}/goexample/inventoryservice:${IMAGE_TAG}"
   progress "publishing orderservice image"
-  docker tag "orderservice:latest" \
+  docker tag "orderservice:local" \
     "${HOST_REGISTRY}/goexample/orderservice:${IMAGE_TAG}"
   docker push \
     "${HOST_REGISTRY}/goexample/orderservice:${IMAGE_TAG}"
