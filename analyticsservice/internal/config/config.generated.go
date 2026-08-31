@@ -452,14 +452,17 @@ func MakeConfig() *Config {
 			OrderProcessed    cfg.KafkaEndpointConfig `yaml:"orderProcessed" mapstructure:"orderProcessed"`
 		}{
 			AnalyticsSchedule: cfg.CronEndpointConfig{
-				ID:              analyticsScheduleEndpointID,
-				Name:            "Analytics Schedule",
-				IdDataConnector: localCronConnectorID,
-				Enabled:         true,
-				Schedule:        "*/5 * * * *",
-				Timezone:        "UTC",
-				OverlapPolicy:   api.ScheduleOverlapPolicySkip,
-				MissedRunPolicy: api.ScheduleMissedRunPolicyFireOnce,
+				ID:                  analyticsScheduleEndpointID,
+				Name:                "Analytics Schedule",
+				IdDataConnector:     localCronConnectorID,
+				Enabled:             true,
+				Schedule:            "*/5 * * * *",
+				Timezone:            "UTC",
+				OverlapPolicy:       api.ScheduleOverlapPolicySkip,
+				MissedRunPolicy:     api.ScheduleMissedRunPolicyFireOnce,
+				FunctionName:        "AnalyticsSchedule",
+				FunctionPackage:     "cron",
+				FunctionDescription: "Create an analytics job message identifying the local scheduled firing.\n",
 			},
 
 			OrderProcessed: cfg.KafkaEndpointConfig{
