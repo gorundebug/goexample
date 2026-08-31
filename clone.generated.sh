@@ -19,14 +19,14 @@ clone_if_missing() {
 }
 
 echo "==> Cloning services..."
-clone_if_missing "analyticsservice" "https://github.com/gorundebug/analyticsservice.git" "v0.2.54"
-clone_if_missing "automationservice" "https://github.com/gorundebug/automationservice.git" "v0.2.54"
-clone_if_missing "inventoryservice" "https://github.com/gorundebug/inventoryservice.git" "v0.2.54"
-clone_if_missing "orderservice" "https://github.com/gorundebug/orderservice.git" "v0.2.54"
+clone_if_missing "analyticsservice" "https://github.com/gorundebug/analyticsservice.git" "v0.2.55"
+clone_if_missing "automationservice" "https://github.com/gorundebug/automationservice.git" "v0.2.55"
+clone_if_missing "inventoryservice" "https://github.com/gorundebug/inventoryservice.git" "v0.2.55"
+clone_if_missing "orderservice" "https://github.com/gorundebug/orderservice.git" "v0.2.55"
 
 echo "==> Cloning modules..."
-clone_if_missing "inventory_service_api" "https://github.com/gorundebug/inventory_service_api.git" "v0.2.54"
-clone_if_missing "model_go" "https://github.com/gorundebug/model_go.git" "v0.2.54"
-clone_if_missing "order_service_api" "https://github.com/gorundebug/order_service_api.git" "v0.2.54"
+clone_if_missing "inventory_service_api" "https://github.com/gorundebug/inventory_service_api.git" "v0.2.55"
+clone_if_missing "model_go" "https://github.com/gorundebug/model_go.git" "v0.2.55"
+clone_if_missing "order_service_api" "https://github.com/gorundebug/order_service_api.git" "v0.2.55"
 
 echo "==> Done."
