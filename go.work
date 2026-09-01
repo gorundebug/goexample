@@ -14,7 +14,7 @@ use (
 // published. The version-qualified replacements apply only while GOWORK points
 // at this file; autonomous service builds use their pinned repositories.
 replace (
-	github.com/gorundebug/inventory_service_api v0.2.56 => ./inventory_service_api
-	github.com/gorundebug/model_go v0.2.56 => ./model_go
-	github.com/gorundebug/order_service_api v0.2.56 => ./order_service_api
+	github.com/gorundebug/inventory_service_api v0.2.57 => ./inventory_service_api
+	github.com/gorundebug/model_go v0.2.57 => ./model_go
+	github.com/gorundebug/order_service_api v0.2.57 => ./order_service_api
 )
