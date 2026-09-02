@@ -29,6 +29,7 @@ func (f *TemporalActivityScheduleSource) OnTrigger(
 	trigger runtime.ScheduleTrigger,
 	out runtime.Collect[string],
 ) {
+	_ = runtime.DurableCallHeartbeat(ctx, "scheduled:"+trigger.TriggerID)
 	out.Out(ctx, fmt.Sprintf("scheduled-activity:%s:%s", trigger.ScheduleID, trigger.TriggerID))
 }
 
