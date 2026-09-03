@@ -138,6 +138,18 @@ func (c *Config) ApplyEnvironment() error {
 	if err := c.applyAnalyticsScheduleEnabled(); err != nil {
 		return err
 	}
+	if err := c.applyAnalyticsScheduleMissedRunPolicy(); err != nil {
+		return err
+	}
+	if err := c.applyAnalyticsScheduleOverlapPolicy(); err != nil {
+		return err
+	}
+	if err := c.applyAnalyticsScheduleSchedule(); err != nil {
+		return err
+	}
+	if err := c.applyAnalyticsScheduleTimezone(); err != nil {
+		return err
+	}
 	if err := c.applyAnalyticsScheduleTracingEnabled(); err != nil {
 		return err
 	}
@@ -191,6 +203,50 @@ func (c *Config) applyAnalyticsScheduleEnabled() error {
 		return fmt.Errorf("failed to convert ANALYTICS_SCHEDULE_ENABLED to bool: %w", err)
 	}
 	c.Endpoints.AnalyticsSchedule.Enabled = boolVal
+
+	return nil
+}
+
+func (c *Config) applyAnalyticsScheduleMissedRunPolicy() error {
+	value, exists := os.LookupEnv("ANALYTICS_SCHEDULE_MISSED_RUN_POLICY")
+	if !exists {
+		return nil
+	}
+
+	c.Endpoints.AnalyticsSchedule.MissedRunPolicy = api.ScheduleMissedRunPolicy(value)
+
+	return nil
+}
+
+func (c *Config) applyAnalyticsScheduleOverlapPolicy() error {
+	value, exists := os.LookupEnv("ANALYTICS_SCHEDULE_OVERLAP_POLICY")
+	if !exists {
+		return nil
+	}
+
+	c.Endpoints.AnalyticsSchedule.OverlapPolicy = api.ScheduleOverlapPolicy(value)
+
+	return nil
+}
+
+func (c *Config) applyAnalyticsScheduleSchedule() error {
+	value, exists := os.LookupEnv("ANALYTICS_SCHEDULE_SCHEDULE")
+	if !exists {
+		return nil
+	}
+
+	c.Endpoints.AnalyticsSchedule.Schedule = value
+
+	return nil
+}
+
+func (c *Config) applyAnalyticsScheduleTimezone() error {
+	value, exists := os.LookupEnv("ANALYTICS_SCHEDULE_TIMEZONE")
+	if !exists {
+		return nil
+	}
+
+	c.Endpoints.AnalyticsSchedule.Timezone = value
 
 	return nil
 }
