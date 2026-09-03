@@ -5,6 +5,9 @@
 # Usage: bash clone.generated.sh
 
 set -euo pipefail
+ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/git-retry.generated.sh
+. "${ROOT}/scripts/git-retry.generated.sh"
 
 clone_if_missing() {
     local dir="$1"
@@ -14,19 +17,19 @@ clone_if_missing() {
         echo "  skip  $dir (already present)"
     else
         echo "  clone $repo@$revision → $dir"
-        git clone --branch "$revision" --depth 1 "$repo" "$dir"
+        git_retry git clone --branch "$revision" --depth 1 "$repo" "$dir"
     fi
 }
 
 echo "==> Cloning services..."
-clone_if_missing "analyticsservice" "https://github.com/gorundebug/analyticsservice.git" "v0.2.79"
-clone_if_missing "automationservice" "https://github.com/gorundebug/automationservice.git" "v0.2.79"
-clone_if_missing "inventoryservice" "https://github.com/gorundebug/inventoryservice.git" "v0.2.79"
-clone_if_missing "orderservice" "https://github.com/gorundebug/orderservice.git" "v0.2.79"
+clone_if_missing "analyticsservice" "https://github.com/gorundebug/analyticsservice.git" "v0.2.80"
+clone_if_missing "automationservice" "https://github.com/gorundebug/automationservice.git" "v0.2.80"
+clone_if_missing "inventoryservice" "https://github.com/gorundebug/inventoryservice.git" "v0.2.80"
+clone_if_missing "orderservice" "https://github.com/gorundebug/orderservice.git" "v0.2.80"
 
 echo "==> Cloning modules..."
-clone_if_missing "inventory_service_api" "https://github.com/gorundebug/inventory_service_api.git" "v0.2.79"
-clone_if_missing "model_go" "https://github.com/gorundebug/model_go.git" "v0.2.79"
-clone_if_missing "order_service_api" "https://github.com/gorundebug/order_service_api.git" "v0.2.79"
+clone_if_missing "inventory_service_api" "https://github.com/gorundebug/inventory_service_api.git" "v0.2.80"
+clone_if_missing "model_go" "https://github.com/gorundebug/model_go.git" "v0.2.80"
+clone_if_missing "order_service_api" "https://github.com/gorundebug/order_service_api.git" "v0.2.80"
 
 echo "==> Done."

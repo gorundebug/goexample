@@ -6,7 +6,7 @@ PROJECT_DIR := $(abspath .)
 BIN_DIR := $(PROJECT_DIR)/bin
 TOOLS_DIR := $(PROJECT_DIR)/tools
 GOPRIVATE := github.com
-MODULE_VERSION := v0.2.79
+MODULE_VERSION := v0.2.80
 USE_LOCAL_MODULES ?= 1
 OS := $(shell uname -s)
 ARCH := $(shell uname -m)
@@ -49,7 +49,7 @@ DEPENDENCY_HOST_TARGETS := $(LANG_HOST_PREP_TARGETS)
 include dependency-proxy.generated.mk
 
 ifneq ($(strip $(DEPENDENCY_PROXY_DIR)),)
-export GOSERVICELIB_SOURCE_CONTEXT ?= $(DEPENDENCY_GIT_MIRROR_DOCKER_BASE)/github.com/gorundebug/servicelib.git\#v0.2.79
+export GOSERVICELIB_SOURCE_CONTEXT ?= $(DEPENDENCY_GIT_MIRROR_DOCKER_BASE)/github.com/gorundebug/servicelib.git\#v0.2.80
 endif
 
 export DOCKER_TARGET := runtime
@@ -272,6 +272,7 @@ common-tools: $(ACT) $(GH) $(GLAB)
 
 define git-push-dir
 	@set -eu; \
+	. ./scripts/git-retry.generated.sh; \
 	host="$(3)"; \
 	repo="$(4)"; \
 	if [ "$$host" = "gitlab.com" ]; then \
@@ -296,7 +297,7 @@ define git-push-dir
 	  cp -r ./$(1)/. "$$stage/"; \
 	fi; \
 	rm -rf "$$stage/.git"; \
-	git clone -q "git@$$host:$$repo.git" "$$work"; \
+	git_retry git clone -q "git@$$host:$$repo.git" "$$work"; \
 	git -C "$$work" rm -rq --ignore-unmatch .; \
 	cp -r "$$stage/." "$$work/"; \
 	git -C "$$work" add -A; \
@@ -304,7 +305,7 @@ define git-push-dir
 	  git -C "$$work" -c user.email="local@dev" -c user.name="local" commit -q -m "release $(2)"; \
 	fi; \
 	git -C "$$work" tag $(2); \
-	git -C "$$work" push --atomic origin HEAD:main refs/tags/$(2)
+	git_retry git -C "$$work" push --atomic origin HEAD:main refs/tags/$(2)
 endef
 
 git-push-inventory_service_api: $(GH) ## Push module inventory_service_api to github.com/gorundebug/inventory_service_api
