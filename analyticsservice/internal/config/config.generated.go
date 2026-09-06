@@ -19,20 +19,45 @@ const (
 
 // Stream IDs
 const (
-	analyticsScheduleStreamID = iota + 1
+	analyticsOrdersStreamID = iota + 1
+	analyticsPaymentsStreamID
+	analyticsScheduleStreamID
+	analyticsShipmentsStreamID
 	consumeOrderProcessedStreamID
 	countOrderProcessedStreamID
+	highValueAnalyticsStreamID
+	joinOrderPaymentAnalyticsStreamID
+	keyOrdersForJoinStreamID
+	keyOrdersForMultiJoinStreamID
+	keyPaymentsForJoinStreamID
+	keyPaymentsForMultiJoinStreamID
+	keyShipmentsForMultiJoinStreamID
+	multiJoinAnalyticsEventsStreamID
+	routeAnalyticsResultStreamID
+	splitAnalyticsOrdersStreamID
+	splitAnalyticsPaymentsStreamID
+	standardAnalyticsStreamID
+	writeHighValueAnalyticsStreamID
+	writeJoinedAnalyticsStreamID
+	writeStandardAnalyticsStreamID
 )
 
 // Endpoint IDs
 const (
-	analyticsScheduleEndpointID = iota + 1
+	analyticsOrdersEndpointID = iota + 1
+	analyticsPaymentsEndpointID
+	analyticsScheduleEndpointID
+	analyticsShipmentsEndpointID
+	highValueAnalyticsEndpointID
+	joinedAnalyticsEndpointID
 	orderProcessedEndpointID
+	standardAnalyticsEndpointID
 )
 
 // Connector IDs
 const (
-	localCronConnectorID = iota + 1
+	analyticsFunctionsConnectorID = iota + 1
+	localCronConnectorID
 	orderEventsConnectorID
 )
 
@@ -42,20 +67,51 @@ type Config struct {
 	} `yaml:"services" mapstructure:"services"`
 
 	Streams struct {
-		AnalyticsSchedule     cfg.InputStreamConfig   `yaml:"analyticsSchedule" mapstructure:"analyticsSchedule"`
-		ConsumeOrderProcessed cfg.InputStreamConfig   `yaml:"consumeOrderProcessed" mapstructure:"consumeOrderProcessed"`
-		CountOrderProcessed   cfg.ProcessStreamConfig `yaml:"countOrderProcessed" mapstructure:"countOrderProcessed"`
+		AnalyticsOrders           cfg.InputStreamConfig     `yaml:"analyticsOrders" mapstructure:"analyticsOrders"`
+		AnalyticsPayments         cfg.InputStreamConfig     `yaml:"analyticsPayments" mapstructure:"analyticsPayments"`
+		AnalyticsSchedule         cfg.InputStreamConfig     `yaml:"analyticsSchedule" mapstructure:"analyticsSchedule"`
+		AnalyticsShipments        cfg.InputStreamConfig     `yaml:"analyticsShipments" mapstructure:"analyticsShipments"`
+		ConsumeOrderProcessed     cfg.InputStreamConfig     `yaml:"consumeOrderProcessed" mapstructure:"consumeOrderProcessed"`
+		CountOrderProcessed       cfg.ProcessStreamConfig   `yaml:"countOrderProcessed" mapstructure:"countOrderProcessed"`
+		HighValueAnalytics        cfg.WhenStreamConfig      `yaml:"highValueAnalytics" mapstructure:"highValueAnalytics"`
+		JoinOrderPaymentAnalytics cfg.JoinStreamConfig      `yaml:"joinOrderPaymentAnalytics" mapstructure:"joinOrderPaymentAnalytics"`
+		KeyOrdersForJoin          cfg.KeyByStreamConfig     `yaml:"keyOrdersForJoin" mapstructure:"keyOrdersForJoin"`
+		KeyOrdersForMultiJoin     cfg.KeyByStreamConfig     `yaml:"keyOrdersForMultiJoin" mapstructure:"keyOrdersForMultiJoin"`
+		KeyPaymentsForJoin        cfg.KeyByStreamConfig     `yaml:"keyPaymentsForJoin" mapstructure:"keyPaymentsForJoin"`
+		KeyPaymentsForMultiJoin   cfg.KeyByStreamConfig     `yaml:"keyPaymentsForMultiJoin" mapstructure:"keyPaymentsForMultiJoin"`
+		KeyShipmentsForMultiJoin  cfg.KeyByStreamConfig     `yaml:"keyShipmentsForMultiJoin" mapstructure:"keyShipmentsForMultiJoin"`
+		MultiJoinAnalyticsEvents  cfg.MultiJoinStreamConfig `yaml:"multiJoinAnalyticsEvents" mapstructure:"multiJoinAnalyticsEvents"`
+		RouteAnalyticsResult      cfg.CaseStreamConfig      `yaml:"routeAnalyticsResult" mapstructure:"routeAnalyticsResult"`
+		SplitAnalyticsOrders      cfg.SplitStreamConfig     `yaml:"splitAnalyticsOrders" mapstructure:"splitAnalyticsOrders"`
+		SplitAnalyticsPayments    cfg.SplitStreamConfig     `yaml:"splitAnalyticsPayments" mapstructure:"splitAnalyticsPayments"`
+		StandardAnalytics         cfg.WhenStreamConfig      `yaml:"standardAnalytics" mapstructure:"standardAnalytics"`
+		WriteHighValueAnalytics   cfg.SinkStreamConfig      `yaml:"writeHighValueAnalytics" mapstructure:"writeHighValueAnalytics"`
+		WriteJoinedAnalytics      cfg.SinkStreamConfig      `yaml:"writeJoinedAnalytics" mapstructure:"writeJoinedAnalytics"`
+		WriteStandardAnalytics    cfg.SinkStreamConfig      `yaml:"writeStandardAnalytics" mapstructure:"writeStandardAnalytics"`
 	} `yaml:"streams" mapstructure:"streams"`
 
 	DataConnectors struct {
-		LocalCron   cfg.CronDataConnectorConfig  `yaml:"localCron" mapstructure:"localCron"`
-		OrderEvents cfg.KafkaDataConnectorConfig `yaml:"orderEvents" mapstructure:"orderEvents"`
+		AnalyticsFunctions cfg.CustomDataConnectorConfig `yaml:"analyticsFunctions" mapstructure:"analyticsFunctions"`
+		LocalCron          cfg.CronDataConnectorConfig   `yaml:"localCron" mapstructure:"localCron"`
+		OrderEvents        cfg.KafkaDataConnectorConfig  `yaml:"orderEvents" mapstructure:"orderEvents"`
 	} `yaml:"dataConnectors" mapstructure:"dataConnectors"`
 
 	Endpoints struct {
+		AnalyticsOrders cfg.CustomEndpointConfig `yaml:"analyticsOrders" mapstructure:"analyticsOrders"`
+
+		AnalyticsPayments cfg.CustomEndpointConfig `yaml:"analyticsPayments" mapstructure:"analyticsPayments"`
+
 		AnalyticsSchedule cfg.CronEndpointConfig `yaml:"analyticsSchedule" mapstructure:"analyticsSchedule"`
 
+		AnalyticsShipments cfg.CustomEndpointConfig `yaml:"analyticsShipments" mapstructure:"analyticsShipments"`
+
+		HighValueAnalytics cfg.CustomEndpointConfig `yaml:"highValueAnalytics" mapstructure:"highValueAnalytics"`
+
+		JoinedAnalytics cfg.CustomEndpointConfig `yaml:"joinedAnalytics" mapstructure:"joinedAnalytics"`
+
 		OrderProcessed cfg.KafkaEndpointConfig `yaml:"orderProcessed" mapstructure:"orderProcessed"`
+
+		StandardAnalytics cfg.CustomEndpointConfig `yaml:"standardAnalytics" mapstructure:"standardAnalytics"`
 	} `yaml:"endpoints" mapstructure:"endpoints"`
 
 	Pools struct {
@@ -71,8 +127,11 @@ type Config struct {
 	} `yaml:"modules" mapstructure:"modules"`
 
 	Types struct {
-		AutomationJob  cfg.TypeConfig `yaml:"automationJob" mapstructure:"automationJob"`
-		OrderProcessed cfg.TypeConfig `yaml:"orderProcessed" mapstructure:"orderProcessed"`
+		AnalyticsEvent  cfg.TypeConfig `yaml:"analyticsEvent" mapstructure:"analyticsEvent"`
+		AnalyticsKey    cfg.TypeConfig `yaml:"analyticsKey" mapstructure:"analyticsKey"`
+		AnalyticsResult cfg.TypeConfig `yaml:"analyticsResult" mapstructure:"analyticsResult"`
+		AutomationJob   cfg.TypeConfig `yaml:"automationJob" mapstructure:"automationJob"`
+		OrderProcessed  cfg.TypeConfig `yaml:"orderProcessed" mapstructure:"orderProcessed"`
 	} `yaml:"types" mapstructure:"types"`
 
 	Custom     CustomConfig           `yaml:",inline" mapstructure:",squash"`
@@ -91,14 +150,33 @@ func (c *Config) GetServices() []*cfg.ServiceConfig {
 
 func (c *Config) GetStreams() []cfg.StreamConfig {
 	return []cfg.StreamConfig{
+		&c.Streams.AnalyticsOrders,
+		&c.Streams.AnalyticsPayments,
 		&c.Streams.AnalyticsSchedule,
+		&c.Streams.AnalyticsShipments,
 		&c.Streams.ConsumeOrderProcessed,
 		&c.Streams.CountOrderProcessed,
+		&c.Streams.HighValueAnalytics,
+		&c.Streams.JoinOrderPaymentAnalytics,
+		&c.Streams.KeyOrdersForJoin,
+		&c.Streams.KeyOrdersForMultiJoin,
+		&c.Streams.KeyPaymentsForJoin,
+		&c.Streams.KeyPaymentsForMultiJoin,
+		&c.Streams.KeyShipmentsForMultiJoin,
+		&c.Streams.MultiJoinAnalyticsEvents,
+		&c.Streams.RouteAnalyticsResult,
+		&c.Streams.SplitAnalyticsOrders,
+		&c.Streams.SplitAnalyticsPayments,
+		&c.Streams.StandardAnalytics,
+		&c.Streams.WriteHighValueAnalytics,
+		&c.Streams.WriteJoinedAnalytics,
+		&c.Streams.WriteStandardAnalytics,
 	}
 }
 
 func (c *Config) GetDataConnectors() []cfg.DataConnectorConfig {
 	return []cfg.DataConnectorConfig{
+		&c.DataConnectors.AnalyticsFunctions,
 		&c.DataConnectors.LocalCron,
 		&c.DataConnectors.OrderEvents,
 	}
@@ -106,8 +184,14 @@ func (c *Config) GetDataConnectors() []cfg.DataConnectorConfig {
 
 func (c *Config) GetEndpoints() []cfg.EndpointConfig {
 	return []cfg.EndpointConfig{
+		&c.Endpoints.AnalyticsOrders,
+		&c.Endpoints.AnalyticsPayments,
 		&c.Endpoints.AnalyticsSchedule,
+		&c.Endpoints.AnalyticsShipments,
+		&c.Endpoints.HighValueAnalytics,
+		&c.Endpoints.JoinedAnalytics,
 		&c.Endpoints.OrderProcessed,
+		&c.Endpoints.StandardAnalytics,
 	}
 }
 
@@ -129,6 +213,9 @@ func (c *Config) GetModules() []*cfg.ModuleConfig {
 
 func (c *Config) GetTypes() []*cfg.TypeConfig {
 	return []*cfg.TypeConfig{
+		&c.Types.AnalyticsEvent,
+		&c.Types.AnalyticsKey,
+		&c.Types.AnalyticsResult,
 		&c.Types.AutomationJob,
 		&c.Types.OrderProcessed,
 	}
@@ -442,10 +529,50 @@ func MakeConfig() *Config {
 			},
 		},
 		Streams: struct {
-			AnalyticsSchedule     cfg.InputStreamConfig   `yaml:"analyticsSchedule" mapstructure:"analyticsSchedule"`
-			ConsumeOrderProcessed cfg.InputStreamConfig   `yaml:"consumeOrderProcessed" mapstructure:"consumeOrderProcessed"`
-			CountOrderProcessed   cfg.ProcessStreamConfig `yaml:"countOrderProcessed" mapstructure:"countOrderProcessed"`
+			AnalyticsOrders           cfg.InputStreamConfig     `yaml:"analyticsOrders" mapstructure:"analyticsOrders"`
+			AnalyticsPayments         cfg.InputStreamConfig     `yaml:"analyticsPayments" mapstructure:"analyticsPayments"`
+			AnalyticsSchedule         cfg.InputStreamConfig     `yaml:"analyticsSchedule" mapstructure:"analyticsSchedule"`
+			AnalyticsShipments        cfg.InputStreamConfig     `yaml:"analyticsShipments" mapstructure:"analyticsShipments"`
+			ConsumeOrderProcessed     cfg.InputStreamConfig     `yaml:"consumeOrderProcessed" mapstructure:"consumeOrderProcessed"`
+			CountOrderProcessed       cfg.ProcessStreamConfig   `yaml:"countOrderProcessed" mapstructure:"countOrderProcessed"`
+			HighValueAnalytics        cfg.WhenStreamConfig      `yaml:"highValueAnalytics" mapstructure:"highValueAnalytics"`
+			JoinOrderPaymentAnalytics cfg.JoinStreamConfig      `yaml:"joinOrderPaymentAnalytics" mapstructure:"joinOrderPaymentAnalytics"`
+			KeyOrdersForJoin          cfg.KeyByStreamConfig     `yaml:"keyOrdersForJoin" mapstructure:"keyOrdersForJoin"`
+			KeyOrdersForMultiJoin     cfg.KeyByStreamConfig     `yaml:"keyOrdersForMultiJoin" mapstructure:"keyOrdersForMultiJoin"`
+			KeyPaymentsForJoin        cfg.KeyByStreamConfig     `yaml:"keyPaymentsForJoin" mapstructure:"keyPaymentsForJoin"`
+			KeyPaymentsForMultiJoin   cfg.KeyByStreamConfig     `yaml:"keyPaymentsForMultiJoin" mapstructure:"keyPaymentsForMultiJoin"`
+			KeyShipmentsForMultiJoin  cfg.KeyByStreamConfig     `yaml:"keyShipmentsForMultiJoin" mapstructure:"keyShipmentsForMultiJoin"`
+			MultiJoinAnalyticsEvents  cfg.MultiJoinStreamConfig `yaml:"multiJoinAnalyticsEvents" mapstructure:"multiJoinAnalyticsEvents"`
+			RouteAnalyticsResult      cfg.CaseStreamConfig      `yaml:"routeAnalyticsResult" mapstructure:"routeAnalyticsResult"`
+			SplitAnalyticsOrders      cfg.SplitStreamConfig     `yaml:"splitAnalyticsOrders" mapstructure:"splitAnalyticsOrders"`
+			SplitAnalyticsPayments    cfg.SplitStreamConfig     `yaml:"splitAnalyticsPayments" mapstructure:"splitAnalyticsPayments"`
+			StandardAnalytics         cfg.WhenStreamConfig      `yaml:"standardAnalytics" mapstructure:"standardAnalytics"`
+			WriteHighValueAnalytics   cfg.SinkStreamConfig      `yaml:"writeHighValueAnalytics" mapstructure:"writeHighValueAnalytics"`
+			WriteJoinedAnalytics      cfg.SinkStreamConfig      `yaml:"writeJoinedAnalytics" mapstructure:"writeJoinedAnalytics"`
+			WriteStandardAnalytics    cfg.SinkStreamConfig      `yaml:"writeStandardAnalytics" mapstructure:"writeStandardAnalytics"`
 		}{
+			AnalyticsOrders: cfg.InputStreamConfig{
+				ID:         analyticsOrdersStreamID,
+				Name:       "Analytics Orders",
+				Pipeline:   "analyticsSources",
+				IdService:  analyticsServiceServiceID,
+				XPos:       -1600,
+				YPos:       220,
+				ValueType:  "AnalyticsEvent",
+				IdEndpoint: analyticsOrdersEndpointID,
+			},
+
+			AnalyticsPayments: cfg.InputStreamConfig{
+				ID:         analyticsPaymentsStreamID,
+				Name:       "Analytics Payments",
+				Pipeline:   "analyticsSources",
+				IdService:  analyticsServiceServiceID,
+				XPos:       -1600,
+				YPos:       430,
+				ValueType:  "AnalyticsEvent",
+				IdEndpoint: analyticsPaymentsEndpointID,
+			},
+
 			AnalyticsSchedule: cfg.InputStreamConfig{
 				ID:         analyticsScheduleStreamID,
 				Name:       "Analytics Schedule",
@@ -455,6 +582,17 @@ func MakeConfig() *Config {
 				YPos:       -205,
 				ValueType:  "AutomationJob",
 				IdEndpoint: analyticsScheduleEndpointID,
+			},
+
+			AnalyticsShipments: cfg.InputStreamConfig{
+				ID:         analyticsShipmentsStreamID,
+				Name:       "Analytics Shipments",
+				Pipeline:   "analyticsSources",
+				IdService:  analyticsServiceServiceID,
+				XPos:       -1600,
+				YPos:       780,
+				ValueType:  "AnalyticsEvent",
+				IdEndpoint: analyticsShipmentsEndpointID,
 			},
 
 			ConsumeOrderProcessed: cfg.InputStreamConfig{
@@ -481,11 +619,221 @@ func MakeConfig() *Config {
 				FunctionName:        "CountOrderProcessed",
 				FunctionDescription: "Count successful and unsuccessful orders independently, then return the event unchanged.\n",
 			},
+
+			HighValueAnalytics: cfg.WhenStreamConfig{
+				ID:        highValueAnalyticsStreamID,
+				Name:      "High Value Analytics",
+				Pipeline:  "multiJoinAnalytics",
+				IdService: analyticsServiceServiceID,
+				IdSource:  routeAnalyticsResultStreamID,
+				XPos:      -400,
+				YPos:      650,
+				ValueType: "AnalyticsResult",
+			},
+
+			JoinOrderPaymentAnalytics: cfg.JoinStreamConfig{
+				ID:                  joinOrderPaymentAnalyticsStreamID,
+				Name:                "Join Order Payment Analytics",
+				Pipeline:            "joinAnalytics",
+				IdService:           analyticsServiceServiceID,
+				IdSource:            keyOrdersForJoinStreamID,
+				IdSources:           []int{keyPaymentsForJoinStreamID},
+				XPos:                -900,
+				YPos:                260,
+				ValueType:           "AnalyticsResult",
+				JoinType:            api.JoinTypeInner,
+				JoinStorage:         api.JoinStorageTypeHashMap,
+				Ttl:                 60000,
+				RenewTTL:            true,
+				FunctionPackage:     "joinanalytics",
+				FunctionName:        "JoinOrderPaymentAnalytics",
+				FunctionDescription: "Join matching order and payment analytics events and emit their combined total.",
+			},
+
+			KeyOrdersForJoin: cfg.KeyByStreamConfig{
+				ID:                  keyOrdersForJoinStreamID,
+				Name:                "Key Orders For Join",
+				Pipeline:            "joinAnalytics",
+				IdService:           analyticsServiceServiceID,
+				IdSource:            splitAnalyticsOrdersStreamID,
+				XPos:                -1160,
+				YPos:                170,
+				ValueType:           "AnalyticsEvent",
+				KeyType:             "AnalyticsKey",
+				FunctionPackage:     "joinanalytics",
+				FunctionName:        "KeyOrdersForJoin",
+				FunctionDescription: "Key the order analytics event by correlation key.",
+			},
+
+			KeyOrdersForMultiJoin: cfg.KeyByStreamConfig{
+				ID:                  keyOrdersForMultiJoinStreamID,
+				Name:                "Key Orders For Multi Join",
+				Pipeline:            "multiJoinAnalytics",
+				IdService:           analyticsServiceServiceID,
+				IdSource:            splitAnalyticsOrdersStreamID,
+				XPos:                -1160,
+				YPos:                570,
+				ValueType:           "AnalyticsEvent",
+				KeyType:             "AnalyticsKey",
+				FunctionPackage:     "multijoinanalytics",
+				FunctionName:        "KeyOrdersForMultiJoin",
+				FunctionDescription: "Key the order analytics event for the multi-way join.",
+			},
+
+			KeyPaymentsForJoin: cfg.KeyByStreamConfig{
+				ID:                  keyPaymentsForJoinStreamID,
+				Name:                "Key Payments For Join",
+				Pipeline:            "joinAnalytics",
+				IdService:           analyticsServiceServiceID,
+				IdSource:            splitAnalyticsPaymentsStreamID,
+				XPos:                -1160,
+				YPos:                350,
+				ValueType:           "AnalyticsEvent",
+				KeyType:             "AnalyticsKey",
+				FunctionPackage:     "joinanalytics",
+				FunctionName:        "KeyPaymentsForJoin",
+				FunctionDescription: "Key the payment analytics event by correlation key.",
+			},
+
+			KeyPaymentsForMultiJoin: cfg.KeyByStreamConfig{
+				ID:                  keyPaymentsForMultiJoinStreamID,
+				Name:                "Key Payments For Multi Join",
+				Pipeline:            "multiJoinAnalytics",
+				IdService:           analyticsServiceServiceID,
+				IdSource:            splitAnalyticsPaymentsStreamID,
+				XPos:                -1160,
+				YPos:                740,
+				ValueType:           "AnalyticsEvent",
+				KeyType:             "AnalyticsKey",
+				FunctionPackage:     "multijoinanalytics",
+				FunctionName:        "KeyPaymentsForMultiJoin",
+				FunctionDescription: "Key the payment analytics event for the multi-way join.",
+			},
+
+			KeyShipmentsForMultiJoin: cfg.KeyByStreamConfig{
+				ID:                  keyShipmentsForMultiJoinStreamID,
+				Name:                "Key Shipments For Multi Join",
+				Pipeline:            "multiJoinAnalytics",
+				IdService:           analyticsServiceServiceID,
+				IdSource:            analyticsShipmentsStreamID,
+				XPos:                -1160,
+				YPos:                910,
+				ValueType:           "AnalyticsEvent",
+				KeyType:             "AnalyticsKey",
+				FunctionPackage:     "multijoinanalytics",
+				FunctionName:        "KeyShipmentsForMultiJoin",
+				FunctionDescription: "Key the shipment analytics event for the multi-way join.",
+			},
+
+			MultiJoinAnalyticsEvents: cfg.MultiJoinStreamConfig{
+				ID:                  multiJoinAnalyticsEventsStreamID,
+				Name:                "Multi Join Analytics Events",
+				Pipeline:            "multiJoinAnalytics",
+				IdService:           analyticsServiceServiceID,
+				IdSource:            keyOrdersForMultiJoinStreamID,
+				IdSources:           []int{keyPaymentsForMultiJoinStreamID, keyShipmentsForMultiJoinStreamID},
+				XPos:                -900,
+				YPos:                740,
+				ValueType:           "AnalyticsResult",
+				JoinStorage:         api.JoinStorageTypeHashMap,
+				Ttl:                 60000,
+				RenewTTL:            true,
+				FunctionPackage:     "multijoinanalytics",
+				FunctionName:        "MultiJoinAnalyticsEvents",
+				FunctionDescription: "Combine matching order, payment, and shipment analytics events.",
+			},
+
+			RouteAnalyticsResult: cfg.CaseStreamConfig{
+				ID:                  routeAnalyticsResultStreamID,
+				Name:                "Route Analytics Result",
+				Pipeline:            "multiJoinAnalytics",
+				IdService:           analyticsServiceServiceID,
+				IdSource:            multiJoinAnalyticsEventsStreamID,
+				XPos:                -650,
+				YPos:                740,
+				FunctionPackage:     "multijoinanalytics",
+				FunctionName:        "RouteAnalyticsResult",
+				FunctionDescription: "Route high-value analytics results to the first branch and all others to the second branch.",
+			},
+
+			SplitAnalyticsOrders: cfg.SplitStreamConfig{
+				ID:        splitAnalyticsOrdersStreamID,
+				Name:      "Split Analytics Orders",
+				Pipeline:  "analyticsSources",
+				IdService: analyticsServiceServiceID,
+				IdSource:  analyticsOrdersStreamID,
+				XPos:      -1390,
+				YPos:      220,
+			},
+
+			SplitAnalyticsPayments: cfg.SplitStreamConfig{
+				ID:        splitAnalyticsPaymentsStreamID,
+				Name:      "Split Analytics Payments",
+				Pipeline:  "analyticsSources",
+				IdService: analyticsServiceServiceID,
+				IdSource:  analyticsPaymentsStreamID,
+				XPos:      -1390,
+				YPos:      430,
+			},
+
+			StandardAnalytics: cfg.WhenStreamConfig{
+				ID:        standardAnalyticsStreamID,
+				Name:      "Standard Analytics",
+				Pipeline:  "multiJoinAnalytics",
+				IdService: analyticsServiceServiceID,
+				IdSource:  routeAnalyticsResultStreamID,
+				XPos:      -400,
+				YPos:      830,
+				ValueType: "AnalyticsResult",
+			},
+
+			WriteHighValueAnalytics: cfg.SinkStreamConfig{
+				ID:         writeHighValueAnalyticsStreamID,
+				Name:       "Write High Value Analytics",
+				Pipeline:   "multiJoinAnalytics",
+				IdService:  analyticsServiceServiceID,
+				IdSource:   highValueAnalyticsStreamID,
+				XPos:       -130,
+				YPos:       650,
+				ValueType:  "AnalyticsResult",
+				IdEndpoint: highValueAnalyticsEndpointID,
+			},
+
+			WriteJoinedAnalytics: cfg.SinkStreamConfig{
+				ID:         writeJoinedAnalyticsStreamID,
+				Name:       "Write Joined Analytics",
+				Pipeline:   "joinAnalytics",
+				IdService:  analyticsServiceServiceID,
+				IdSource:   joinOrderPaymentAnalyticsStreamID,
+				XPos:       -640,
+				YPos:       260,
+				ValueType:  "AnalyticsResult",
+				IdEndpoint: joinedAnalyticsEndpointID,
+			},
+
+			WriteStandardAnalytics: cfg.SinkStreamConfig{
+				ID:         writeStandardAnalyticsStreamID,
+				Name:       "Write Standard Analytics",
+				Pipeline:   "multiJoinAnalytics",
+				IdService:  analyticsServiceServiceID,
+				IdSource:   standardAnalyticsStreamID,
+				XPos:       -130,
+				YPos:       830,
+				ValueType:  "AnalyticsResult",
+				IdEndpoint: standardAnalyticsEndpointID,
+			},
 		},
 		DataConnectors: struct {
-			LocalCron   cfg.CronDataConnectorConfig  `yaml:"localCron" mapstructure:"localCron"`
-			OrderEvents cfg.KafkaDataConnectorConfig `yaml:"orderEvents" mapstructure:"orderEvents"`
+			AnalyticsFunctions cfg.CustomDataConnectorConfig `yaml:"analyticsFunctions" mapstructure:"analyticsFunctions"`
+			LocalCron          cfg.CronDataConnectorConfig   `yaml:"localCron" mapstructure:"localCron"`
+			OrderEvents        cfg.KafkaDataConnectorConfig  `yaml:"orderEvents" mapstructure:"orderEvents"`
 		}{
+			AnalyticsFunctions: cfg.CustomDataConnectorConfig{
+				ID:             analyticsFunctionsConnectorID,
+				Name:           "Analytics Functions",
+				Implementation: api.DataConnectorImplementationFunction,
+			},
+
 			LocalCron: cfg.CronDataConnectorConfig{
 				ID:             localCronConnectorID,
 				Name:           "Local Cron",
@@ -504,9 +852,33 @@ func MakeConfig() *Config {
 			},
 		},
 		Endpoints: struct {
-			AnalyticsSchedule cfg.CronEndpointConfig  `yaml:"analyticsSchedule" mapstructure:"analyticsSchedule"`
-			OrderProcessed    cfg.KafkaEndpointConfig `yaml:"orderProcessed" mapstructure:"orderProcessed"`
+			AnalyticsOrders    cfg.CustomEndpointConfig `yaml:"analyticsOrders" mapstructure:"analyticsOrders"`
+			AnalyticsPayments  cfg.CustomEndpointConfig `yaml:"analyticsPayments" mapstructure:"analyticsPayments"`
+			AnalyticsSchedule  cfg.CronEndpointConfig   `yaml:"analyticsSchedule" mapstructure:"analyticsSchedule"`
+			AnalyticsShipments cfg.CustomEndpointConfig `yaml:"analyticsShipments" mapstructure:"analyticsShipments"`
+			HighValueAnalytics cfg.CustomEndpointConfig `yaml:"highValueAnalytics" mapstructure:"highValueAnalytics"`
+			JoinedAnalytics    cfg.CustomEndpointConfig `yaml:"joinedAnalytics" mapstructure:"joinedAnalytics"`
+			OrderProcessed     cfg.KafkaEndpointConfig  `yaml:"orderProcessed" mapstructure:"orderProcessed"`
+			StandardAnalytics  cfg.CustomEndpointConfig `yaml:"standardAnalytics" mapstructure:"standardAnalytics"`
 		}{
+			AnalyticsOrders: cfg.CustomEndpointConfig{
+				ID:                  analyticsOrdersEndpointID,
+				Name:                "Analytics Orders",
+				IdDataConnector:     analyticsFunctionsConnectorID,
+				FunctionName:        "AnalyticsOrders",
+				FunctionPackage:     "endpoint",
+				FunctionDescription: "Produce a deterministic order analytics event for the canonical join examples.",
+			},
+
+			AnalyticsPayments: cfg.CustomEndpointConfig{
+				ID:                  analyticsPaymentsEndpointID,
+				Name:                "Analytics Payments",
+				IdDataConnector:     analyticsFunctionsConnectorID,
+				FunctionName:        "AnalyticsPayments",
+				FunctionPackage:     "endpoint",
+				FunctionDescription: "Produce a deterministic payment analytics event for the canonical join examples.",
+			},
+
 			AnalyticsSchedule: cfg.CronEndpointConfig{
 				ID:                  analyticsScheduleEndpointID,
 				Name:                "Analytics Schedule",
@@ -519,6 +891,33 @@ func MakeConfig() *Config {
 				FunctionName:        "AnalyticsSchedule",
 				FunctionPackage:     "cron",
 				FunctionDescription: "Create an analytics job message identifying the local scheduled firing.\n",
+			},
+
+			AnalyticsShipments: cfg.CustomEndpointConfig{
+				ID:                  analyticsShipmentsEndpointID,
+				Name:                "Analytics Shipments",
+				IdDataConnector:     analyticsFunctionsConnectorID,
+				FunctionName:        "AnalyticsShipments",
+				FunctionPackage:     "endpoint",
+				FunctionDescription: "Produce a deterministic shipment analytics event for the canonical multi-way join example.",
+			},
+
+			HighValueAnalytics: cfg.CustomEndpointConfig{
+				ID:                  highValueAnalyticsEndpointID,
+				Name:                "High Value Analytics",
+				IdDataConnector:     analyticsFunctionsConnectorID,
+				FunctionName:        "HighValueAnalytics",
+				FunctionPackage:     "endpoint",
+				FunctionDescription: "Validate and record analytics results routed to the high-value Case branch.",
+			},
+
+			JoinedAnalytics: cfg.CustomEndpointConfig{
+				ID:                  joinedAnalyticsEndpointID,
+				Name:                "Joined Analytics",
+				IdDataConnector:     analyticsFunctionsConnectorID,
+				FunctionName:        "JoinedAnalytics",
+				FunctionPackage:     "endpoint",
+				FunctionDescription: "Validate and record the result of the two-way analytics join.",
 			},
 
 			OrderProcessed: cfg.KafkaEndpointConfig{
@@ -534,6 +933,15 @@ func MakeConfig() *Config {
 				FunctionName:        "OrderProcessedEndpoint",
 				FunctionPackage:     "endpoint",
 				FunctionDescription: "Exchange OrderProcessed events keyed by order ID.\nProducers include the final status, processing time, total and confirmed item counts, and a failure reason for unsuccessful orders.\nConsumers decode the event and mark its Kafka message processed only after the pipeline handles it successfully.\n",
+			},
+
+			StandardAnalytics: cfg.CustomEndpointConfig{
+				ID:                  standardAnalyticsEndpointID,
+				Name:                "Standard Analytics",
+				IdDataConnector:     analyticsFunctionsConnectorID,
+				FunctionName:        "StandardAnalytics",
+				FunctionPackage:     "endpoint",
+				FunctionDescription: "Validate and record analytics results routed to the standard Case branch.",
 			},
 		},
 		Pools: struct {
@@ -559,9 +967,29 @@ func MakeConfig() *Config {
 			},
 		},
 		Types: struct {
-			AutomationJob  cfg.TypeConfig `yaml:"automationJob" mapstructure:"automationJob"`
-			OrderProcessed cfg.TypeConfig `yaml:"orderProcessed" mapstructure:"orderProcessed"`
+			AnalyticsEvent  cfg.TypeConfig `yaml:"analyticsEvent" mapstructure:"analyticsEvent"`
+			AnalyticsKey    cfg.TypeConfig `yaml:"analyticsKey" mapstructure:"analyticsKey"`
+			AnalyticsResult cfg.TypeConfig `yaml:"analyticsResult" mapstructure:"analyticsResult"`
+			AutomationJob   cfg.TypeConfig `yaml:"automationJob" mapstructure:"automationJob"`
+			OrderProcessed  cfg.TypeConfig `yaml:"orderProcessed" mapstructure:"orderProcessed"`
 		}{
+			AnalyticsEvent: cfg.TypeConfig{
+				Name:             "AnalyticsEvent",
+				Type:             api.DataTypeStruct,
+				DefinitionFormat: api.TypeDefinitionFormatNative,
+			},
+
+			AnalyticsKey: cfg.TypeConfig{
+				Name: "AnalyticsKey",
+				Type: api.DataTypeString,
+			},
+
+			AnalyticsResult: cfg.TypeConfig{
+				Name:             "AnalyticsResult",
+				Type:             api.DataTypeStruct,
+				DefinitionFormat: api.TypeDefinitionFormatNative,
+			},
+
 			AutomationJob: cfg.TypeConfig{
 				Name:       "AutomationJob",
 				Type:       api.DataTypeString,

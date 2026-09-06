@@ -1,4 +1,4 @@
-# Task 3/17: `AnalyticsOrdersSource`
+# Task 4/17: `AnalyticsPaymentsSource`
 
 > Rules: [`spec/rules.md`](../rules.md)
 
@@ -6,13 +6,13 @@
 |-------|-------|
 | Language | `Go` |
 | Kind | `custom-source` |
-| File | `analyticsservice/internal/functions/endpoint/analyticsorderssource.go` |
+| File | `analyticsservice/internal/functions/endpoint/analyticspaymentssource.go` |
 | Service | `Analytics Service` |
 
 
 ## Behaviour
 
-Produce a deterministic order analytics event for the canonical join examples.
+Produce a deterministic payment analytics event for the canonical join examples.
 
 
 
@@ -23,9 +23,9 @@ Produce a deterministic order analytics event for the canonical join examples.
 ## Checklist
 
 - [ ] Read [`spec/rules.md`](../rules.md), especially the `Go` section
-- [ ] Open `analyticsservice/internal/functions/endpoint/analyticsorderssource.go` and preserve its generated contract
+- [ ] Open `analyticsservice/internal/functions/endpoint/analyticspaymentssource.go` and preserve its generated contract
 - [ ] Inspect input type `AnalyticsEvent` in `analyticsservice/internal/types/analyticsevent.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
 - [ ] Re-read this checklist
-- [ ] Append to `spec/progress.md`: `- [x] analyticsservice/task3.md — AnalyticsOrdersSource — Go — done`
+- [ ] Append to `spec/progress.md`: `- [x] analyticsservice/task4.md — AnalyticsPaymentsSource — Go — done`

@@ -15,10 +15,12 @@ import (
 	"time"
 
 	"github.com/gorundebug/servicelib/runtime"
-	runtimecfg "github.com/gorundebug/servicelib/runtime/config"
+	"github.com/gorundebug/servicelib/runtime/datastruct"
 	"github.com/gorundebug/servicelib/runtime/environment"
 	log "github.com/gorundebug/servicelib/runtime/environment/log"
 	runtimeserde "github.com/gorundebug/servicelib/runtime/serde"
+
+	runtimecfg "github.com/gorundebug/servicelib/runtime/config"
 	"github.com/gorundebug/servicelib/transformation"
 	"golang.org/x/sync/errgroup"
 
@@ -26,33 +28,83 @@ import (
 	"github.com/gorundebug/analyticsservice/internal/functions/analytics"
 	"github.com/gorundebug/analyticsservice/internal/functions/cron"
 	"github.com/gorundebug/analyticsservice/internal/functions/endpoint"
-	"github.com/gorundebug/model_go/pkg/serdes"
+	"github.com/gorundebug/analyticsservice/internal/functions/joinanalytics"
+	"github.com/gorundebug/analyticsservice/internal/functions/multijoinanalytics"
+	"github.com/gorundebug/analyticsservice/internal/serdes"
+	types2 "github.com/gorundebug/analyticsservice/internal/types"
+	serdes2 "github.com/gorundebug/model_go/pkg/serdes"
 	"github.com/gorundebug/model_go/pkg/types"
 )
 
 type serviceMakers struct {
 	//stream function makers
-	analyticsCountOrderProcessedMaker func(ctx context.Context, cfg *runtimecfg.ProcessStreamConfig, env environment.ServiceEnvironment) (*analytics.CountOrderProcessed, error)
+	analyticsCountOrderProcessedMaker               func(ctx context.Context, cfg *runtimecfg.ProcessStreamConfig, env environment.ServiceEnvironment) (*analytics.CountOrderProcessed, error)
+	joinanalyticsKeyOrdersForJoinMaker              func(ctx context.Context, cfg *runtimecfg.KeyByStreamConfig, env environment.ServiceEnvironment) (*joinanalytics.KeyOrdersForJoin, error)
+	multijoinanalyticsKeyOrdersForMultiJoinMaker    func(ctx context.Context, cfg *runtimecfg.KeyByStreamConfig, env environment.ServiceEnvironment) (*multijoinanalytics.KeyOrdersForMultiJoin, error)
+	joinanalyticsKeyPaymentsForJoinMaker            func(ctx context.Context, cfg *runtimecfg.KeyByStreamConfig, env environment.ServiceEnvironment) (*joinanalytics.KeyPaymentsForJoin, error)
+	joinanalyticsJoinOrderPaymentAnalyticsMaker     func(ctx context.Context, cfg *runtimecfg.JoinStreamConfig, env environment.ServiceEnvironment) (*joinanalytics.JoinOrderPaymentAnalytics, error)
+	multijoinanalyticsKeyPaymentsForMultiJoinMaker  func(ctx context.Context, cfg *runtimecfg.KeyByStreamConfig, env environment.ServiceEnvironment) (*multijoinanalytics.KeyPaymentsForMultiJoin, error)
+	multijoinanalyticsKeyShipmentsForMultiJoinMaker func(ctx context.Context, cfg *runtimecfg.KeyByStreamConfig, env environment.ServiceEnvironment) (*multijoinanalytics.KeyShipmentsForMultiJoin, error)
+	multijoinanalyticsMultiJoinAnalyticsEventsMaker func(ctx context.Context, cfg *runtimecfg.MultiJoinStreamConfig, env environment.ServiceEnvironment) (*multijoinanalytics.MultiJoinAnalyticsEvents, error)
+	multijoinanalyticsRouteAnalyticsResultMaker     func(ctx context.Context, cfg *runtimecfg.CaseStreamConfig, env environment.ServiceEnvironment) (*multijoinanalytics.RouteAnalyticsResult, error)
 	//data source function makers
 	cronAnalyticsScheduleSourceMaker          func(ctx context.Context, cfg *runtimecfg.CronEndpointConfig, env environment.ServiceEnvironment) (*cron.AnalyticsScheduleSource, error)
 	endpointOrderProcessedEndpointSourceMaker func(ctx context.Context, cfg *runtimecfg.KafkaEndpointConfig, env environment.ServiceEnvironment) (*endpoint.OrderProcessedEndpointSource, error)
+	endpointAnalyticsOrdersSourceMaker        func(ctx context.Context, cfg *runtimecfg.CustomEndpointConfig, env environment.ServiceEnvironment) (*endpoint.AnalyticsOrdersSource, error)
+	endpointAnalyticsPaymentsSourceMaker      func(ctx context.Context, cfg *runtimecfg.CustomEndpointConfig, env environment.ServiceEnvironment) (*endpoint.AnalyticsPaymentsSource, error)
+	endpointAnalyticsShipmentsSourceMaker     func(ctx context.Context, cfg *runtimecfg.CustomEndpointConfig, env environment.ServiceEnvironment) (*endpoint.AnalyticsShipmentsSource, error)
 	//data sink function makers
+	endpointJoinedAnalyticsSinkMaker    func(ctx context.Context, cfg *runtimecfg.CustomEndpointConfig, env environment.ServiceEnvironment) (*endpoint.JoinedAnalyticsSink, error)
+	endpointHighValueAnalyticsSinkMaker func(ctx context.Context, cfg *runtimecfg.CustomEndpointConfig, env environment.ServiceEnvironment) (*endpoint.HighValueAnalyticsSink, error)
+	endpointStandardAnalyticsSinkMaker  func(ctx context.Context, cfg *runtimecfg.CustomEndpointConfig, env environment.ServiceEnvironment) (*endpoint.StandardAnalyticsSink, error)
 }
 
 type serviceFunctions struct {
 	//stream functions
-	analyticsCountOrderProcessed *analytics.CountOrderProcessed
+	analyticsCountOrderProcessed               *analytics.CountOrderProcessed
+	joinanalyticsKeyOrdersForJoin              *joinanalytics.KeyOrdersForJoin
+	multijoinanalyticsKeyOrdersForMultiJoin    *multijoinanalytics.KeyOrdersForMultiJoin
+	joinanalyticsKeyPaymentsForJoin            *joinanalytics.KeyPaymentsForJoin
+	joinanalyticsJoinOrderPaymentAnalytics     *joinanalytics.JoinOrderPaymentAnalytics
+	multijoinanalyticsKeyPaymentsForMultiJoin  *multijoinanalytics.KeyPaymentsForMultiJoin
+	multijoinanalyticsKeyShipmentsForMultiJoin *multijoinanalytics.KeyShipmentsForMultiJoin
+	multijoinanalyticsMultiJoinAnalyticsEvents *multijoinanalytics.MultiJoinAnalyticsEvents
+	multijoinanalyticsRouteAnalyticsResult     *multijoinanalytics.RouteAnalyticsResult
 	//data source functions
 	cronAnalyticsScheduleSource          *cron.AnalyticsScheduleSource
 	endpointOrderProcessedEndpointSource *endpoint.OrderProcessedEndpointSource
+	endpointAnalyticsOrdersSource        *endpoint.AnalyticsOrdersSource
+	endpointAnalyticsPaymentsSource      *endpoint.AnalyticsPaymentsSource
+	endpointAnalyticsShipmentsSource     *endpoint.AnalyticsShipmentsSource
 	//data sink functions
+	endpointJoinedAnalyticsSink    *endpoint.JoinedAnalyticsSink
+	endpointHighValueAnalyticsSink *endpoint.HighValueAnalyticsSink
+	endpointStandardAnalyticsSink  *endpoint.StandardAnalyticsSink
 }
 
 type serviceStreams struct {
 	//streams
-	analyticsSchedule     runtime.TypedInputStream[string, any, error]
-	consumeOrderProcessed runtime.TypedInputStream[*types.OrderProcessed, *types.OrderProcessed, error]
-	countOrderProcessed   runtime.TypedProcessConsumedStream[*types.OrderProcessed, *types.OrderProcessed, error]
+	analyticsSchedule         runtime.TypedInputStream[string, any, error]
+	consumeOrderProcessed     runtime.TypedInputStream[*types.OrderProcessed, *types.OrderProcessed, error]
+	countOrderProcessed       runtime.TypedProcessConsumedStream[*types.OrderProcessed, *types.OrderProcessed, error]
+	analyticsOrders           runtime.TypedInputStream[*types2.AnalyticsEvent, any, error]
+	splitAnalyticsOrders      runtime.TypedSplitStream[*types2.AnalyticsEvent]
+	keyOrdersForJoin          runtime.TypedTransformConsumedStream[*types2.AnalyticsEvent, datastruct.KeyValue[string, *types2.AnalyticsEvent]]
+	keyOrdersForMultiJoin     runtime.TypedTransformConsumedStream[*types2.AnalyticsEvent, datastruct.KeyValue[string, *types2.AnalyticsEvent]]
+	analyticsPayments         runtime.TypedInputStream[*types2.AnalyticsEvent, any, error]
+	splitAnalyticsPayments    runtime.TypedSplitStream[*types2.AnalyticsEvent]
+	keyPaymentsForJoin        runtime.TypedTransformConsumedStream[*types2.AnalyticsEvent, datastruct.KeyValue[string, *types2.AnalyticsEvent]]
+	joinOrderPaymentAnalytics runtime.TypedJoinConsumedStream[string, *types2.AnalyticsEvent, *types2.AnalyticsEvent, *types2.AnalyticsResult]
+	writeJoinedAnalytics      runtime.TypedSinkStream[*types2.AnalyticsResult, error]
+	keyPaymentsForMultiJoin   runtime.TypedTransformConsumedStream[*types2.AnalyticsEvent, datastruct.KeyValue[string, *types2.AnalyticsEvent]]
+	analyticsShipments        runtime.TypedInputStream[*types2.AnalyticsEvent, any, error]
+	keyShipmentsForMultiJoin  runtime.TypedTransformConsumedStream[*types2.AnalyticsEvent, datastruct.KeyValue[string, *types2.AnalyticsEvent]]
+	multiJoinAnalyticsEvents  runtime.TypedMultiJoinConsumedStream[string, *types2.AnalyticsEvent, *types2.AnalyticsResult]
+	routeAnalyticsResult      runtime.TypedCaseStream[*types2.AnalyticsResult]
+	highValueAnalytics        runtime.TypedConsumedStream[*types2.AnalyticsResult]
+	writeHighValueAnalytics   runtime.TypedSinkStream[*types2.AnalyticsResult, error]
+	standardAnalytics         runtime.TypedConsumedStream[*types2.AnalyticsResult]
+	writeStandardAnalytics    runtime.TypedSinkStream[*types2.AnalyticsResult, error]
 }
 
 type serviceHandlers struct {
@@ -61,9 +113,15 @@ type serviceHandlers struct {
 
 type serviceDataConnectors struct {
 	//data sources
-	analyticsSchedule runtime.Consumer[string]
-	orderProcessed    runtime.Consumer[*types.OrderProcessed]
+	analyticsSchedule  runtime.Consumer[string]
+	orderProcessed     runtime.Consumer[*types.OrderProcessed]
+	analyticsOrders    runtime.Consumer[*types2.AnalyticsEvent]
+	analyticsPayments  runtime.Consumer[*types2.AnalyticsEvent]
+	analyticsShipments runtime.Consumer[*types2.AnalyticsEvent]
 	//data sinks
+	writeJoinedAnalyticsJoinedAnalytics       runtime.Consumer[*types2.AnalyticsResult]
+	writeHighValueAnalyticsHighValueAnalytics runtime.Consumer[*types2.AnalyticsResult]
+	writeStandardAnalyticsStandardAnalytics   runtime.Consumer[*types2.AnalyticsResult]
 }
 
 type Service struct {
@@ -87,9 +145,21 @@ func (s *Service) GetSerde(valueType reflect.Type) (runtimeserde.Serializer, err
 		return serde, nil
 	}
 	switch valueType {
+	case runtimeserde.GetSerdeType[types2.AnalyticsEvent](), runtimeserde.GetSerdeType[*types2.AnalyticsEvent]():
+		{
+			var serde runtimeserde.Serde[*types2.AnalyticsEvent] = &serdes.AnalyticsEventSerde{}
+			return serde, nil
+		}
+
+	case runtimeserde.GetSerdeType[types2.AnalyticsResult](), runtimeserde.GetSerdeType[*types2.AnalyticsResult]():
+		{
+			var serde runtimeserde.Serde[*types2.AnalyticsResult] = &serdes.AnalyticsResultSerde{}
+			return serde, nil
+		}
+
 	case runtimeserde.GetSerdeType[types.OrderProcessed](), runtimeserde.GetSerdeType[*types.OrderProcessed]():
 		{
-			var serde runtimeserde.Serde[*types.OrderProcessed] = &serdes.OrderProcessedSerde{}
+			var serde runtimeserde.Serde[*types.OrderProcessed] = &serdes2.OrderProcessedSerde{}
 			return serde, nil
 		}
 
@@ -115,6 +185,46 @@ func (s *Service) initMakers(ctx context.Context) error {
 			return analytics.MakeCountOrderProcessed(ctx, env, cfg)
 		}
 	}
+	if s.makers.joinanalyticsKeyOrdersForJoinMaker == nil {
+		s.makers.joinanalyticsKeyOrdersForJoinMaker = func(ctx context.Context, cfg *runtimecfg.KeyByStreamConfig, env environment.ServiceEnvironment) (*joinanalytics.KeyOrdersForJoin, error) {
+			return joinanalytics.MakeKeyOrdersForJoin(ctx, env, cfg)
+		}
+	}
+	if s.makers.multijoinanalyticsKeyOrdersForMultiJoinMaker == nil {
+		s.makers.multijoinanalyticsKeyOrdersForMultiJoinMaker = func(ctx context.Context, cfg *runtimecfg.KeyByStreamConfig, env environment.ServiceEnvironment) (*multijoinanalytics.KeyOrdersForMultiJoin, error) {
+			return multijoinanalytics.MakeKeyOrdersForMultiJoin(ctx, env, cfg)
+		}
+	}
+	if s.makers.joinanalyticsKeyPaymentsForJoinMaker == nil {
+		s.makers.joinanalyticsKeyPaymentsForJoinMaker = func(ctx context.Context, cfg *runtimecfg.KeyByStreamConfig, env environment.ServiceEnvironment) (*joinanalytics.KeyPaymentsForJoin, error) {
+			return joinanalytics.MakeKeyPaymentsForJoin(ctx, env, cfg)
+		}
+	}
+	if s.makers.joinanalyticsJoinOrderPaymentAnalyticsMaker == nil {
+		s.makers.joinanalyticsJoinOrderPaymentAnalyticsMaker = func(ctx context.Context, cfg *runtimecfg.JoinStreamConfig, env environment.ServiceEnvironment) (*joinanalytics.JoinOrderPaymentAnalytics, error) {
+			return joinanalytics.MakeJoinOrderPaymentAnalytics(ctx, env, cfg)
+		}
+	}
+	if s.makers.multijoinanalyticsKeyPaymentsForMultiJoinMaker == nil {
+		s.makers.multijoinanalyticsKeyPaymentsForMultiJoinMaker = func(ctx context.Context, cfg *runtimecfg.KeyByStreamConfig, env environment.ServiceEnvironment) (*multijoinanalytics.KeyPaymentsForMultiJoin, error) {
+			return multijoinanalytics.MakeKeyPaymentsForMultiJoin(ctx, env, cfg)
+		}
+	}
+	if s.makers.multijoinanalyticsKeyShipmentsForMultiJoinMaker == nil {
+		s.makers.multijoinanalyticsKeyShipmentsForMultiJoinMaker = func(ctx context.Context, cfg *runtimecfg.KeyByStreamConfig, env environment.ServiceEnvironment) (*multijoinanalytics.KeyShipmentsForMultiJoin, error) {
+			return multijoinanalytics.MakeKeyShipmentsForMultiJoin(ctx, env, cfg)
+		}
+	}
+	if s.makers.multijoinanalyticsMultiJoinAnalyticsEventsMaker == nil {
+		s.makers.multijoinanalyticsMultiJoinAnalyticsEventsMaker = func(ctx context.Context, cfg *runtimecfg.MultiJoinStreamConfig, env environment.ServiceEnvironment) (*multijoinanalytics.MultiJoinAnalyticsEvents, error) {
+			return multijoinanalytics.MakeMultiJoinAnalyticsEvents(ctx, env, cfg)
+		}
+	}
+	if s.makers.multijoinanalyticsRouteAnalyticsResultMaker == nil {
+		s.makers.multijoinanalyticsRouteAnalyticsResultMaker = func(ctx context.Context, cfg *runtimecfg.CaseStreamConfig, env environment.ServiceEnvironment) (*multijoinanalytics.RouteAnalyticsResult, error) {
+			return multijoinanalytics.MakeRouteAnalyticsResult(ctx, env, cfg)
+		}
+	}
 	if s.makers.cronAnalyticsScheduleSourceMaker == nil {
 		s.makers.cronAnalyticsScheduleSourceMaker = func(ctx context.Context, cfg *runtimecfg.CronEndpointConfig, env environment.ServiceEnvironment) (*cron.AnalyticsScheduleSource, error) {
 			return cron.MakeAnalyticsScheduleSource(ctx, env, cfg)
@@ -123,6 +233,36 @@ func (s *Service) initMakers(ctx context.Context) error {
 	if s.makers.endpointOrderProcessedEndpointSourceMaker == nil {
 		s.makers.endpointOrderProcessedEndpointSourceMaker = func(ctx context.Context, cfg *runtimecfg.KafkaEndpointConfig, env environment.ServiceEnvironment) (*endpoint.OrderProcessedEndpointSource, error) {
 			return endpoint.MakeOrderProcessedEndpointSource(ctx, env, cfg)
+		}
+	}
+	if s.makers.endpointAnalyticsOrdersSourceMaker == nil {
+		s.makers.endpointAnalyticsOrdersSourceMaker = func(ctx context.Context, cfg *runtimecfg.CustomEndpointConfig, env environment.ServiceEnvironment) (*endpoint.AnalyticsOrdersSource, error) {
+			return endpoint.MakeAnalyticsOrdersSource(ctx, env, cfg)
+		}
+	}
+	if s.makers.endpointAnalyticsPaymentsSourceMaker == nil {
+		s.makers.endpointAnalyticsPaymentsSourceMaker = func(ctx context.Context, cfg *runtimecfg.CustomEndpointConfig, env environment.ServiceEnvironment) (*endpoint.AnalyticsPaymentsSource, error) {
+			return endpoint.MakeAnalyticsPaymentsSource(ctx, env, cfg)
+		}
+	}
+	if s.makers.endpointAnalyticsShipmentsSourceMaker == nil {
+		s.makers.endpointAnalyticsShipmentsSourceMaker = func(ctx context.Context, cfg *runtimecfg.CustomEndpointConfig, env environment.ServiceEnvironment) (*endpoint.AnalyticsShipmentsSource, error) {
+			return endpoint.MakeAnalyticsShipmentsSource(ctx, env, cfg)
+		}
+	}
+	if s.makers.endpointJoinedAnalyticsSinkMaker == nil {
+		s.makers.endpointJoinedAnalyticsSinkMaker = func(ctx context.Context, cfg *runtimecfg.CustomEndpointConfig, env environment.ServiceEnvironment) (*endpoint.JoinedAnalyticsSink, error) {
+			return endpoint.MakeJoinedAnalyticsSink(ctx, env, cfg)
+		}
+	}
+	if s.makers.endpointHighValueAnalyticsSinkMaker == nil {
+		s.makers.endpointHighValueAnalyticsSinkMaker = func(ctx context.Context, cfg *runtimecfg.CustomEndpointConfig, env environment.ServiceEnvironment) (*endpoint.HighValueAnalyticsSink, error) {
+			return endpoint.MakeHighValueAnalyticsSink(ctx, env, cfg)
+		}
+	}
+	if s.makers.endpointStandardAnalyticsSinkMaker == nil {
+		s.makers.endpointStandardAnalyticsSinkMaker = func(ctx context.Context, cfg *runtimecfg.CustomEndpointConfig, env environment.ServiceEnvironment) (*endpoint.StandardAnalyticsSink, error) {
+			return endpoint.MakeStandardAnalyticsSink(ctx, env, cfg)
 		}
 	}
 
@@ -174,6 +314,66 @@ func (s *Service) initStreams(ctx context.Context, cfg *config.Config, env runti
 	if s.streams.countOrderProcessed, err = transformation.Process[*types.OrderProcessed, *types.OrderProcessed, error](&cfg.Streams.CountOrderProcessed, s.streams.consumeOrderProcessed, s.functions.analyticsCountOrderProcessed); err != nil {
 		return err
 	}
+	if s.streams.analyticsOrders, err = transformation.Input[*types2.AnalyticsEvent, any, error](&cfg.Streams.AnalyticsOrders, env); err != nil {
+		return err
+	}
+	if s.streams.splitAnalyticsOrders, err = transformation.Split[*types2.AnalyticsEvent](&cfg.Streams.SplitAnalyticsOrders, s.streams.analyticsOrders); err != nil {
+		return err
+	}
+	if s.streams.keyOrdersForJoin, err = transformation.KeyBy[*types2.AnalyticsEvent, string, *types2.AnalyticsEvent](&cfg.Streams.KeyOrdersForJoin, s.streams.splitAnalyticsOrders.AddStream(), s.functions.joinanalyticsKeyOrdersForJoin); err != nil {
+		return err
+	}
+	if s.streams.keyOrdersForMultiJoin, err = transformation.KeyBy[*types2.AnalyticsEvent, string, *types2.AnalyticsEvent](&cfg.Streams.KeyOrdersForMultiJoin, s.streams.splitAnalyticsOrders.AddStream(), s.functions.multijoinanalyticsKeyOrdersForMultiJoin); err != nil {
+		return err
+	}
+	if s.streams.analyticsPayments, err = transformation.Input[*types2.AnalyticsEvent, any, error](&cfg.Streams.AnalyticsPayments, env); err != nil {
+		return err
+	}
+	if s.streams.splitAnalyticsPayments, err = transformation.Split[*types2.AnalyticsEvent](&cfg.Streams.SplitAnalyticsPayments, s.streams.analyticsPayments); err != nil {
+		return err
+	}
+	if s.streams.keyPaymentsForJoin, err = transformation.KeyBy[*types2.AnalyticsEvent, string, *types2.AnalyticsEvent](&cfg.Streams.KeyPaymentsForJoin, s.streams.splitAnalyticsPayments.AddStream(), s.functions.joinanalyticsKeyPaymentsForJoin); err != nil {
+		return err
+	}
+	if s.streams.joinOrderPaymentAnalytics, err = transformation.Join[string, *types2.AnalyticsEvent, *types2.AnalyticsEvent, *types2.AnalyticsResult](&cfg.Streams.JoinOrderPaymentAnalytics, s.streams.keyOrdersForJoin, s.streams.keyPaymentsForJoin, s.functions.joinanalyticsJoinOrderPaymentAnalytics); err != nil {
+		return err
+	}
+	if s.streams.writeJoinedAnalytics, err = transformation.Sink[*types2.AnalyticsResult, error](&cfg.Streams.WriteJoinedAnalytics, s.streams.joinOrderPaymentAnalytics); err != nil {
+		return err
+	}
+	if s.streams.keyPaymentsForMultiJoin, err = transformation.KeyBy[*types2.AnalyticsEvent, string, *types2.AnalyticsEvent](&cfg.Streams.KeyPaymentsForMultiJoin, s.streams.splitAnalyticsPayments.AddStream(), s.functions.multijoinanalyticsKeyPaymentsForMultiJoin); err != nil {
+		return err
+	}
+	if s.streams.analyticsShipments, err = transformation.Input[*types2.AnalyticsEvent, any, error](&cfg.Streams.AnalyticsShipments, env); err != nil {
+		return err
+	}
+	if s.streams.keyShipmentsForMultiJoin, err = transformation.KeyBy[*types2.AnalyticsEvent, string, *types2.AnalyticsEvent](&cfg.Streams.KeyShipmentsForMultiJoin, s.streams.analyticsShipments, s.functions.multijoinanalyticsKeyShipmentsForMultiJoin); err != nil {
+		return err
+	}
+	if s.streams.multiJoinAnalyticsEvents, err = transformation.MultiJoin[string, *types2.AnalyticsEvent, *types2.AnalyticsResult](&cfg.Streams.MultiJoinAnalyticsEvents, s.streams.keyOrdersForMultiJoin, s.functions.multijoinanalyticsMultiJoinAnalyticsEvents); err != nil {
+		return err
+	}
+	if err = transformation.MultiJoinLink[string, *types2.AnalyticsEvent, *types2.AnalyticsEvent, *types2.AnalyticsResult](s.streams.multiJoinAnalyticsEvents, s.streams.keyPaymentsForMultiJoin); err != nil {
+		return err
+	}
+	if err = transformation.MultiJoinLink[string, *types2.AnalyticsEvent, *types2.AnalyticsEvent, *types2.AnalyticsResult](s.streams.multiJoinAnalyticsEvents, s.streams.keyShipmentsForMultiJoin); err != nil {
+		return err
+	}
+	if s.streams.routeAnalyticsResult, err = transformation.CaseStream[*types2.AnalyticsResult](&cfg.Streams.RouteAnalyticsResult, s.streams.multiJoinAnalyticsEvents, s.functions.multijoinanalyticsRouteAnalyticsResult); err != nil {
+		return err
+	}
+	if s.streams.highValueAnalytics, err = transformation.WhenStream[*types2.AnalyticsResult, *types2.AnalyticsResult](&cfg.Streams.HighValueAnalytics, s.streams.routeAnalyticsResult); err != nil {
+		return err
+	}
+	if s.streams.writeHighValueAnalytics, err = transformation.Sink[*types2.AnalyticsResult, error](&cfg.Streams.WriteHighValueAnalytics, s.streams.highValueAnalytics); err != nil {
+		return err
+	}
+	if s.streams.standardAnalytics, err = transformation.WhenStream[*types2.AnalyticsResult, *types2.AnalyticsResult](&cfg.Streams.StandardAnalytics, s.streams.routeAnalyticsResult); err != nil {
+		return err
+	}
+	if s.streams.writeStandardAnalytics, err = transformation.Sink[*types2.AnalyticsResult, error](&cfg.Streams.WriteStandardAnalytics, s.streams.standardAnalytics); err != nil {
+		return err
+	}
 	if err = s.streams.consumeOrderProcessed.SetSource(s.streams.countOrderProcessed); err != nil {
 		return err
 	}
@@ -181,6 +381,24 @@ func (s *Service) initStreams(ctx context.Context, cfg *config.Config, env runti
 		return err
 	}
 	if s.dataConnectors.orderProcessed, err = endpoint.MakeEndpointConsumerOrderProcessedEndpointSource(s.streams.consumeOrderProcessed, s.functions.endpointOrderProcessedEndpointSource); err != nil {
+		return err
+	}
+	if s.dataConnectors.analyticsOrders, err = endpoint.MakeEndpointConsumerAnalyticsOrdersSource(s.streams.analyticsOrders, s.functions.endpointAnalyticsOrdersSource); err != nil {
+		return err
+	}
+	if s.dataConnectors.analyticsPayments, err = endpoint.MakeEndpointConsumerAnalyticsPaymentsSource(s.streams.analyticsPayments, s.functions.endpointAnalyticsPaymentsSource); err != nil {
+		return err
+	}
+	if s.dataConnectors.analyticsShipments, err = endpoint.MakeEndpointConsumerAnalyticsShipmentsSource(s.streams.analyticsShipments, s.functions.endpointAnalyticsShipmentsSource); err != nil {
+		return err
+	}
+	if s.dataConnectors.writeJoinedAnalyticsJoinedAnalytics, err = endpoint.MakeEndpointConsumerJoinedAnalyticsSink(s.streams.writeJoinedAnalytics, s.functions.endpointJoinedAnalyticsSink); err != nil {
+		return err
+	}
+	if s.dataConnectors.writeHighValueAnalyticsHighValueAnalytics, err = endpoint.MakeEndpointConsumerHighValueAnalyticsSink(s.streams.writeHighValueAnalytics, s.functions.endpointHighValueAnalyticsSink); err != nil {
+		return err
+	}
+	if s.dataConnectors.writeStandardAnalyticsStandardAnalytics, err = endpoint.MakeEndpointConsumerStandardAnalyticsSink(s.streams.writeStandardAnalytics, s.functions.endpointStandardAnalyticsSink); err != nil {
 		return err
 	}
 	_ = err
@@ -197,6 +415,62 @@ func (s *Service) initFunctions(ctx context.Context, cfg *config.Config, env run
 			return err
 		})
 	}
+	if s.makers.joinanalyticsKeyOrdersForJoinMaker != nil {
+		eg.Go(func() error {
+			var err error
+			s.functions.joinanalyticsKeyOrdersForJoin, err = s.makers.joinanalyticsKeyOrdersForJoinMaker(egCtx, &cfg.Streams.KeyOrdersForJoin, env)
+			return err
+		})
+	}
+	if s.makers.multijoinanalyticsKeyOrdersForMultiJoinMaker != nil {
+		eg.Go(func() error {
+			var err error
+			s.functions.multijoinanalyticsKeyOrdersForMultiJoin, err = s.makers.multijoinanalyticsKeyOrdersForMultiJoinMaker(egCtx, &cfg.Streams.KeyOrdersForMultiJoin, env)
+			return err
+		})
+	}
+	if s.makers.joinanalyticsKeyPaymentsForJoinMaker != nil {
+		eg.Go(func() error {
+			var err error
+			s.functions.joinanalyticsKeyPaymentsForJoin, err = s.makers.joinanalyticsKeyPaymentsForJoinMaker(egCtx, &cfg.Streams.KeyPaymentsForJoin, env)
+			return err
+		})
+	}
+	if s.makers.joinanalyticsJoinOrderPaymentAnalyticsMaker != nil {
+		eg.Go(func() error {
+			var err error
+			s.functions.joinanalyticsJoinOrderPaymentAnalytics, err = s.makers.joinanalyticsJoinOrderPaymentAnalyticsMaker(egCtx, &cfg.Streams.JoinOrderPaymentAnalytics, env)
+			return err
+		})
+	}
+	if s.makers.multijoinanalyticsKeyPaymentsForMultiJoinMaker != nil {
+		eg.Go(func() error {
+			var err error
+			s.functions.multijoinanalyticsKeyPaymentsForMultiJoin, err = s.makers.multijoinanalyticsKeyPaymentsForMultiJoinMaker(egCtx, &cfg.Streams.KeyPaymentsForMultiJoin, env)
+			return err
+		})
+	}
+	if s.makers.multijoinanalyticsKeyShipmentsForMultiJoinMaker != nil {
+		eg.Go(func() error {
+			var err error
+			s.functions.multijoinanalyticsKeyShipmentsForMultiJoin, err = s.makers.multijoinanalyticsKeyShipmentsForMultiJoinMaker(egCtx, &cfg.Streams.KeyShipmentsForMultiJoin, env)
+			return err
+		})
+	}
+	if s.makers.multijoinanalyticsMultiJoinAnalyticsEventsMaker != nil {
+		eg.Go(func() error {
+			var err error
+			s.functions.multijoinanalyticsMultiJoinAnalyticsEvents, err = s.makers.multijoinanalyticsMultiJoinAnalyticsEventsMaker(egCtx, &cfg.Streams.MultiJoinAnalyticsEvents, env)
+			return err
+		})
+	}
+	if s.makers.multijoinanalyticsRouteAnalyticsResultMaker != nil {
+		eg.Go(func() error {
+			var err error
+			s.functions.multijoinanalyticsRouteAnalyticsResult, err = s.makers.multijoinanalyticsRouteAnalyticsResultMaker(egCtx, &cfg.Streams.RouteAnalyticsResult, env)
+			return err
+		})
+	}
 	if s.makers.cronAnalyticsScheduleSourceMaker != nil {
 		eg.Go(func() error {
 			var err error
@@ -208,6 +482,48 @@ func (s *Service) initFunctions(ctx context.Context, cfg *config.Config, env run
 		eg.Go(func() error {
 			var err error
 			s.functions.endpointOrderProcessedEndpointSource, err = s.makers.endpointOrderProcessedEndpointSourceMaker(egCtx, &cfg.Endpoints.OrderProcessed, env)
+			return err
+		})
+	}
+	if s.makers.endpointAnalyticsOrdersSourceMaker != nil {
+		eg.Go(func() error {
+			var err error
+			s.functions.endpointAnalyticsOrdersSource, err = s.makers.endpointAnalyticsOrdersSourceMaker(egCtx, &cfg.Endpoints.AnalyticsOrders, env)
+			return err
+		})
+	}
+	if s.makers.endpointAnalyticsPaymentsSourceMaker != nil {
+		eg.Go(func() error {
+			var err error
+			s.functions.endpointAnalyticsPaymentsSource, err = s.makers.endpointAnalyticsPaymentsSourceMaker(egCtx, &cfg.Endpoints.AnalyticsPayments, env)
+			return err
+		})
+	}
+	if s.makers.endpointAnalyticsShipmentsSourceMaker != nil {
+		eg.Go(func() error {
+			var err error
+			s.functions.endpointAnalyticsShipmentsSource, err = s.makers.endpointAnalyticsShipmentsSourceMaker(egCtx, &cfg.Endpoints.AnalyticsShipments, env)
+			return err
+		})
+	}
+	if s.makers.endpointJoinedAnalyticsSinkMaker != nil {
+		eg.Go(func() error {
+			var err error
+			s.functions.endpointJoinedAnalyticsSink, err = s.makers.endpointJoinedAnalyticsSinkMaker(egCtx, &cfg.Endpoints.JoinedAnalytics, env)
+			return err
+		})
+	}
+	if s.makers.endpointHighValueAnalyticsSinkMaker != nil {
+		eg.Go(func() error {
+			var err error
+			s.functions.endpointHighValueAnalyticsSink, err = s.makers.endpointHighValueAnalyticsSinkMaker(egCtx, &cfg.Endpoints.HighValueAnalytics, env)
+			return err
+		})
+	}
+	if s.makers.endpointStandardAnalyticsSinkMaker != nil {
+		eg.Go(func() error {
+			var err error
+			s.functions.endpointStandardAnalyticsSink, err = s.makers.endpointStandardAnalyticsSinkMaker(egCtx, &cfg.Endpoints.StandardAnalytics, env)
 			return err
 		})
 	}
