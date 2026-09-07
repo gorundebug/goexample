@@ -3,11 +3,11 @@ go 1.25.4
 use (
 	./analyticsservice
 	./automationservice
-	./inventoryservice
-	./orderservice
 	./inventory_service_api
+	./inventoryservice
 	./model_go
 	./order_service_api
+	./orderservice
 )
 
 // Keep the hybrid workspace reproducible before its sibling modules are
