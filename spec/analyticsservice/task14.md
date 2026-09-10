@@ -1,36 +1,33 @@
-# Task 14/17: `KeyPaymentsForMultiJoin`
+# Task 14/22: `StandardAnalyticsSink`
 
 > Rules: [`spec/rules.md`](../rules.md)
 
 | Field | Value |
 |-------|-------|
 | Language | `Go` |
-| Kind | `keyBy` |
-| File | `analyticsservice/internal/functions/multijoinanalytics/keypaymentsformultijoin.go` |
-| Test | `analyticsservice/internal/functions/multijoinanalytics/keypaymentsformultijoin_test.go` |
+| Kind | `custom-sink` |
+| File | `analyticsservice/internal/functions/endpoint/standardanalyticssink.go` |
 | Service | `Analytics Service` |
 
 
 ## Behaviour
 
-Key the payment analytics event for the multi-way join.
+Validate and record analytics results routed to the standard Case branch.
 
 
 
 
 ## Stream types
-- Input: `AnalyticsEvent` — `analyticsservice/internal/types/analyticsevent.go`
-- Output: `AnalyticsEvent` — `analyticsservice/internal/types/analyticsevent.go`
-- Key: `AnalyticsKey`
+- Input: `AnalyticsResult` — `analyticsservice/internal/types/analyticsresult.go`
+- Output: `AnalyticsResult` — `analyticsservice/internal/types/analyticsresult.go`
 
 ## Checklist
 
 - [ ] Read [`spec/rules.md`](../rules.md), especially the `Go` section
-- [ ] Open `analyticsservice/internal/functions/multijoinanalytics/keypaymentsformultijoin.go` and preserve its generated contract
-- [ ] Inspect input type `AnalyticsEvent` in `analyticsservice/internal/types/analyticsevent.go`
-- [ ] Inspect output type `AnalyticsEvent` in `analyticsservice/internal/types/analyticsevent.go`
+- [ ] Open `analyticsservice/internal/functions/endpoint/standardanalyticssink.go` and preserve its generated contract
+- [ ] Inspect input type `AnalyticsResult` in `analyticsservice/internal/types/analyticsresult.go`
+- [ ] Inspect output type `AnalyticsResult` in `analyticsservice/internal/types/analyticsresult.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
-- [ ] Implement meaningful assertions in `analyticsservice/internal/functions/multijoinanalytics/keypaymentsformultijoin_test.go`
 - [ ] Re-read this checklist
-- [ ] Append to `spec/progress.md`: `- [x] analyticsservice/task14.md — KeyPaymentsForMultiJoin — Go — done`
+- [ ] Append to `spec/progress.md`: `- [x] analyticsservice/task14.md — StandardAnalyticsSink — Go — done`

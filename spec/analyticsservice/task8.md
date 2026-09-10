@@ -1,36 +1,31 @@
-# Task 8/17: `OrderProcessedEndpointSource`
+# Task 8/22: `AnalyticsShipmentsSource`
 
 > Rules: [`spec/rules.md`](../rules.md)
 
 | Field | Value |
 |-------|-------|
 | Language | `Go` |
-| Kind | `kafka-source` |
-| File | `analyticsservice/internal/functions/endpoint/orderprocessedendpointsource.go` |
+| Kind | `custom-source` |
+| File | `analyticsservice/internal/functions/endpoint/analyticsshipmentssource.go` |
 | Service | `Analytics Service` |
 
 
 ## Behaviour
 
-Exchange OrderProcessed events keyed by order ID.
-Producers include the final status, processing time, total and confirmed item counts, and a failure reason for unsuccessful orders.
-Consumers decode the event and mark its Kafka message processed only after the pipeline handles it successfully.
-
+Produce a deterministic shipment analytics event for the canonical multi-way join example.
 
 
 
 
 ## Stream types
-- Input: `OrderProcessed` — `model_go/pkg/types/orderprocessed.go`
-- Output: `OrderProcessed` — `model_go/pkg/types/orderprocessed.go`
+- Input: `AnalyticsEvent` — `analyticsservice/internal/types/analyticsevent.go`
 
 ## Checklist
 
 - [ ] Read [`spec/rules.md`](../rules.md), especially the `Go` section
-- [ ] Open `analyticsservice/internal/functions/endpoint/orderprocessedendpointsource.go` and preserve its generated contract
-- [ ] Inspect input type `OrderProcessed` in `model_go/pkg/types/orderprocessed.go`
-- [ ] Inspect output type `OrderProcessed` in `model_go/pkg/types/orderprocessed.go`
+- [ ] Open `analyticsservice/internal/functions/endpoint/analyticsshipmentssource.go` and preserve its generated contract
+- [ ] Inspect input type `AnalyticsEvent` in `analyticsservice/internal/types/analyticsevent.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
 - [ ] Re-read this checklist
-- [ ] Append to `spec/progress.md`: `- [x] analyticsservice/task8.md — OrderProcessedEndpointSource — Go — done`
+- [ ] Append to `spec/progress.md`: `- [x] analyticsservice/task8.md — AnalyticsShipmentsSource — Go — done`

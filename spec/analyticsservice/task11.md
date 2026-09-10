@@ -1,36 +1,33 @@
-# Task 11/17: `KeyOrdersForJoin`
+# Task 11/22: `HighValueAnalyticsSink`
 
 > Rules: [`spec/rules.md`](../rules.md)
 
 | Field | Value |
 |-------|-------|
 | Language | `Go` |
-| Kind | `keyBy` |
-| File | `analyticsservice/internal/functions/joinanalytics/keyordersforjoin.go` |
-| Test | `analyticsservice/internal/functions/joinanalytics/keyordersforjoin_test.go` |
+| Kind | `custom-sink` |
+| File | `analyticsservice/internal/functions/endpoint/highvalueanalyticssink.go` |
 | Service | `Analytics Service` |
 
 
 ## Behaviour
 
-Key the order analytics event by correlation key.
+Validate and record analytics results routed to the high-value Case branch.
 
 
 
 
 ## Stream types
-- Input: `AnalyticsEvent` — `analyticsservice/internal/types/analyticsevent.go`
-- Output: `AnalyticsEvent` — `analyticsservice/internal/types/analyticsevent.go`
-- Key: `AnalyticsKey`
+- Input: `AnalyticsResult` — `analyticsservice/internal/types/analyticsresult.go`
+- Output: `AnalyticsResult` — `analyticsservice/internal/types/analyticsresult.go`
 
 ## Checklist
 
 - [ ] Read [`spec/rules.md`](../rules.md), especially the `Go` section
-- [ ] Open `analyticsservice/internal/functions/joinanalytics/keyordersforjoin.go` and preserve its generated contract
-- [ ] Inspect input type `AnalyticsEvent` in `analyticsservice/internal/types/analyticsevent.go`
-- [ ] Inspect output type `AnalyticsEvent` in `analyticsservice/internal/types/analyticsevent.go`
+- [ ] Open `analyticsservice/internal/functions/endpoint/highvalueanalyticssink.go` and preserve its generated contract
+- [ ] Inspect input type `AnalyticsResult` in `analyticsservice/internal/types/analyticsresult.go`
+- [ ] Inspect output type `AnalyticsResult` in `analyticsservice/internal/types/analyticsresult.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
-- [ ] Implement meaningful assertions in `analyticsservice/internal/functions/joinanalytics/keyordersforjoin_test.go`
 - [ ] Re-read this checklist
-- [ ] Append to `spec/progress.md`: `- [x] analyticsservice/task11.md — KeyOrdersForJoin — Go — done`
+- [ ] Append to `spec/progress.md`: `- [x] analyticsservice/task11.md — HighValueAnalyticsSink — Go — done`

@@ -19,12 +19,17 @@ const (
 
 // Stream IDs
 const (
-	analyticsOrdersStreamID = iota + 1
+	advanceCycleAnalyticsStreamID = iota + 1
+	analyticsOrdersStreamID
 	analyticsPaymentsStreamID
 	analyticsScheduleStreamID
 	analyticsShipmentsStreamID
+	completeCycleAnalyticsStreamID
 	consumeOrderProcessedStreamID
+	continueCycleAnalyticsStreamID
 	countOrderProcessedStreamID
+	cycleAnalyticsInputStreamID
+	cycleAnalyticsLinkStreamID
 	highValueAnalyticsStreamID
 	joinOrderPaymentAnalyticsStreamID
 	keyOrdersForJoinStreamID
@@ -32,11 +37,14 @@ const (
 	keyPaymentsForJoinStreamID
 	keyPaymentsForMultiJoinStreamID
 	keyShipmentsForMultiJoinStreamID
+	mergeCycleAnalyticsStreamID
 	multiJoinAnalyticsEventsStreamID
 	routeAnalyticsResultStreamID
 	splitAnalyticsOrdersStreamID
 	splitAnalyticsPaymentsStreamID
+	splitCycleAnalyticsStreamID
 	standardAnalyticsStreamID
+	writeCycleAnalyticsStreamID
 	writeHighValueAnalyticsStreamID
 	writeJoinedAnalyticsStreamID
 	writeStandardAnalyticsStreamID
@@ -48,6 +56,8 @@ const (
 	analyticsPaymentsEndpointID
 	analyticsScheduleEndpointID
 	analyticsShipmentsEndpointID
+	cycleAnalyticsInputEndpointID
+	cycleAnalyticsResultEndpointID
 	highValueAnalyticsEndpointID
 	joinedAnalyticsEndpointID
 	orderProcessedEndpointID
@@ -67,12 +77,17 @@ type Config struct {
 	} `yaml:"services" mapstructure:"services"`
 
 	Streams struct {
+		AdvanceCycleAnalytics     cfg.MapStreamConfig       `yaml:"advanceCycleAnalytics" mapstructure:"advanceCycleAnalytics"`
 		AnalyticsOrders           cfg.InputStreamConfig     `yaml:"analyticsOrders" mapstructure:"analyticsOrders"`
 		AnalyticsPayments         cfg.InputStreamConfig     `yaml:"analyticsPayments" mapstructure:"analyticsPayments"`
 		AnalyticsSchedule         cfg.InputStreamConfig     `yaml:"analyticsSchedule" mapstructure:"analyticsSchedule"`
 		AnalyticsShipments        cfg.InputStreamConfig     `yaml:"analyticsShipments" mapstructure:"analyticsShipments"`
+		CompleteCycleAnalytics    cfg.FilterStreamConfig    `yaml:"completeCycleAnalytics" mapstructure:"completeCycleAnalytics"`
 		ConsumeOrderProcessed     cfg.InputStreamConfig     `yaml:"consumeOrderProcessed" mapstructure:"consumeOrderProcessed"`
+		ContinueCycleAnalytics    cfg.FilterStreamConfig    `yaml:"continueCycleAnalytics" mapstructure:"continueCycleAnalytics"`
 		CountOrderProcessed       cfg.ProcessStreamConfig   `yaml:"countOrderProcessed" mapstructure:"countOrderProcessed"`
+		CycleAnalyticsInput       cfg.InputStreamConfig     `yaml:"cycleAnalyticsInput" mapstructure:"cycleAnalyticsInput"`
+		CycleAnalyticsLink        cfg.CycleLinkStreamConfig `yaml:"cycleAnalyticsLink" mapstructure:"cycleAnalyticsLink"`
 		HighValueAnalytics        cfg.WhenStreamConfig      `yaml:"highValueAnalytics" mapstructure:"highValueAnalytics"`
 		JoinOrderPaymentAnalytics cfg.JoinStreamConfig      `yaml:"joinOrderPaymentAnalytics" mapstructure:"joinOrderPaymentAnalytics"`
 		KeyOrdersForJoin          cfg.KeyByStreamConfig     `yaml:"keyOrdersForJoin" mapstructure:"keyOrdersForJoin"`
@@ -80,11 +95,14 @@ type Config struct {
 		KeyPaymentsForJoin        cfg.KeyByStreamConfig     `yaml:"keyPaymentsForJoin" mapstructure:"keyPaymentsForJoin"`
 		KeyPaymentsForMultiJoin   cfg.KeyByStreamConfig     `yaml:"keyPaymentsForMultiJoin" mapstructure:"keyPaymentsForMultiJoin"`
 		KeyShipmentsForMultiJoin  cfg.KeyByStreamConfig     `yaml:"keyShipmentsForMultiJoin" mapstructure:"keyShipmentsForMultiJoin"`
+		MergeCycleAnalytics       cfg.MergeStreamConfig     `yaml:"mergeCycleAnalytics" mapstructure:"mergeCycleAnalytics"`
 		MultiJoinAnalyticsEvents  cfg.MultiJoinStreamConfig `yaml:"multiJoinAnalyticsEvents" mapstructure:"multiJoinAnalyticsEvents"`
 		RouteAnalyticsResult      cfg.CaseStreamConfig      `yaml:"routeAnalyticsResult" mapstructure:"routeAnalyticsResult"`
 		SplitAnalyticsOrders      cfg.SplitStreamConfig     `yaml:"splitAnalyticsOrders" mapstructure:"splitAnalyticsOrders"`
 		SplitAnalyticsPayments    cfg.SplitStreamConfig     `yaml:"splitAnalyticsPayments" mapstructure:"splitAnalyticsPayments"`
+		SplitCycleAnalytics       cfg.SplitStreamConfig     `yaml:"splitCycleAnalytics" mapstructure:"splitCycleAnalytics"`
 		StandardAnalytics         cfg.WhenStreamConfig      `yaml:"standardAnalytics" mapstructure:"standardAnalytics"`
+		WriteCycleAnalytics       cfg.SinkStreamConfig      `yaml:"writeCycleAnalytics" mapstructure:"writeCycleAnalytics"`
 		WriteHighValueAnalytics   cfg.SinkStreamConfig      `yaml:"writeHighValueAnalytics" mapstructure:"writeHighValueAnalytics"`
 		WriteJoinedAnalytics      cfg.SinkStreamConfig      `yaml:"writeJoinedAnalytics" mapstructure:"writeJoinedAnalytics"`
 		WriteStandardAnalytics    cfg.SinkStreamConfig      `yaml:"writeStandardAnalytics" mapstructure:"writeStandardAnalytics"`
@@ -104,6 +122,10 @@ type Config struct {
 		AnalyticsSchedule cfg.CronEndpointConfig `yaml:"analyticsSchedule" mapstructure:"analyticsSchedule"`
 
 		AnalyticsShipments cfg.CustomEndpointConfig `yaml:"analyticsShipments" mapstructure:"analyticsShipments"`
+
+		CycleAnalyticsInput cfg.CustomEndpointConfig `yaml:"cycleAnalyticsInput" mapstructure:"cycleAnalyticsInput"`
+
+		CycleAnalyticsResult cfg.CustomEndpointConfig `yaml:"cycleAnalyticsResult" mapstructure:"cycleAnalyticsResult"`
 
 		HighValueAnalytics cfg.CustomEndpointConfig `yaml:"highValueAnalytics" mapstructure:"highValueAnalytics"`
 
@@ -150,12 +172,17 @@ func (c *Config) GetServices() []*cfg.ServiceConfig {
 
 func (c *Config) GetStreams() []cfg.StreamConfig {
 	return []cfg.StreamConfig{
+		&c.Streams.AdvanceCycleAnalytics,
 		&c.Streams.AnalyticsOrders,
 		&c.Streams.AnalyticsPayments,
 		&c.Streams.AnalyticsSchedule,
 		&c.Streams.AnalyticsShipments,
+		&c.Streams.CompleteCycleAnalytics,
 		&c.Streams.ConsumeOrderProcessed,
+		&c.Streams.ContinueCycleAnalytics,
 		&c.Streams.CountOrderProcessed,
+		&c.Streams.CycleAnalyticsInput,
+		&c.Streams.CycleAnalyticsLink,
 		&c.Streams.HighValueAnalytics,
 		&c.Streams.JoinOrderPaymentAnalytics,
 		&c.Streams.KeyOrdersForJoin,
@@ -163,11 +190,14 @@ func (c *Config) GetStreams() []cfg.StreamConfig {
 		&c.Streams.KeyPaymentsForJoin,
 		&c.Streams.KeyPaymentsForMultiJoin,
 		&c.Streams.KeyShipmentsForMultiJoin,
+		&c.Streams.MergeCycleAnalytics,
 		&c.Streams.MultiJoinAnalyticsEvents,
 		&c.Streams.RouteAnalyticsResult,
 		&c.Streams.SplitAnalyticsOrders,
 		&c.Streams.SplitAnalyticsPayments,
+		&c.Streams.SplitCycleAnalytics,
 		&c.Streams.StandardAnalytics,
+		&c.Streams.WriteCycleAnalytics,
 		&c.Streams.WriteHighValueAnalytics,
 		&c.Streams.WriteJoinedAnalytics,
 		&c.Streams.WriteStandardAnalytics,
@@ -188,6 +218,8 @@ func (c *Config) GetEndpoints() []cfg.EndpointConfig {
 		&c.Endpoints.AnalyticsPayments,
 		&c.Endpoints.AnalyticsSchedule,
 		&c.Endpoints.AnalyticsShipments,
+		&c.Endpoints.CycleAnalyticsInput,
+		&c.Endpoints.CycleAnalyticsResult,
 		&c.Endpoints.HighValueAnalytics,
 		&c.Endpoints.JoinedAnalytics,
 		&c.Endpoints.OrderProcessed,
@@ -529,12 +561,17 @@ func MakeConfig() *Config {
 			},
 		},
 		Streams: struct {
+			AdvanceCycleAnalytics     cfg.MapStreamConfig       `yaml:"advanceCycleAnalytics" mapstructure:"advanceCycleAnalytics"`
 			AnalyticsOrders           cfg.InputStreamConfig     `yaml:"analyticsOrders" mapstructure:"analyticsOrders"`
 			AnalyticsPayments         cfg.InputStreamConfig     `yaml:"analyticsPayments" mapstructure:"analyticsPayments"`
 			AnalyticsSchedule         cfg.InputStreamConfig     `yaml:"analyticsSchedule" mapstructure:"analyticsSchedule"`
 			AnalyticsShipments        cfg.InputStreamConfig     `yaml:"analyticsShipments" mapstructure:"analyticsShipments"`
+			CompleteCycleAnalytics    cfg.FilterStreamConfig    `yaml:"completeCycleAnalytics" mapstructure:"completeCycleAnalytics"`
 			ConsumeOrderProcessed     cfg.InputStreamConfig     `yaml:"consumeOrderProcessed" mapstructure:"consumeOrderProcessed"`
+			ContinueCycleAnalytics    cfg.FilterStreamConfig    `yaml:"continueCycleAnalytics" mapstructure:"continueCycleAnalytics"`
 			CountOrderProcessed       cfg.ProcessStreamConfig   `yaml:"countOrderProcessed" mapstructure:"countOrderProcessed"`
+			CycleAnalyticsInput       cfg.InputStreamConfig     `yaml:"cycleAnalyticsInput" mapstructure:"cycleAnalyticsInput"`
+			CycleAnalyticsLink        cfg.CycleLinkStreamConfig `yaml:"cycleAnalyticsLink" mapstructure:"cycleAnalyticsLink"`
 			HighValueAnalytics        cfg.WhenStreamConfig      `yaml:"highValueAnalytics" mapstructure:"highValueAnalytics"`
 			JoinOrderPaymentAnalytics cfg.JoinStreamConfig      `yaml:"joinOrderPaymentAnalytics" mapstructure:"joinOrderPaymentAnalytics"`
 			KeyOrdersForJoin          cfg.KeyByStreamConfig     `yaml:"keyOrdersForJoin" mapstructure:"keyOrdersForJoin"`
@@ -542,15 +579,32 @@ func MakeConfig() *Config {
 			KeyPaymentsForJoin        cfg.KeyByStreamConfig     `yaml:"keyPaymentsForJoin" mapstructure:"keyPaymentsForJoin"`
 			KeyPaymentsForMultiJoin   cfg.KeyByStreamConfig     `yaml:"keyPaymentsForMultiJoin" mapstructure:"keyPaymentsForMultiJoin"`
 			KeyShipmentsForMultiJoin  cfg.KeyByStreamConfig     `yaml:"keyShipmentsForMultiJoin" mapstructure:"keyShipmentsForMultiJoin"`
+			MergeCycleAnalytics       cfg.MergeStreamConfig     `yaml:"mergeCycleAnalytics" mapstructure:"mergeCycleAnalytics"`
 			MultiJoinAnalyticsEvents  cfg.MultiJoinStreamConfig `yaml:"multiJoinAnalyticsEvents" mapstructure:"multiJoinAnalyticsEvents"`
 			RouteAnalyticsResult      cfg.CaseStreamConfig      `yaml:"routeAnalyticsResult" mapstructure:"routeAnalyticsResult"`
 			SplitAnalyticsOrders      cfg.SplitStreamConfig     `yaml:"splitAnalyticsOrders" mapstructure:"splitAnalyticsOrders"`
 			SplitAnalyticsPayments    cfg.SplitStreamConfig     `yaml:"splitAnalyticsPayments" mapstructure:"splitAnalyticsPayments"`
+			SplitCycleAnalytics       cfg.SplitStreamConfig     `yaml:"splitCycleAnalytics" mapstructure:"splitCycleAnalytics"`
 			StandardAnalytics         cfg.WhenStreamConfig      `yaml:"standardAnalytics" mapstructure:"standardAnalytics"`
+			WriteCycleAnalytics       cfg.SinkStreamConfig      `yaml:"writeCycleAnalytics" mapstructure:"writeCycleAnalytics"`
 			WriteHighValueAnalytics   cfg.SinkStreamConfig      `yaml:"writeHighValueAnalytics" mapstructure:"writeHighValueAnalytics"`
 			WriteJoinedAnalytics      cfg.SinkStreamConfig      `yaml:"writeJoinedAnalytics" mapstructure:"writeJoinedAnalytics"`
 			WriteStandardAnalytics    cfg.SinkStreamConfig      `yaml:"writeStandardAnalytics" mapstructure:"writeStandardAnalytics"`
 		}{
+			AdvanceCycleAnalytics: cfg.MapStreamConfig{
+				ID:                  advanceCycleAnalyticsStreamID,
+				Name:                "Advance Cycle Analytics",
+				Pipeline:            "cycleAnalytics",
+				IdService:           analyticsServiceServiceID,
+				IdSource:            mergeCycleAnalyticsStreamID,
+				XPos:                -1100,
+				YPos:                1160,
+				ValueType:           "AnalyticsEvent",
+				FunctionPackage:     "cycleanalytics",
+				FunctionName:        "AdvanceCycleAnalytics",
+				FunctionDescription: "Increment the cycle counter while preserving the analytics event identity.",
+			},
+
 			AnalyticsOrders: cfg.InputStreamConfig{
 				ID:         analyticsOrdersStreamID,
 				Name:       "Analytics Orders",
@@ -595,6 +649,19 @@ func MakeConfig() *Config {
 				IdEndpoint: analyticsShipmentsEndpointID,
 			},
 
+			CompleteCycleAnalytics: cfg.FilterStreamConfig{
+				ID:                  completeCycleAnalyticsStreamID,
+				Name:                "Complete Cycle Analytics",
+				Pipeline:            "cycleAnalytics",
+				IdService:           analyticsServiceServiceID,
+				IdSource:            splitCycleAnalyticsStreamID,
+				XPos:                -600,
+				YPos:                1260,
+				FunctionPackage:     "cycleanalytics",
+				FunctionName:        "CompleteCycleAnalytics",
+				FunctionDescription: "Keep the terminal analytics event once its cycle counter reaches three.",
+			},
+
 			ConsumeOrderProcessed: cfg.InputStreamConfig{
 				ID:         consumeOrderProcessedStreamID,
 				Name:       "Consume Order Processed",
@@ -605,6 +672,19 @@ func MakeConfig() *Config {
 				YPos:       -205,
 				ValueType:  "OrderProcessed",
 				IdEndpoint: orderProcessedEndpointID,
+			},
+
+			ContinueCycleAnalytics: cfg.FilterStreamConfig{
+				ID:                  continueCycleAnalyticsStreamID,
+				Name:                "Continue Cycle Analytics",
+				Pipeline:            "cycleAnalytics",
+				IdService:           analyticsServiceServiceID,
+				IdSource:            splitCycleAnalyticsStreamID,
+				XPos:                -600,
+				YPos:                1060,
+				FunctionPackage:     "cycleanalytics",
+				FunctionName:        "ContinueCycleAnalytics",
+				FunctionDescription: "Keep intermediate analytics events whose cycle counter is below three.",
 			},
 
 			CountOrderProcessed: cfg.ProcessStreamConfig{
@@ -618,6 +698,27 @@ func MakeConfig() *Config {
 				FunctionPackage:     "analytics",
 				FunctionName:        "CountOrderProcessed",
 				FunctionDescription: "Count successful and unsuccessful orders independently, then return the event unchanged.\n",
+			},
+
+			CycleAnalyticsInput: cfg.InputStreamConfig{
+				ID:         cycleAnalyticsInputStreamID,
+				Name:       "Cycle Analytics Input",
+				Pipeline:   "cycleAnalytics",
+				IdService:  analyticsServiceServiceID,
+				XPos:       -1600,
+				YPos:       1160,
+				ValueType:  "AnalyticsEvent",
+				IdEndpoint: cycleAnalyticsInputEndpointID,
+			},
+
+			CycleAnalyticsLink: cfg.CycleLinkStreamConfig{
+				ID:        cycleAnalyticsLinkStreamID,
+				Name:      "Cycle Analytics Link",
+				Pipeline:  "cycleAnalytics",
+				IdService: analyticsServiceServiceID,
+				IdSource:  continueCycleAnalyticsStreamID,
+				XPos:      -1100,
+				YPos:      960,
 			},
 
 			HighValueAnalytics: cfg.WhenStreamConfig{
@@ -725,6 +826,16 @@ func MakeConfig() *Config {
 				FunctionDescription: "Key the shipment analytics event for the multi-way join.",
 			},
 
+			MergeCycleAnalytics: cfg.MergeStreamConfig{
+				ID:        mergeCycleAnalyticsStreamID,
+				Name:      "Merge Cycle Analytics",
+				Pipeline:  "cycleAnalytics",
+				IdService: analyticsServiceServiceID,
+				IdSources: []int{cycleAnalyticsInputStreamID, cycleAnalyticsLinkStreamID},
+				XPos:      -1350,
+				YPos:      1160,
+			},
+
 			MultiJoinAnalyticsEvents: cfg.MultiJoinStreamConfig{
 				ID:                  multiJoinAnalyticsEventsStreamID,
 				Name:                "Multi Join Analytics Events",
@@ -776,6 +887,16 @@ func MakeConfig() *Config {
 				YPos:      430,
 			},
 
+			SplitCycleAnalytics: cfg.SplitStreamConfig{
+				ID:        splitCycleAnalyticsStreamID,
+				Name:      "Split Cycle Analytics",
+				Pipeline:  "cycleAnalytics",
+				IdService: analyticsServiceServiceID,
+				IdSource:  advanceCycleAnalyticsStreamID,
+				XPos:      -850,
+				YPos:      1160,
+			},
+
 			StandardAnalytics: cfg.WhenStreamConfig{
 				ID:        standardAnalyticsStreamID,
 				Name:      "Standard Analytics",
@@ -785,6 +906,18 @@ func MakeConfig() *Config {
 				XPos:      -400,
 				YPos:      830,
 				ValueType: "AnalyticsResult",
+			},
+
+			WriteCycleAnalytics: cfg.SinkStreamConfig{
+				ID:         writeCycleAnalyticsStreamID,
+				Name:       "Write Cycle Analytics",
+				Pipeline:   "cycleAnalytics",
+				IdService:  analyticsServiceServiceID,
+				IdSource:   completeCycleAnalyticsStreamID,
+				XPos:       -350,
+				YPos:       1260,
+				ValueType:  "AnalyticsEvent",
+				IdEndpoint: cycleAnalyticsResultEndpointID,
 			},
 
 			WriteHighValueAnalytics: cfg.SinkStreamConfig{
@@ -852,14 +985,16 @@ func MakeConfig() *Config {
 			},
 		},
 		Endpoints: struct {
-			AnalyticsOrders    cfg.CustomEndpointConfig `yaml:"analyticsOrders" mapstructure:"analyticsOrders"`
-			AnalyticsPayments  cfg.CustomEndpointConfig `yaml:"analyticsPayments" mapstructure:"analyticsPayments"`
-			AnalyticsSchedule  cfg.CronEndpointConfig   `yaml:"analyticsSchedule" mapstructure:"analyticsSchedule"`
-			AnalyticsShipments cfg.CustomEndpointConfig `yaml:"analyticsShipments" mapstructure:"analyticsShipments"`
-			HighValueAnalytics cfg.CustomEndpointConfig `yaml:"highValueAnalytics" mapstructure:"highValueAnalytics"`
-			JoinedAnalytics    cfg.CustomEndpointConfig `yaml:"joinedAnalytics" mapstructure:"joinedAnalytics"`
-			OrderProcessed     cfg.KafkaEndpointConfig  `yaml:"orderProcessed" mapstructure:"orderProcessed"`
-			StandardAnalytics  cfg.CustomEndpointConfig `yaml:"standardAnalytics" mapstructure:"standardAnalytics"`
+			AnalyticsOrders      cfg.CustomEndpointConfig `yaml:"analyticsOrders" mapstructure:"analyticsOrders"`
+			AnalyticsPayments    cfg.CustomEndpointConfig `yaml:"analyticsPayments" mapstructure:"analyticsPayments"`
+			AnalyticsSchedule    cfg.CronEndpointConfig   `yaml:"analyticsSchedule" mapstructure:"analyticsSchedule"`
+			AnalyticsShipments   cfg.CustomEndpointConfig `yaml:"analyticsShipments" mapstructure:"analyticsShipments"`
+			CycleAnalyticsInput  cfg.CustomEndpointConfig `yaml:"cycleAnalyticsInput" mapstructure:"cycleAnalyticsInput"`
+			CycleAnalyticsResult cfg.CustomEndpointConfig `yaml:"cycleAnalyticsResult" mapstructure:"cycleAnalyticsResult"`
+			HighValueAnalytics   cfg.CustomEndpointConfig `yaml:"highValueAnalytics" mapstructure:"highValueAnalytics"`
+			JoinedAnalytics      cfg.CustomEndpointConfig `yaml:"joinedAnalytics" mapstructure:"joinedAnalytics"`
+			OrderProcessed       cfg.KafkaEndpointConfig  `yaml:"orderProcessed" mapstructure:"orderProcessed"`
+			StandardAnalytics    cfg.CustomEndpointConfig `yaml:"standardAnalytics" mapstructure:"standardAnalytics"`
 		}{
 			AnalyticsOrders: cfg.CustomEndpointConfig{
 				ID:                  analyticsOrdersEndpointID,
@@ -900,6 +1035,24 @@ func MakeConfig() *Config {
 				FunctionName:        "AnalyticsShipments",
 				FunctionPackage:     "endpoint",
 				FunctionDescription: "Produce a deterministic shipment analytics event for the canonical multi-way join example.",
+			},
+
+			CycleAnalyticsInput: cfg.CustomEndpointConfig{
+				ID:                  cycleAnalyticsInputEndpointID,
+				Name:                "Cycle Analytics Input",
+				IdDataConnector:     analyticsFunctionsConnectorID,
+				FunctionName:        "CycleAnalyticsInput",
+				FunctionPackage:     "endpoint",
+				FunctionDescription: "Produce one deterministic analytics event that exercises the finite feedback cycle.",
+			},
+
+			CycleAnalyticsResult: cfg.CustomEndpointConfig{
+				ID:                  cycleAnalyticsResultEndpointID,
+				Name:                "Cycle Analytics Result",
+				IdDataConnector:     analyticsFunctionsConnectorID,
+				FunctionName:        "CycleAnalyticsResult",
+				FunctionPackage:     "endpoint",
+				FunctionDescription: "Validate the terminal event emitted after three passes through the feedback cycle.",
 			},
 
 			HighValueAnalytics: cfg.CustomEndpointConfig{

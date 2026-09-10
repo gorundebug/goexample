@@ -1,19 +1,19 @@
-# Task 4/22: `CompleteCycleAnalytics`
+# Task 18/22: `KeyOrdersForMultiJoin`
 
 > Rules: [`spec/rules.md`](../rules.md)
 
 | Field | Value |
 |-------|-------|
 | Language | `Go` |
-| Kind | `filter` |
-| File | `analyticsservice/internal/functions/cycleanalytics/completecycleanalytics.go` |
-| Test | `analyticsservice/internal/functions/cycleanalytics/completecycleanalytics_test.go` |
+| Kind | `keyBy` |
+| File | `analyticsservice/internal/functions/multijoinanalytics/keyordersformultijoin.go` |
+| Test | `analyticsservice/internal/functions/multijoinanalytics/keyordersformultijoin_test.go` |
 | Service | `Analytics Service` |
 
 
 ## Behaviour
 
-Keep the terminal analytics event once its cycle counter reaches three.
+Key the order analytics event for the multi-way join.
 
 
 
@@ -21,15 +21,16 @@ Keep the terminal analytics event once its cycle counter reaches three.
 ## Stream types
 - Input: `AnalyticsEvent` — `analyticsservice/internal/types/analyticsevent.go`
 - Output: `AnalyticsEvent` — `analyticsservice/internal/types/analyticsevent.go`
+- Key: `AnalyticsKey`
 
 ## Checklist
 
 - [ ] Read [`spec/rules.md`](../rules.md), especially the `Go` section
-- [ ] Open `analyticsservice/internal/functions/cycleanalytics/completecycleanalytics.go` and preserve its generated contract
+- [ ] Open `analyticsservice/internal/functions/multijoinanalytics/keyordersformultijoin.go` and preserve its generated contract
 - [ ] Inspect input type `AnalyticsEvent` in `analyticsservice/internal/types/analyticsevent.go`
 - [ ] Inspect output type `AnalyticsEvent` in `analyticsservice/internal/types/analyticsevent.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
-- [ ] Implement meaningful assertions in `analyticsservice/internal/functions/cycleanalytics/completecycleanalytics_test.go`
+- [ ] Implement meaningful assertions in `analyticsservice/internal/functions/multijoinanalytics/keyordersformultijoin_test.go`
 - [ ] Re-read this checklist
-- [ ] Append to `spec/progress.md`: `- [x] analyticsservice/task4.md — CompleteCycleAnalytics — Go — done`
+- [ ] Append to `spec/progress.md`: `- [x] analyticsservice/task18.md — KeyOrdersForMultiJoin — Go — done`

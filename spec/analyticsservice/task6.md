@@ -1,33 +1,31 @@
-# Task 6/17: `HighValueAnalyticsSink`
+# Task 6/22: `AnalyticsOrdersSource`
 
 > Rules: [`spec/rules.md`](../rules.md)
 
 | Field | Value |
 |-------|-------|
 | Language | `Go` |
-| Kind | `custom-sink` |
-| File | `analyticsservice/internal/functions/endpoint/highvalueanalyticssink.go` |
+| Kind | `custom-source` |
+| File | `analyticsservice/internal/functions/endpoint/analyticsorderssource.go` |
 | Service | `Analytics Service` |
 
 
 ## Behaviour
 
-Validate and record analytics results routed to the high-value Case branch.
+Produce a deterministic order analytics event for the canonical join examples.
 
 
 
 
 ## Stream types
-- Input: `AnalyticsResult` — `analyticsservice/internal/types/analyticsresult.go`
-- Output: `AnalyticsResult` — `analyticsservice/internal/types/analyticsresult.go`
+- Input: `AnalyticsEvent` — `analyticsservice/internal/types/analyticsevent.go`
 
 ## Checklist
 
 - [ ] Read [`spec/rules.md`](../rules.md), especially the `Go` section
-- [ ] Open `analyticsservice/internal/functions/endpoint/highvalueanalyticssink.go` and preserve its generated contract
-- [ ] Inspect input type `AnalyticsResult` in `analyticsservice/internal/types/analyticsresult.go`
-- [ ] Inspect output type `AnalyticsResult` in `analyticsservice/internal/types/analyticsresult.go`
+- [ ] Open `analyticsservice/internal/functions/endpoint/analyticsorderssource.go` and preserve its generated contract
+- [ ] Inspect input type `AnalyticsEvent` in `analyticsservice/internal/types/analyticsevent.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
 - [ ] Re-read this checklist
-- [ ] Append to `spec/progress.md`: `- [x] analyticsservice/task6.md — HighValueAnalyticsSink — Go — done`
+- [ ] Append to `spec/progress.md`: `- [x] analyticsservice/task6.md — AnalyticsOrdersSource — Go — done`
