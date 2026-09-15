@@ -16,6 +16,8 @@ import (
 type automationDelayStream struct{ cfg *runtimecfg.DelayStreamConfig }
 
 func (s *automationDelayStream) GetName() string                                { return "Automation delay" }
+func (s *automationDelayStream) GetPipelineName() string                        { return "Automation" }
+func (s *automationDelayStream) GetComponentName() string                       { return "Automation delay" }
 func (s *automationDelayStream) GetTransformationName() string                  { return "Delay" }
 func (s *automationDelayStream) GetTypeName() string                            { return "string" }
 func (s *automationDelayStream) GetID() int                                     { return 1 }
