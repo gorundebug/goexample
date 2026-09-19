@@ -15,23 +15,12 @@ import (
 	"time"
 
 	"github.com/gorundebug/servicelib/runtime"
-	"github.com/gorundebug/servicelib/runtime/datastruct"
 	"github.com/gorundebug/servicelib/runtime/environment"
 	log "github.com/gorundebug/servicelib/runtime/environment/log"
 	runtimeserde "github.com/gorundebug/servicelib/runtime/serde"
-
-	runtimecfg "github.com/gorundebug/servicelib/runtime/config"
-	"github.com/gorundebug/servicelib/transformation"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/gorundebug/analyticsservice/internal/config"
-	"github.com/gorundebug/analyticsservice/internal/functions/analytics"
-	"github.com/gorundebug/analyticsservice/internal/functions/cron"
-	"github.com/gorundebug/analyticsservice/internal/functions/cycleanalytics"
-	"github.com/gorundebug/analyticsservice/internal/functions/endpoint"
-	"github.com/gorundebug/analyticsservice/internal/functions/joinanalytics"
-	"github.com/gorundebug/analyticsservice/internal/functions/multijoinanalytics"
-	"github.com/gorundebug/analyticsservice/internal/functions/substreamanalytics"
 	"github.com/gorundebug/analyticsservice/internal/serdes"
 	"github.com/gorundebug/analyticsservice/internal/types"
 	serdes2 "github.com/gorundebug/model_go/pkg/serdes"
@@ -39,126 +28,48 @@ import (
 )
 
 type serviceMakers struct {
-	//stream function makers
-	analyticsCountOrderProcessedMaker                    func(ctx context.Context, cfg *runtimecfg.ProcessStreamConfig, env environment.ServiceEnvironment) (*analytics.CountOrderProcessed, error)
-	joinanalyticsKeyOrdersForJoinMaker                   func(ctx context.Context, cfg *runtimecfg.KeyByStreamConfig, env environment.ServiceEnvironment) (*joinanalytics.KeyOrdersForJoin, error)
-	multijoinanalyticsKeyOrdersForMultiJoinMaker         func(ctx context.Context, cfg *runtimecfg.KeyByStreamConfig, env environment.ServiceEnvironment) (*multijoinanalytics.KeyOrdersForMultiJoin, error)
-	joinanalyticsKeyPaymentsForJoinMaker                 func(ctx context.Context, cfg *runtimecfg.KeyByStreamConfig, env environment.ServiceEnvironment) (*joinanalytics.KeyPaymentsForJoin, error)
-	joinanalyticsJoinOrderPaymentAnalyticsMaker          func(ctx context.Context, cfg *runtimecfg.JoinStreamConfig, env environment.ServiceEnvironment) (*joinanalytics.JoinOrderPaymentAnalytics, error)
-	multijoinanalyticsKeyPaymentsForMultiJoinMaker       func(ctx context.Context, cfg *runtimecfg.KeyByStreamConfig, env environment.ServiceEnvironment) (*multijoinanalytics.KeyPaymentsForMultiJoin, error)
-	multijoinanalyticsKeyShipmentsForMultiJoinMaker      func(ctx context.Context, cfg *runtimecfg.KeyByStreamConfig, env environment.ServiceEnvironment) (*multijoinanalytics.KeyShipmentsForMultiJoin, error)
-	multijoinanalyticsMultiJoinAnalyticsEventsMaker      func(ctx context.Context, cfg *runtimecfg.MultiJoinStreamConfig, env environment.ServiceEnvironment) (*multijoinanalytics.MultiJoinAnalyticsEvents, error)
-	multijoinanalyticsRouteAnalyticsResultMaker          func(ctx context.Context, cfg *runtimecfg.CaseStreamConfig, env environment.ServiceEnvironment) (*multijoinanalytics.RouteAnalyticsResult, error)
-	cycleanalyticsAdvanceCycleAnalyticsMaker             func(ctx context.Context, cfg *runtimecfg.MapStreamConfig, env environment.ServiceEnvironment) (*cycleanalytics.AdvanceCycleAnalytics, error)
-	cycleanalyticsCompleteCycleAnalyticsMaker            func(ctx context.Context, cfg *runtimecfg.FilterStreamConfig, env environment.ServiceEnvironment) (*cycleanalytics.CompleteCycleAnalytics, error)
-	cycleanalyticsContinueCycleAnalyticsMaker            func(ctx context.Context, cfg *runtimecfg.FilterStreamConfig, env environment.ServiceEnvironment) (*cycleanalytics.ContinueCycleAnalytics, error)
-	substreamanalyticsBuildSubstreamAnalyticsResultMaker func(ctx context.Context, cfg *runtimecfg.MapStreamConfig, env environment.ServiceEnvironment) (*substreamanalytics.BuildSubstreamAnalyticsResult, error)
-	substreamanalyticsInvokeAnalyticsSubstreamMaker      func(ctx context.Context, cfg *runtimecfg.MapStreamConfig, env environment.ServiceEnvironment) (*substreamanalytics.InvokeAnalyticsSubstream, error)
-	//data source function makers
-	cronAnalyticsScheduleSourceMaker           func(ctx context.Context, cfg *runtimecfg.CronEndpointConfig, env environment.ServiceEnvironment) (*cron.AnalyticsScheduleSource, error)
-	endpointOrderProcessedEndpointSourceMaker  func(ctx context.Context, cfg *runtimecfg.KafkaEndpointConfig, env environment.ServiceEnvironment) (*endpoint.OrderProcessedEndpointSource, error)
-	endpointAnalyticsOrdersSourceMaker         func(ctx context.Context, cfg *runtimecfg.CustomEndpointConfig, env environment.ServiceEnvironment) (*endpoint.AnalyticsOrdersSource, error)
-	endpointAnalyticsPaymentsSourceMaker       func(ctx context.Context, cfg *runtimecfg.CustomEndpointConfig, env environment.ServiceEnvironment) (*endpoint.AnalyticsPaymentsSource, error)
-	endpointAnalyticsShipmentsSourceMaker      func(ctx context.Context, cfg *runtimecfg.CustomEndpointConfig, env environment.ServiceEnvironment) (*endpoint.AnalyticsShipmentsSource, error)
-	endpointCycleAnalyticsInputSourceMaker     func(ctx context.Context, cfg *runtimecfg.CustomEndpointConfig, env environment.ServiceEnvironment) (*endpoint.CycleAnalyticsInputSource, error)
-	endpointSubstreamAnalyticsInputSourceMaker func(ctx context.Context, cfg *runtimecfg.CustomEndpointConfig, env environment.ServiceEnvironment) (*endpoint.SubstreamAnalyticsInputSource, error)
-	//data sink function makers
-	endpointCycleAnalyticsResultSinkMaker     func(ctx context.Context, cfg *runtimecfg.CustomEndpointConfig, env environment.ServiceEnvironment) (*endpoint.CycleAnalyticsResultSink, error)
-	endpointJoinedAnalyticsSinkMaker          func(ctx context.Context, cfg *runtimecfg.CustomEndpointConfig, env environment.ServiceEnvironment) (*endpoint.JoinedAnalyticsSink, error)
-	endpointHighValueAnalyticsSinkMaker       func(ctx context.Context, cfg *runtimecfg.CustomEndpointConfig, env environment.ServiceEnvironment) (*endpoint.HighValueAnalyticsSink, error)
-	endpointStandardAnalyticsSinkMaker        func(ctx context.Context, cfg *runtimecfg.CustomEndpointConfig, env environment.ServiceEnvironment) (*endpoint.StandardAnalyticsSink, error)
-	endpointSubstreamAnalyticsResultSinkMaker func(ctx context.Context, cfg *runtimecfg.CustomEndpointConfig, env environment.ServiceEnvironment) (*endpoint.SubstreamAnalyticsResultSink, error)
+	analyticsPipelineMakers
+	analyticsSourcesPipelineMakers
+	cycleAnalyticsPipelineMakers
+	joinAnalyticsPipelineMakers
+	multiJoinAnalyticsPipelineMakers
+	substreamAnalyticsPipelineMakers
 }
 
 type serviceFunctions struct {
-	//stream functions
-	analyticsCountOrderProcessed                    *analytics.CountOrderProcessed
-	joinanalyticsKeyOrdersForJoin                   *joinanalytics.KeyOrdersForJoin
-	multijoinanalyticsKeyOrdersForMultiJoin         *multijoinanalytics.KeyOrdersForMultiJoin
-	joinanalyticsKeyPaymentsForJoin                 *joinanalytics.KeyPaymentsForJoin
-	joinanalyticsJoinOrderPaymentAnalytics          *joinanalytics.JoinOrderPaymentAnalytics
-	multijoinanalyticsKeyPaymentsForMultiJoin       *multijoinanalytics.KeyPaymentsForMultiJoin
-	multijoinanalyticsKeyShipmentsForMultiJoin      *multijoinanalytics.KeyShipmentsForMultiJoin
-	multijoinanalyticsMultiJoinAnalyticsEvents      *multijoinanalytics.MultiJoinAnalyticsEvents
-	multijoinanalyticsRouteAnalyticsResult          *multijoinanalytics.RouteAnalyticsResult
-	cycleanalyticsAdvanceCycleAnalytics             *cycleanalytics.AdvanceCycleAnalytics
-	cycleanalyticsCompleteCycleAnalytics            *cycleanalytics.CompleteCycleAnalytics
-	cycleanalyticsContinueCycleAnalytics            *cycleanalytics.ContinueCycleAnalytics
-	substreamanalyticsBuildSubstreamAnalyticsResult *substreamanalytics.BuildSubstreamAnalyticsResult
-	substreamanalyticsInvokeAnalyticsSubstream      *substreamanalytics.InvokeAnalyticsSubstream
-	//data source functions
-	cronAnalyticsScheduleSource           *cron.AnalyticsScheduleSource
-	endpointOrderProcessedEndpointSource  *endpoint.OrderProcessedEndpointSource
-	endpointAnalyticsOrdersSource         *endpoint.AnalyticsOrdersSource
-	endpointAnalyticsPaymentsSource       *endpoint.AnalyticsPaymentsSource
-	endpointAnalyticsShipmentsSource      *endpoint.AnalyticsShipmentsSource
-	endpointCycleAnalyticsInputSource     *endpoint.CycleAnalyticsInputSource
-	endpointSubstreamAnalyticsInputSource *endpoint.SubstreamAnalyticsInputSource
-	//data sink functions
-	endpointCycleAnalyticsResultSink     *endpoint.CycleAnalyticsResultSink
-	endpointJoinedAnalyticsSink          *endpoint.JoinedAnalyticsSink
-	endpointHighValueAnalyticsSink       *endpoint.HighValueAnalyticsSink
-	endpointStandardAnalyticsSink        *endpoint.StandardAnalyticsSink
-	endpointSubstreamAnalyticsResultSink *endpoint.SubstreamAnalyticsResultSink
+	analyticsPipelineFunctions
+	analyticsSourcesPipelineFunctions
+	cycleAnalyticsPipelineFunctions
+	joinAnalyticsPipelineFunctions
+	multiJoinAnalyticsPipelineFunctions
+	substreamAnalyticsPipelineFunctions
 }
 
 type serviceStreams struct {
-	//streams
-	cycleAnalyticsLink            runtime.TypedLinkStream[*types.AnalyticsEvent]
-	analyticsSchedule             runtime.TypedInputStream[string, any, error]
-	consumeOrderProcessed         runtime.TypedInputStream[*types2.OrderProcessed, *types2.OrderProcessed, error]
-	countOrderProcessed           runtime.TypedProcessConsumedStream[*types2.OrderProcessed, *types2.OrderProcessed, error]
-	analyticsOrders               runtime.TypedInputStream[*types.AnalyticsEvent, any, error]
-	splitAnalyticsOrders          runtime.TypedSplitStream[*types.AnalyticsEvent]
-	keyOrdersForJoin              runtime.TypedTransformConsumedStream[*types.AnalyticsEvent, datastruct.KeyValue[string, *types.AnalyticsEvent]]
-	keyOrdersForMultiJoin         runtime.TypedTransformConsumedStream[*types.AnalyticsEvent, datastruct.KeyValue[string, *types.AnalyticsEvent]]
-	analyticsPayments             runtime.TypedInputStream[*types.AnalyticsEvent, any, error]
-	splitAnalyticsPayments        runtime.TypedSplitStream[*types.AnalyticsEvent]
-	keyPaymentsForJoin            runtime.TypedTransformConsumedStream[*types.AnalyticsEvent, datastruct.KeyValue[string, *types.AnalyticsEvent]]
-	joinOrderPaymentAnalytics     runtime.TypedJoinConsumedStream[string, *types.AnalyticsEvent, *types.AnalyticsEvent, *types.AnalyticsResult]
-	writeJoinedAnalytics          runtime.TypedSinkStream[*types.AnalyticsResult, error]
-	keyPaymentsForMultiJoin       runtime.TypedTransformConsumedStream[*types.AnalyticsEvent, datastruct.KeyValue[string, *types.AnalyticsEvent]]
-	analyticsShipments            runtime.TypedInputStream[*types.AnalyticsEvent, any, error]
-	keyShipmentsForMultiJoin      runtime.TypedTransformConsumedStream[*types.AnalyticsEvent, datastruct.KeyValue[string, *types.AnalyticsEvent]]
-	multiJoinAnalyticsEvents      runtime.TypedMultiJoinConsumedStream[string, *types.AnalyticsEvent, *types.AnalyticsResult]
-	routeAnalyticsResult          runtime.TypedCaseStream[*types.AnalyticsResult]
-	highValueAnalytics            runtime.TypedConsumedStream[*types.AnalyticsResult]
-	writeHighValueAnalytics       runtime.TypedSinkStream[*types.AnalyticsResult, error]
-	standardAnalytics             runtime.TypedConsumedStream[*types.AnalyticsResult]
-	writeStandardAnalytics        runtime.TypedSinkStream[*types.AnalyticsResult, error]
-	cycleAnalyticsInput           runtime.TypedInputStream[*types.AnalyticsEvent, any, error]
-	mergeCycleAnalytics           runtime.TypedConsumedStream[*types.AnalyticsEvent]
-	advanceCycleAnalytics         runtime.TypedTransformConsumedStream[*types.AnalyticsEvent, *types.AnalyticsEvent]
-	splitCycleAnalytics           runtime.TypedSplitStream[*types.AnalyticsEvent]
-	completeCycleAnalytics        runtime.TypedConsumedStream[*types.AnalyticsEvent]
-	writeCycleAnalytics           runtime.TypedSinkStream[*types.AnalyticsEvent, error]
-	continueCycleAnalytics        runtime.TypedConsumedStream[*types.AnalyticsEvent]
-	analyzeAnalyticsSubstream     runtime.TypedSubStream[*types.AnalyticsEvent, *types.AnalyticsResult]
-	buildSubstreamAnalyticsResult runtime.TypedTransformConsumedStream[*types.AnalyticsEvent, *types.AnalyticsResult]
-	substreamAnalyticsInput       runtime.TypedInputStream[*types.AnalyticsEvent, any, error]
-	invokeAnalyticsSubstream      runtime.TypedTransformConsumedStream[*types.AnalyticsEvent, *types.AnalyticsResult]
-	writeSubstreamAnalytics       runtime.TypedSinkStream[*types.AnalyticsResult, error]
+	analyticsPipelineStreams
+	analyticsSourcesPipelineStreams
+	cycleAnalyticsPipelineStreams
+	joinAnalyticsPipelineStreams
+	multiJoinAnalyticsPipelineStreams
+	substreamAnalyticsPipelineStreams
 }
 
 type serviceHandlers struct {
-	//data source handlers
+	analyticsPipelineHandlers
+	analyticsSourcesPipelineHandlers
+	cycleAnalyticsPipelineHandlers
+	joinAnalyticsPipelineHandlers
+	multiJoinAnalyticsPipelineHandlers
+	substreamAnalyticsPipelineHandlers
 }
 
 type serviceDataConnectors struct {
-	//data sources
-	analyticsSchedule       runtime.Consumer[string]
-	orderProcessed          runtime.Consumer[*types2.OrderProcessed]
-	analyticsOrders         runtime.Consumer[*types.AnalyticsEvent]
-	analyticsPayments       runtime.Consumer[*types.AnalyticsEvent]
-	analyticsShipments      runtime.Consumer[*types.AnalyticsEvent]
-	cycleAnalyticsInput     runtime.Consumer[*types.AnalyticsEvent]
-	substreamAnalyticsInput runtime.Consumer[*types.AnalyticsEvent]
-	//data sinks
-	writeCycleAnalyticsCycleAnalyticsResult         runtime.Consumer[*types.AnalyticsEvent]
-	writeJoinedAnalyticsJoinedAnalytics             runtime.Consumer[*types.AnalyticsResult]
-	writeHighValueAnalyticsHighValueAnalytics       runtime.Consumer[*types.AnalyticsResult]
-	writeStandardAnalyticsStandardAnalytics         runtime.Consumer[*types.AnalyticsResult]
-	writeSubstreamAnalyticsSubstreamAnalyticsResult runtime.Consumer[*types.AnalyticsResult]
+	analyticsPipelineDataConnectors
+	analyticsSourcesPipelineDataConnectors
+	cycleAnalyticsPipelineDataConnectors
+	joinAnalyticsPipelineDataConnectors
+	multiJoinAnalyticsPipelineDataConnectors
+	substreamAnalyticsPipelineDataConnectors
 }
 
 // AnalyzeAnalyticsSubstream returns a callable service-local graph.
@@ -239,136 +150,12 @@ func (s *Service) Config() *config.Config {
 }
 
 func (s *Service) initMakers(ctx context.Context) error {
-	if s.makers.analyticsCountOrderProcessedMaker == nil {
-		s.makers.analyticsCountOrderProcessedMaker = func(ctx context.Context, cfg *runtimecfg.ProcessStreamConfig, env environment.ServiceEnvironment) (*analytics.CountOrderProcessed, error) {
-			return analytics.MakeCountOrderProcessed(ctx, env, cfg)
-		}
-	}
-	if s.makers.joinanalyticsKeyOrdersForJoinMaker == nil {
-		s.makers.joinanalyticsKeyOrdersForJoinMaker = func(ctx context.Context, cfg *runtimecfg.KeyByStreamConfig, env environment.ServiceEnvironment) (*joinanalytics.KeyOrdersForJoin, error) {
-			return joinanalytics.MakeKeyOrdersForJoin(ctx, env, cfg)
-		}
-	}
-	if s.makers.multijoinanalyticsKeyOrdersForMultiJoinMaker == nil {
-		s.makers.multijoinanalyticsKeyOrdersForMultiJoinMaker = func(ctx context.Context, cfg *runtimecfg.KeyByStreamConfig, env environment.ServiceEnvironment) (*multijoinanalytics.KeyOrdersForMultiJoin, error) {
-			return multijoinanalytics.MakeKeyOrdersForMultiJoin(ctx, env, cfg)
-		}
-	}
-	if s.makers.joinanalyticsKeyPaymentsForJoinMaker == nil {
-		s.makers.joinanalyticsKeyPaymentsForJoinMaker = func(ctx context.Context, cfg *runtimecfg.KeyByStreamConfig, env environment.ServiceEnvironment) (*joinanalytics.KeyPaymentsForJoin, error) {
-			return joinanalytics.MakeKeyPaymentsForJoin(ctx, env, cfg)
-		}
-	}
-	if s.makers.joinanalyticsJoinOrderPaymentAnalyticsMaker == nil {
-		s.makers.joinanalyticsJoinOrderPaymentAnalyticsMaker = func(ctx context.Context, cfg *runtimecfg.JoinStreamConfig, env environment.ServiceEnvironment) (*joinanalytics.JoinOrderPaymentAnalytics, error) {
-			return joinanalytics.MakeJoinOrderPaymentAnalytics(ctx, env, cfg)
-		}
-	}
-	if s.makers.multijoinanalyticsKeyPaymentsForMultiJoinMaker == nil {
-		s.makers.multijoinanalyticsKeyPaymentsForMultiJoinMaker = func(ctx context.Context, cfg *runtimecfg.KeyByStreamConfig, env environment.ServiceEnvironment) (*multijoinanalytics.KeyPaymentsForMultiJoin, error) {
-			return multijoinanalytics.MakeKeyPaymentsForMultiJoin(ctx, env, cfg)
-		}
-	}
-	if s.makers.multijoinanalyticsKeyShipmentsForMultiJoinMaker == nil {
-		s.makers.multijoinanalyticsKeyShipmentsForMultiJoinMaker = func(ctx context.Context, cfg *runtimecfg.KeyByStreamConfig, env environment.ServiceEnvironment) (*multijoinanalytics.KeyShipmentsForMultiJoin, error) {
-			return multijoinanalytics.MakeKeyShipmentsForMultiJoin(ctx, env, cfg)
-		}
-	}
-	if s.makers.multijoinanalyticsMultiJoinAnalyticsEventsMaker == nil {
-		s.makers.multijoinanalyticsMultiJoinAnalyticsEventsMaker = func(ctx context.Context, cfg *runtimecfg.MultiJoinStreamConfig, env environment.ServiceEnvironment) (*multijoinanalytics.MultiJoinAnalyticsEvents, error) {
-			return multijoinanalytics.MakeMultiJoinAnalyticsEvents(ctx, env, cfg)
-		}
-	}
-	if s.makers.multijoinanalyticsRouteAnalyticsResultMaker == nil {
-		s.makers.multijoinanalyticsRouteAnalyticsResultMaker = func(ctx context.Context, cfg *runtimecfg.CaseStreamConfig, env environment.ServiceEnvironment) (*multijoinanalytics.RouteAnalyticsResult, error) {
-			return multijoinanalytics.MakeRouteAnalyticsResult(ctx, env, cfg)
-		}
-	}
-	if s.makers.cycleanalyticsAdvanceCycleAnalyticsMaker == nil {
-		s.makers.cycleanalyticsAdvanceCycleAnalyticsMaker = func(ctx context.Context, cfg *runtimecfg.MapStreamConfig, env environment.ServiceEnvironment) (*cycleanalytics.AdvanceCycleAnalytics, error) {
-			return cycleanalytics.MakeAdvanceCycleAnalytics(ctx, env, cfg)
-		}
-	}
-	if s.makers.cycleanalyticsCompleteCycleAnalyticsMaker == nil {
-		s.makers.cycleanalyticsCompleteCycleAnalyticsMaker = func(ctx context.Context, cfg *runtimecfg.FilterStreamConfig, env environment.ServiceEnvironment) (*cycleanalytics.CompleteCycleAnalytics, error) {
-			return cycleanalytics.MakeCompleteCycleAnalytics(ctx, env, cfg)
-		}
-	}
-	if s.makers.cycleanalyticsContinueCycleAnalyticsMaker == nil {
-		s.makers.cycleanalyticsContinueCycleAnalyticsMaker = func(ctx context.Context, cfg *runtimecfg.FilterStreamConfig, env environment.ServiceEnvironment) (*cycleanalytics.ContinueCycleAnalytics, error) {
-			return cycleanalytics.MakeContinueCycleAnalytics(ctx, env, cfg)
-		}
-	}
-	if s.makers.substreamanalyticsBuildSubstreamAnalyticsResultMaker == nil {
-		s.makers.substreamanalyticsBuildSubstreamAnalyticsResultMaker = func(ctx context.Context, cfg *runtimecfg.MapStreamConfig, env environment.ServiceEnvironment) (*substreamanalytics.BuildSubstreamAnalyticsResult, error) {
-			return substreamanalytics.MakeBuildSubstreamAnalyticsResult(ctx, env, cfg)
-		}
-	}
-	if s.makers.substreamanalyticsInvokeAnalyticsSubstreamMaker == nil {
-		s.makers.substreamanalyticsInvokeAnalyticsSubstreamMaker = func(ctx context.Context, cfg *runtimecfg.MapStreamConfig, env environment.ServiceEnvironment) (*substreamanalytics.InvokeAnalyticsSubstream, error) {
-			return substreamanalytics.MakeInvokeAnalyticsSubstream(ctx, env, cfg)
-		}
-	}
-	if s.makers.cronAnalyticsScheduleSourceMaker == nil {
-		s.makers.cronAnalyticsScheduleSourceMaker = func(ctx context.Context, cfg *runtimecfg.CronEndpointConfig, env environment.ServiceEnvironment) (*cron.AnalyticsScheduleSource, error) {
-			return cron.MakeAnalyticsScheduleSource(ctx, env, cfg)
-		}
-	}
-	if s.makers.endpointOrderProcessedEndpointSourceMaker == nil {
-		s.makers.endpointOrderProcessedEndpointSourceMaker = func(ctx context.Context, cfg *runtimecfg.KafkaEndpointConfig, env environment.ServiceEnvironment) (*endpoint.OrderProcessedEndpointSource, error) {
-			return endpoint.MakeOrderProcessedEndpointSource(ctx, env, cfg)
-		}
-	}
-	if s.makers.endpointAnalyticsOrdersSourceMaker == nil {
-		s.makers.endpointAnalyticsOrdersSourceMaker = func(ctx context.Context, cfg *runtimecfg.CustomEndpointConfig, env environment.ServiceEnvironment) (*endpoint.AnalyticsOrdersSource, error) {
-			return endpoint.MakeAnalyticsOrdersSource(ctx, env, cfg)
-		}
-	}
-	if s.makers.endpointAnalyticsPaymentsSourceMaker == nil {
-		s.makers.endpointAnalyticsPaymentsSourceMaker = func(ctx context.Context, cfg *runtimecfg.CustomEndpointConfig, env environment.ServiceEnvironment) (*endpoint.AnalyticsPaymentsSource, error) {
-			return endpoint.MakeAnalyticsPaymentsSource(ctx, env, cfg)
-		}
-	}
-	if s.makers.endpointAnalyticsShipmentsSourceMaker == nil {
-		s.makers.endpointAnalyticsShipmentsSourceMaker = func(ctx context.Context, cfg *runtimecfg.CustomEndpointConfig, env environment.ServiceEnvironment) (*endpoint.AnalyticsShipmentsSource, error) {
-			return endpoint.MakeAnalyticsShipmentsSource(ctx, env, cfg)
-		}
-	}
-	if s.makers.endpointCycleAnalyticsInputSourceMaker == nil {
-		s.makers.endpointCycleAnalyticsInputSourceMaker = func(ctx context.Context, cfg *runtimecfg.CustomEndpointConfig, env environment.ServiceEnvironment) (*endpoint.CycleAnalyticsInputSource, error) {
-			return endpoint.MakeCycleAnalyticsInputSource(ctx, env, cfg)
-		}
-	}
-	if s.makers.endpointSubstreamAnalyticsInputSourceMaker == nil {
-		s.makers.endpointSubstreamAnalyticsInputSourceMaker = func(ctx context.Context, cfg *runtimecfg.CustomEndpointConfig, env environment.ServiceEnvironment) (*endpoint.SubstreamAnalyticsInputSource, error) {
-			return endpoint.MakeSubstreamAnalyticsInputSource(ctx, env, cfg)
-		}
-	}
-	if s.makers.endpointCycleAnalyticsResultSinkMaker == nil {
-		s.makers.endpointCycleAnalyticsResultSinkMaker = func(ctx context.Context, cfg *runtimecfg.CustomEndpointConfig, env environment.ServiceEnvironment) (*endpoint.CycleAnalyticsResultSink, error) {
-			return endpoint.MakeCycleAnalyticsResultSink(ctx, env, cfg)
-		}
-	}
-	if s.makers.endpointJoinedAnalyticsSinkMaker == nil {
-		s.makers.endpointJoinedAnalyticsSinkMaker = func(ctx context.Context, cfg *runtimecfg.CustomEndpointConfig, env environment.ServiceEnvironment) (*endpoint.JoinedAnalyticsSink, error) {
-			return endpoint.MakeJoinedAnalyticsSink(ctx, env, cfg)
-		}
-	}
-	if s.makers.endpointHighValueAnalyticsSinkMaker == nil {
-		s.makers.endpointHighValueAnalyticsSinkMaker = func(ctx context.Context, cfg *runtimecfg.CustomEndpointConfig, env environment.ServiceEnvironment) (*endpoint.HighValueAnalyticsSink, error) {
-			return endpoint.MakeHighValueAnalyticsSink(ctx, env, cfg)
-		}
-	}
-	if s.makers.endpointStandardAnalyticsSinkMaker == nil {
-		s.makers.endpointStandardAnalyticsSinkMaker = func(ctx context.Context, cfg *runtimecfg.CustomEndpointConfig, env environment.ServiceEnvironment) (*endpoint.StandardAnalyticsSink, error) {
-			return endpoint.MakeStandardAnalyticsSink(ctx, env, cfg)
-		}
-	}
-	if s.makers.endpointSubstreamAnalyticsResultSinkMaker == nil {
-		s.makers.endpointSubstreamAnalyticsResultSinkMaker = func(ctx context.Context, cfg *runtimecfg.CustomEndpointConfig, env environment.ServiceEnvironment) (*endpoint.SubstreamAnalyticsResultSink, error) {
-			return endpoint.MakeSubstreamAnalyticsResultSink(ctx, env, cfg)
-		}
-	}
+	s.initAnalyticsMakers()
+	s.initAnalyticsSourcesMakers()
+	s.initCycleAnalyticsMakers()
+	s.initJoinAnalyticsMakers()
+	s.initMultiJoinAnalyticsMakers()
+	s.initSubstreamAnalyticsMakers()
 
 	return nil
 }
@@ -409,157 +196,76 @@ func (s *Service) buildRuntime(ctx context.Context) error {
 
 func (s *Service) initStreams(ctx context.Context, cfg *config.Config, env runtime.RuntimeEnvironment) error {
 	var err error
-	if s.streams.cycleAnalyticsLink, err = transformation.Link[*types.AnalyticsEvent](&cfg.Streams.CycleAnalyticsLink, env); err != nil {
+	if err = s.initAnalyticsStreams(ctx, cfg, env); err != nil {
 		return err
 	}
-	if s.streams.analyticsSchedule, err = transformation.Input[string, any, error](&cfg.Streams.AnalyticsSchedule, env); err != nil {
+	if err = s.initAnalyticsSourcesStreams(ctx, cfg, env); err != nil {
 		return err
 	}
-	if s.streams.consumeOrderProcessed, err = transformation.Input[*types2.OrderProcessed, *types2.OrderProcessed, error](&cfg.Streams.ConsumeOrderProcessed, env); err != nil {
+	if err = s.initCycleAnalyticsStreams(ctx, cfg, env); err != nil {
 		return err
 	}
-	if s.streams.countOrderProcessed, err = transformation.Process[*types2.OrderProcessed, *types2.OrderProcessed, error](&cfg.Streams.CountOrderProcessed, s.streams.consumeOrderProcessed, s.functions.analyticsCountOrderProcessed); err != nil {
+	if err = s.initJoinAnalyticsStreams(ctx, cfg, env); err != nil {
 		return err
 	}
-	if s.streams.analyticsOrders, err = transformation.Input[*types.AnalyticsEvent, any, error](&cfg.Streams.AnalyticsOrders, env); err != nil {
+	if err = s.initMultiJoinAnalyticsStreams(ctx, cfg, env); err != nil {
 		return err
 	}
-	if s.streams.splitAnalyticsOrders, err = transformation.Split[*types.AnalyticsEvent](&cfg.Streams.SplitAnalyticsOrders, s.streams.analyticsOrders); err != nil {
+	if err = s.initSubstreamAnalyticsStreams(ctx, cfg, env); err != nil {
 		return err
 	}
-	if s.streams.keyOrdersForJoin, err = transformation.KeyBy[*types.AnalyticsEvent, string, *types.AnalyticsEvent](&cfg.Streams.KeyOrdersForJoin, s.streams.splitAnalyticsOrders.AddStream(), s.functions.joinanalyticsKeyOrdersForJoin); err != nil {
+	if err = s.bindAnalyticsStreams(); err != nil {
 		return err
 	}
-	if s.streams.keyOrdersForMultiJoin, err = transformation.KeyBy[*types.AnalyticsEvent, string, *types.AnalyticsEvent](&cfg.Streams.KeyOrdersForMultiJoin, s.streams.splitAnalyticsOrders.AddStream(), s.functions.multijoinanalyticsKeyOrdersForMultiJoin); err != nil {
+	if err = s.bindAnalyticsSourcesStreams(); err != nil {
 		return err
 	}
-	if s.streams.analyticsPayments, err = transformation.Input[*types.AnalyticsEvent, any, error](&cfg.Streams.AnalyticsPayments, env); err != nil {
+	if err = s.bindCycleAnalyticsStreams(); err != nil {
 		return err
 	}
-	if s.streams.splitAnalyticsPayments, err = transformation.Split[*types.AnalyticsEvent](&cfg.Streams.SplitAnalyticsPayments, s.streams.analyticsPayments); err != nil {
+	if err = s.bindJoinAnalyticsStreams(); err != nil {
 		return err
 	}
-	if s.streams.keyPaymentsForJoin, err = transformation.KeyBy[*types.AnalyticsEvent, string, *types.AnalyticsEvent](&cfg.Streams.KeyPaymentsForJoin, s.streams.splitAnalyticsPayments.AddStream(), s.functions.joinanalyticsKeyPaymentsForJoin); err != nil {
+	if err = s.bindMultiJoinAnalyticsStreams(); err != nil {
 		return err
 	}
-	if s.streams.joinOrderPaymentAnalytics, err = transformation.Join[string, *types.AnalyticsEvent, *types.AnalyticsEvent, *types.AnalyticsResult](&cfg.Streams.JoinOrderPaymentAnalytics, s.streams.keyOrdersForJoin, s.streams.keyPaymentsForJoin, s.functions.joinanalyticsJoinOrderPaymentAnalytics); err != nil {
+	if err = s.bindSubstreamAnalyticsStreams(); err != nil {
 		return err
 	}
-	if s.streams.writeJoinedAnalytics, err = transformation.Sink[*types.AnalyticsResult, error](&cfg.Streams.WriteJoinedAnalytics, s.streams.joinOrderPaymentAnalytics); err != nil {
+	if err = s.initAnalyticsEndpoints(); err != nil {
 		return err
 	}
-	if s.streams.keyPaymentsForMultiJoin, err = transformation.KeyBy[*types.AnalyticsEvent, string, *types.AnalyticsEvent](&cfg.Streams.KeyPaymentsForMultiJoin, s.streams.splitAnalyticsPayments.AddStream(), s.functions.multijoinanalyticsKeyPaymentsForMultiJoin); err != nil {
+	if err = s.initAnalyticsSourcesEndpoints(); err != nil {
 		return err
 	}
-	if s.streams.analyticsShipments, err = transformation.Input[*types.AnalyticsEvent, any, error](&cfg.Streams.AnalyticsShipments, env); err != nil {
+	if err = s.initCycleAnalyticsEndpoints(); err != nil {
 		return err
 	}
-	if s.streams.keyShipmentsForMultiJoin, err = transformation.KeyBy[*types.AnalyticsEvent, string, *types.AnalyticsEvent](&cfg.Streams.KeyShipmentsForMultiJoin, s.streams.analyticsShipments, s.functions.multijoinanalyticsKeyShipmentsForMultiJoin); err != nil {
+	if err = s.initJoinAnalyticsEndpoints(); err != nil {
 		return err
 	}
-	if s.streams.multiJoinAnalyticsEvents, err = transformation.MultiJoin[string, *types.AnalyticsEvent, *types.AnalyticsResult](&cfg.Streams.MultiJoinAnalyticsEvents, s.streams.keyOrdersForMultiJoin, s.functions.multijoinanalyticsMultiJoinAnalyticsEvents); err != nil {
+	if err = s.initMultiJoinAnalyticsEndpoints(); err != nil {
 		return err
 	}
-	if err = transformation.MultiJoinLink[string, *types.AnalyticsEvent, *types.AnalyticsEvent, *types.AnalyticsResult](s.streams.multiJoinAnalyticsEvents, s.streams.keyPaymentsForMultiJoin); err != nil {
+	if err = s.initSubstreamAnalyticsEndpoints(); err != nil {
 		return err
 	}
-	if err = transformation.MultiJoinLink[string, *types.AnalyticsEvent, *types.AnalyticsEvent, *types.AnalyticsResult](s.streams.multiJoinAnalyticsEvents, s.streams.keyShipmentsForMultiJoin); err != nil {
+	if err = s.postInitAnalyticsStreams(); err != nil {
 		return err
 	}
-	if s.streams.routeAnalyticsResult, err = transformation.CaseStream[*types.AnalyticsResult](&cfg.Streams.RouteAnalyticsResult, s.streams.multiJoinAnalyticsEvents, s.functions.multijoinanalyticsRouteAnalyticsResult); err != nil {
+	if err = s.postInitAnalyticsSourcesStreams(); err != nil {
 		return err
 	}
-	if s.streams.highValueAnalytics, err = transformation.WhenStream[*types.AnalyticsResult, *types.AnalyticsResult](&cfg.Streams.HighValueAnalytics, s.streams.routeAnalyticsResult); err != nil {
+	if err = s.postInitCycleAnalyticsStreams(); err != nil {
 		return err
 	}
-	if s.streams.writeHighValueAnalytics, err = transformation.Sink[*types.AnalyticsResult, error](&cfg.Streams.WriteHighValueAnalytics, s.streams.highValueAnalytics); err != nil {
+	if err = s.postInitJoinAnalyticsStreams(); err != nil {
 		return err
 	}
-	if s.streams.standardAnalytics, err = transformation.WhenStream[*types.AnalyticsResult, *types.AnalyticsResult](&cfg.Streams.StandardAnalytics, s.streams.routeAnalyticsResult); err != nil {
+	if err = s.postInitMultiJoinAnalyticsStreams(); err != nil {
 		return err
 	}
-	if s.streams.writeStandardAnalytics, err = transformation.Sink[*types.AnalyticsResult, error](&cfg.Streams.WriteStandardAnalytics, s.streams.standardAnalytics); err != nil {
-		return err
-	}
-	if s.streams.cycleAnalyticsInput, err = transformation.Input[*types.AnalyticsEvent, any, error](&cfg.Streams.CycleAnalyticsInput, env); err != nil {
-		return err
-	}
-	if s.streams.mergeCycleAnalytics, err = transformation.Merge[*types.AnalyticsEvent](&cfg.Streams.MergeCycleAnalytics, s.streams.cycleAnalyticsInput, s.streams.cycleAnalyticsLink); err != nil {
-		return err
-	}
-	if s.streams.advanceCycleAnalytics, err = transformation.Map[*types.AnalyticsEvent, *types.AnalyticsEvent](&cfg.Streams.AdvanceCycleAnalytics, s.streams.mergeCycleAnalytics, s.functions.cycleanalyticsAdvanceCycleAnalytics); err != nil {
-		return err
-	}
-	if s.streams.splitCycleAnalytics, err = transformation.Split[*types.AnalyticsEvent](&cfg.Streams.SplitCycleAnalytics, s.streams.advanceCycleAnalytics); err != nil {
-		return err
-	}
-	if s.streams.completeCycleAnalytics, err = transformation.Filter[*types.AnalyticsEvent](&cfg.Streams.CompleteCycleAnalytics, s.streams.splitCycleAnalytics.AddStream(), s.functions.cycleanalyticsCompleteCycleAnalytics); err != nil {
-		return err
-	}
-	if s.streams.writeCycleAnalytics, err = transformation.Sink[*types.AnalyticsEvent, error](&cfg.Streams.WriteCycleAnalytics, s.streams.completeCycleAnalytics); err != nil {
-		return err
-	}
-	if s.streams.continueCycleAnalytics, err = transformation.Filter[*types.AnalyticsEvent](&cfg.Streams.ContinueCycleAnalytics, s.streams.splitCycleAnalytics.AddStream(), s.functions.cycleanalyticsContinueCycleAnalytics); err != nil {
-		return err
-	}
-	if s.streams.analyzeAnalyticsSubstream, err = transformation.SubStream[*types.AnalyticsEvent, *types.AnalyticsResult](&cfg.Streams.AnalyzeAnalyticsSubstream, env); err != nil {
-		return err
-	}
-	if s.streams.buildSubstreamAnalyticsResult, err = transformation.Map[*types.AnalyticsEvent, *types.AnalyticsResult](&cfg.Streams.BuildSubstreamAnalyticsResult, s.streams.analyzeAnalyticsSubstream, s.functions.substreamanalyticsBuildSubstreamAnalyticsResult); err != nil {
-		return err
-	}
-	if s.streams.substreamAnalyticsInput, err = transformation.Input[*types.AnalyticsEvent, any, error](&cfg.Streams.SubstreamAnalyticsInput, env); err != nil {
-		return err
-	}
-	if s.streams.invokeAnalyticsSubstream, err = transformation.Map[*types.AnalyticsEvent, *types.AnalyticsResult](&cfg.Streams.InvokeAnalyticsSubstream, s.streams.substreamAnalyticsInput, s.functions.substreamanalyticsInvokeAnalyticsSubstream); err != nil {
-		return err
-	}
-	if s.streams.writeSubstreamAnalytics, err = transformation.Sink[*types.AnalyticsResult, error](&cfg.Streams.WriteSubstreamAnalytics, s.streams.invokeAnalyticsSubstream); err != nil {
-		return err
-	}
-	if err = s.streams.consumeOrderProcessed.SetSource(s.streams.countOrderProcessed); err != nil {
-		return err
-	}
-	if err = s.streams.analyzeAnalyticsSubstream.SetSource(s.streams.buildSubstreamAnalyticsResult); err != nil {
-		return err
-	}
-	if s.dataConnectors.analyticsSchedule, err = cron.MakeEndpointConsumerAnalyticsScheduleSource(s.streams.analyticsSchedule, s.functions.cronAnalyticsScheduleSource); err != nil {
-		return err
-	}
-	if s.dataConnectors.orderProcessed, err = endpoint.MakeEndpointConsumerOrderProcessedEndpointSource(s.streams.consumeOrderProcessed, s.functions.endpointOrderProcessedEndpointSource); err != nil {
-		return err
-	}
-	if s.dataConnectors.analyticsOrders, err = endpoint.MakeEndpointConsumerAnalyticsOrdersSource(s.streams.analyticsOrders, s.functions.endpointAnalyticsOrdersSource); err != nil {
-		return err
-	}
-	if s.dataConnectors.analyticsPayments, err = endpoint.MakeEndpointConsumerAnalyticsPaymentsSource(s.streams.analyticsPayments, s.functions.endpointAnalyticsPaymentsSource); err != nil {
-		return err
-	}
-	if s.dataConnectors.analyticsShipments, err = endpoint.MakeEndpointConsumerAnalyticsShipmentsSource(s.streams.analyticsShipments, s.functions.endpointAnalyticsShipmentsSource); err != nil {
-		return err
-	}
-	if s.dataConnectors.cycleAnalyticsInput, err = endpoint.MakeEndpointConsumerCycleAnalyticsInputSource(s.streams.cycleAnalyticsInput, s.functions.endpointCycleAnalyticsInputSource); err != nil {
-		return err
-	}
-	if s.dataConnectors.substreamAnalyticsInput, err = endpoint.MakeEndpointConsumerSubstreamAnalyticsInputSource(s.streams.substreamAnalyticsInput, s.functions.endpointSubstreamAnalyticsInputSource); err != nil {
-		return err
-	}
-	if s.dataConnectors.writeCycleAnalyticsCycleAnalyticsResult, err = endpoint.MakeEndpointConsumerCycleAnalyticsResultSink(s.streams.writeCycleAnalytics, s.functions.endpointCycleAnalyticsResultSink); err != nil {
-		return err
-	}
-	if s.dataConnectors.writeJoinedAnalyticsJoinedAnalytics, err = endpoint.MakeEndpointConsumerJoinedAnalyticsSink(s.streams.writeJoinedAnalytics, s.functions.endpointJoinedAnalyticsSink); err != nil {
-		return err
-	}
-	if s.dataConnectors.writeHighValueAnalyticsHighValueAnalytics, err = endpoint.MakeEndpointConsumerHighValueAnalyticsSink(s.streams.writeHighValueAnalytics, s.functions.endpointHighValueAnalyticsSink); err != nil {
-		return err
-	}
-	if s.dataConnectors.writeStandardAnalyticsStandardAnalytics, err = endpoint.MakeEndpointConsumerStandardAnalyticsSink(s.streams.writeStandardAnalytics, s.functions.endpointStandardAnalyticsSink); err != nil {
-		return err
-	}
-	if s.dataConnectors.writeSubstreamAnalyticsSubstreamAnalyticsResult, err = endpoint.MakeEndpointConsumerSubstreamAnalyticsResultSink(s.streams.writeSubstreamAnalytics, s.functions.endpointSubstreamAnalyticsResultSink); err != nil {
-		return err
-	}
-	if err = s.streams.cycleAnalyticsLink.SetSource(s.streams.continueCycleAnalytics); err != nil {
+	if err = s.postInitSubstreamAnalyticsStreams(); err != nil {
 		return err
 	}
 	_ = err
@@ -567,190 +273,18 @@ func (s *Service) initStreams(ctx context.Context, cfg *config.Config, env runti
 	return nil
 }
 
+type pipelineMakerTaskGroup interface {
+	Go(func() error)
+}
+
 func (s *Service) initFunctions(ctx context.Context, cfg *config.Config, env runtime.RuntimeEnvironment) error {
 	eg, egCtx := errgroup.WithContext(ctx)
-	if s.makers.analyticsCountOrderProcessedMaker != nil {
-		eg.Go(func() error {
-			var err error
-			s.functions.analyticsCountOrderProcessed, err = s.makers.analyticsCountOrderProcessedMaker(egCtx, &cfg.Streams.CountOrderProcessed, env)
-			return err
-		})
-	}
-	if s.makers.joinanalyticsKeyOrdersForJoinMaker != nil {
-		eg.Go(func() error {
-			var err error
-			s.functions.joinanalyticsKeyOrdersForJoin, err = s.makers.joinanalyticsKeyOrdersForJoinMaker(egCtx, &cfg.Streams.KeyOrdersForJoin, env)
-			return err
-		})
-	}
-	if s.makers.multijoinanalyticsKeyOrdersForMultiJoinMaker != nil {
-		eg.Go(func() error {
-			var err error
-			s.functions.multijoinanalyticsKeyOrdersForMultiJoin, err = s.makers.multijoinanalyticsKeyOrdersForMultiJoinMaker(egCtx, &cfg.Streams.KeyOrdersForMultiJoin, env)
-			return err
-		})
-	}
-	if s.makers.joinanalyticsKeyPaymentsForJoinMaker != nil {
-		eg.Go(func() error {
-			var err error
-			s.functions.joinanalyticsKeyPaymentsForJoin, err = s.makers.joinanalyticsKeyPaymentsForJoinMaker(egCtx, &cfg.Streams.KeyPaymentsForJoin, env)
-			return err
-		})
-	}
-	if s.makers.joinanalyticsJoinOrderPaymentAnalyticsMaker != nil {
-		eg.Go(func() error {
-			var err error
-			s.functions.joinanalyticsJoinOrderPaymentAnalytics, err = s.makers.joinanalyticsJoinOrderPaymentAnalyticsMaker(egCtx, &cfg.Streams.JoinOrderPaymentAnalytics, env)
-			return err
-		})
-	}
-	if s.makers.multijoinanalyticsKeyPaymentsForMultiJoinMaker != nil {
-		eg.Go(func() error {
-			var err error
-			s.functions.multijoinanalyticsKeyPaymentsForMultiJoin, err = s.makers.multijoinanalyticsKeyPaymentsForMultiJoinMaker(egCtx, &cfg.Streams.KeyPaymentsForMultiJoin, env)
-			return err
-		})
-	}
-	if s.makers.multijoinanalyticsKeyShipmentsForMultiJoinMaker != nil {
-		eg.Go(func() error {
-			var err error
-			s.functions.multijoinanalyticsKeyShipmentsForMultiJoin, err = s.makers.multijoinanalyticsKeyShipmentsForMultiJoinMaker(egCtx, &cfg.Streams.KeyShipmentsForMultiJoin, env)
-			return err
-		})
-	}
-	if s.makers.multijoinanalyticsMultiJoinAnalyticsEventsMaker != nil {
-		eg.Go(func() error {
-			var err error
-			s.functions.multijoinanalyticsMultiJoinAnalyticsEvents, err = s.makers.multijoinanalyticsMultiJoinAnalyticsEventsMaker(egCtx, &cfg.Streams.MultiJoinAnalyticsEvents, env)
-			return err
-		})
-	}
-	if s.makers.multijoinanalyticsRouteAnalyticsResultMaker != nil {
-		eg.Go(func() error {
-			var err error
-			s.functions.multijoinanalyticsRouteAnalyticsResult, err = s.makers.multijoinanalyticsRouteAnalyticsResultMaker(egCtx, &cfg.Streams.RouteAnalyticsResult, env)
-			return err
-		})
-	}
-	if s.makers.cycleanalyticsAdvanceCycleAnalyticsMaker != nil {
-		eg.Go(func() error {
-			var err error
-			s.functions.cycleanalyticsAdvanceCycleAnalytics, err = s.makers.cycleanalyticsAdvanceCycleAnalyticsMaker(egCtx, &cfg.Streams.AdvanceCycleAnalytics, env)
-			return err
-		})
-	}
-	if s.makers.cycleanalyticsCompleteCycleAnalyticsMaker != nil {
-		eg.Go(func() error {
-			var err error
-			s.functions.cycleanalyticsCompleteCycleAnalytics, err = s.makers.cycleanalyticsCompleteCycleAnalyticsMaker(egCtx, &cfg.Streams.CompleteCycleAnalytics, env)
-			return err
-		})
-	}
-	if s.makers.cycleanalyticsContinueCycleAnalyticsMaker != nil {
-		eg.Go(func() error {
-			var err error
-			s.functions.cycleanalyticsContinueCycleAnalytics, err = s.makers.cycleanalyticsContinueCycleAnalyticsMaker(egCtx, &cfg.Streams.ContinueCycleAnalytics, env)
-			return err
-		})
-	}
-	if s.makers.substreamanalyticsBuildSubstreamAnalyticsResultMaker != nil {
-		eg.Go(func() error {
-			var err error
-			s.functions.substreamanalyticsBuildSubstreamAnalyticsResult, err = s.makers.substreamanalyticsBuildSubstreamAnalyticsResultMaker(egCtx, &cfg.Streams.BuildSubstreamAnalyticsResult, env)
-			return err
-		})
-	}
-	if s.makers.substreamanalyticsInvokeAnalyticsSubstreamMaker != nil {
-		eg.Go(func() error {
-			var err error
-			s.functions.substreamanalyticsInvokeAnalyticsSubstream, err = s.makers.substreamanalyticsInvokeAnalyticsSubstreamMaker(egCtx, &cfg.Streams.InvokeAnalyticsSubstream, env)
-			return err
-		})
-	}
-	if s.makers.cronAnalyticsScheduleSourceMaker != nil {
-		eg.Go(func() error {
-			var err error
-			s.functions.cronAnalyticsScheduleSource, err = s.makers.cronAnalyticsScheduleSourceMaker(egCtx, &cfg.Endpoints.AnalyticsSchedule, env)
-			return err
-		})
-	}
-	if s.makers.endpointOrderProcessedEndpointSourceMaker != nil {
-		eg.Go(func() error {
-			var err error
-			s.functions.endpointOrderProcessedEndpointSource, err = s.makers.endpointOrderProcessedEndpointSourceMaker(egCtx, &cfg.Endpoints.OrderProcessed, env)
-			return err
-		})
-	}
-	if s.makers.endpointAnalyticsOrdersSourceMaker != nil {
-		eg.Go(func() error {
-			var err error
-			s.functions.endpointAnalyticsOrdersSource, err = s.makers.endpointAnalyticsOrdersSourceMaker(egCtx, &cfg.Endpoints.AnalyticsOrders, env)
-			return err
-		})
-	}
-	if s.makers.endpointAnalyticsPaymentsSourceMaker != nil {
-		eg.Go(func() error {
-			var err error
-			s.functions.endpointAnalyticsPaymentsSource, err = s.makers.endpointAnalyticsPaymentsSourceMaker(egCtx, &cfg.Endpoints.AnalyticsPayments, env)
-			return err
-		})
-	}
-	if s.makers.endpointAnalyticsShipmentsSourceMaker != nil {
-		eg.Go(func() error {
-			var err error
-			s.functions.endpointAnalyticsShipmentsSource, err = s.makers.endpointAnalyticsShipmentsSourceMaker(egCtx, &cfg.Endpoints.AnalyticsShipments, env)
-			return err
-		})
-	}
-	if s.makers.endpointCycleAnalyticsInputSourceMaker != nil {
-		eg.Go(func() error {
-			var err error
-			s.functions.endpointCycleAnalyticsInputSource, err = s.makers.endpointCycleAnalyticsInputSourceMaker(egCtx, &cfg.Endpoints.CycleAnalyticsInput, env)
-			return err
-		})
-	}
-	if s.makers.endpointSubstreamAnalyticsInputSourceMaker != nil {
-		eg.Go(func() error {
-			var err error
-			s.functions.endpointSubstreamAnalyticsInputSource, err = s.makers.endpointSubstreamAnalyticsInputSourceMaker(egCtx, &cfg.Endpoints.SubstreamAnalyticsInput, env)
-			return err
-		})
-	}
-	if s.makers.endpointCycleAnalyticsResultSinkMaker != nil {
-		eg.Go(func() error {
-			var err error
-			s.functions.endpointCycleAnalyticsResultSink, err = s.makers.endpointCycleAnalyticsResultSinkMaker(egCtx, &cfg.Endpoints.CycleAnalyticsResult, env)
-			return err
-		})
-	}
-	if s.makers.endpointJoinedAnalyticsSinkMaker != nil {
-		eg.Go(func() error {
-			var err error
-			s.functions.endpointJoinedAnalyticsSink, err = s.makers.endpointJoinedAnalyticsSinkMaker(egCtx, &cfg.Endpoints.JoinedAnalytics, env)
-			return err
-		})
-	}
-	if s.makers.endpointHighValueAnalyticsSinkMaker != nil {
-		eg.Go(func() error {
-			var err error
-			s.functions.endpointHighValueAnalyticsSink, err = s.makers.endpointHighValueAnalyticsSinkMaker(egCtx, &cfg.Endpoints.HighValueAnalytics, env)
-			return err
-		})
-	}
-	if s.makers.endpointStandardAnalyticsSinkMaker != nil {
-		eg.Go(func() error {
-			var err error
-			s.functions.endpointStandardAnalyticsSink, err = s.makers.endpointStandardAnalyticsSinkMaker(egCtx, &cfg.Endpoints.StandardAnalytics, env)
-			return err
-		})
-	}
-	if s.makers.endpointSubstreamAnalyticsResultSinkMaker != nil {
-		eg.Go(func() error {
-			var err error
-			s.functions.endpointSubstreamAnalyticsResultSink, err = s.makers.endpointSubstreamAnalyticsResultSinkMaker(egCtx, &cfg.Endpoints.SubstreamAnalyticsResult, env)
-			return err
-		})
-	}
+	s.scheduleAnalyticsFunctions(eg, egCtx, cfg, env)
+	s.scheduleAnalyticsSourcesFunctions(eg, egCtx, cfg, env)
+	s.scheduleCycleAnalyticsFunctions(eg, egCtx, cfg, env)
+	s.scheduleJoinAnalyticsFunctions(eg, egCtx, cfg, env)
+	s.scheduleMultiJoinAnalyticsFunctions(eg, egCtx, cfg, env)
+	s.scheduleSubstreamAnalyticsFunctions(eg, egCtx, cfg, env)
 	if err := eg.Wait(); err != nil {
 		return err
 	}

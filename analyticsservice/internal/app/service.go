@@ -7,6 +7,7 @@ import (
 
 	"github.com/gorundebug/servicelib/api"
 	"github.com/gorundebug/servicelib/runtime"
+	runtimecfg "github.com/gorundebug/servicelib/runtime/config"
 	"github.com/gorundebug/servicelib/runtime/environment"
 	"github.com/gorundebug/servicelib/runtime/environment/log"
 	"github.com/gorundebug/servicelib/runtime/environment/metrics"
@@ -14,6 +15,8 @@ import (
 	"github.com/gorundebug/servicelib/runtime/logging"
 	"github.com/gorundebug/servicelib/runtime/serde"
 	"github.com/gorundebug/servicelib/runtime/telemetry"
+
+	"github.com/gorundebug/analyticsservice/internal/functions/substreamanalytics"
 )
 
 // serviceDependencies provides the service-level dependency overrides.
@@ -122,6 +125,13 @@ func (s *Service) httpServerMakers(ctx context.Context) error {
 func (s *Service) customMakersInit(ctx context.Context) error {
 	if err := s.httpServerMakers(ctx); err != nil {
 		return err
+	}
+	s.makers.substreamanalyticsInvokeAnalyticsSubstreamMaker = func(
+		_ context.Context,
+		_ *runtimecfg.MapStreamConfig,
+		_ environment.ServiceEnvironment,
+	) (*substreamanalytics.InvokeAnalyticsSubstream, error) {
+		return substreamanalytics.NewInvokeAnalyticsSubstream(s.AnalyzeAnalyticsSubstream()), nil
 	}
 	return nil
 }
