@@ -5,10 +5,8 @@ import (
 	"net/http"
 	"reflect"
 
-	"github.com/gorundebug/analyticsservice/internal/functions/substreamanalytics"
 	"github.com/gorundebug/servicelib/api"
 	"github.com/gorundebug/servicelib/runtime"
-	runtimecfg "github.com/gorundebug/servicelib/runtime/config"
 	"github.com/gorundebug/servicelib/runtime/environment"
 	"github.com/gorundebug/servicelib/runtime/environment/log"
 	"github.com/gorundebug/servicelib/runtime/environment/metrics"
@@ -124,10 +122,6 @@ func (s *Service) httpServerMakers(ctx context.Context) error {
 func (s *Service) customMakersInit(ctx context.Context) error {
 	if err := s.httpServerMakers(ctx); err != nil {
 		return err
-	}
-	substream := s.AnalyzeAnalyticsSubstream()
-	s.makers.substreamanalyticsInvokeAnalyticsSubstreamMaker = func(context.Context, *runtimecfg.MapStreamConfig, environment.ServiceEnvironment) (*substreamanalytics.InvokeAnalyticsSubstream, error) {
-		return substreamanalytics.NewInvokeAnalyticsSubstream(substream), nil
 	}
 	return nil
 }
