@@ -1,4 +1,4 @@
-# Task 5/22: `ContinueCycleAnalytics`
+# Task 5/26: `ContinueCycleAnalytics`
 
 > Rules: [`spec/rules.md`](../rules.md)
 

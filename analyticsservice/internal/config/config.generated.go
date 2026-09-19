@@ -24,6 +24,8 @@ const (
 	analyticsPaymentsStreamID
 	analyticsScheduleStreamID
 	analyticsShipmentsStreamID
+	analyzeAnalyticsSubstreamStreamID
+	buildSubstreamAnalyticsResultStreamID
 	completeCycleAnalyticsStreamID
 	consumeOrderProcessedStreamID
 	continueCycleAnalyticsStreamID
@@ -31,6 +33,7 @@ const (
 	cycleAnalyticsInputStreamID
 	cycleAnalyticsLinkStreamID
 	highValueAnalyticsStreamID
+	invokeAnalyticsSubstreamStreamID
 	joinOrderPaymentAnalyticsStreamID
 	keyOrdersForJoinStreamID
 	keyOrdersForMultiJoinStreamID
@@ -44,10 +47,12 @@ const (
 	splitAnalyticsPaymentsStreamID
 	splitCycleAnalyticsStreamID
 	standardAnalyticsStreamID
+	substreamAnalyticsInputStreamID
 	writeCycleAnalyticsStreamID
 	writeHighValueAnalyticsStreamID
 	writeJoinedAnalyticsStreamID
 	writeStandardAnalyticsStreamID
+	writeSubstreamAnalyticsStreamID
 )
 
 // Endpoint IDs
@@ -62,6 +67,8 @@ const (
 	joinedAnalyticsEndpointID
 	orderProcessedEndpointID
 	standardAnalyticsEndpointID
+	substreamAnalyticsInputEndpointID
+	substreamAnalyticsResultEndpointID
 )
 
 // Connector IDs
@@ -77,35 +84,40 @@ type Config struct {
 	} `yaml:"services" mapstructure:"services"`
 
 	Streams struct {
-		AdvanceCycleAnalytics     cfg.MapStreamConfig       `yaml:"advanceCycleAnalytics" mapstructure:"advanceCycleAnalytics"`
-		AnalyticsOrders           cfg.InputStreamConfig     `yaml:"analyticsOrders" mapstructure:"analyticsOrders"`
-		AnalyticsPayments         cfg.InputStreamConfig     `yaml:"analyticsPayments" mapstructure:"analyticsPayments"`
-		AnalyticsSchedule         cfg.InputStreamConfig     `yaml:"analyticsSchedule" mapstructure:"analyticsSchedule"`
-		AnalyticsShipments        cfg.InputStreamConfig     `yaml:"analyticsShipments" mapstructure:"analyticsShipments"`
-		CompleteCycleAnalytics    cfg.FilterStreamConfig    `yaml:"completeCycleAnalytics" mapstructure:"completeCycleAnalytics"`
-		ConsumeOrderProcessed     cfg.InputStreamConfig     `yaml:"consumeOrderProcessed" mapstructure:"consumeOrderProcessed"`
-		ContinueCycleAnalytics    cfg.FilterStreamConfig    `yaml:"continueCycleAnalytics" mapstructure:"continueCycleAnalytics"`
-		CountOrderProcessed       cfg.ProcessStreamConfig   `yaml:"countOrderProcessed" mapstructure:"countOrderProcessed"`
-		CycleAnalyticsInput       cfg.InputStreamConfig     `yaml:"cycleAnalyticsInput" mapstructure:"cycleAnalyticsInput"`
-		CycleAnalyticsLink        cfg.CycleLinkStreamConfig `yaml:"cycleAnalyticsLink" mapstructure:"cycleAnalyticsLink"`
-		HighValueAnalytics        cfg.WhenStreamConfig      `yaml:"highValueAnalytics" mapstructure:"highValueAnalytics"`
-		JoinOrderPaymentAnalytics cfg.JoinStreamConfig      `yaml:"joinOrderPaymentAnalytics" mapstructure:"joinOrderPaymentAnalytics"`
-		KeyOrdersForJoin          cfg.KeyByStreamConfig     `yaml:"keyOrdersForJoin" mapstructure:"keyOrdersForJoin"`
-		KeyOrdersForMultiJoin     cfg.KeyByStreamConfig     `yaml:"keyOrdersForMultiJoin" mapstructure:"keyOrdersForMultiJoin"`
-		KeyPaymentsForJoin        cfg.KeyByStreamConfig     `yaml:"keyPaymentsForJoin" mapstructure:"keyPaymentsForJoin"`
-		KeyPaymentsForMultiJoin   cfg.KeyByStreamConfig     `yaml:"keyPaymentsForMultiJoin" mapstructure:"keyPaymentsForMultiJoin"`
-		KeyShipmentsForMultiJoin  cfg.KeyByStreamConfig     `yaml:"keyShipmentsForMultiJoin" mapstructure:"keyShipmentsForMultiJoin"`
-		MergeCycleAnalytics       cfg.MergeStreamConfig     `yaml:"mergeCycleAnalytics" mapstructure:"mergeCycleAnalytics"`
-		MultiJoinAnalyticsEvents  cfg.MultiJoinStreamConfig `yaml:"multiJoinAnalyticsEvents" mapstructure:"multiJoinAnalyticsEvents"`
-		RouteAnalyticsResult      cfg.CaseStreamConfig      `yaml:"routeAnalyticsResult" mapstructure:"routeAnalyticsResult"`
-		SplitAnalyticsOrders      cfg.SplitStreamConfig     `yaml:"splitAnalyticsOrders" mapstructure:"splitAnalyticsOrders"`
-		SplitAnalyticsPayments    cfg.SplitStreamConfig     `yaml:"splitAnalyticsPayments" mapstructure:"splitAnalyticsPayments"`
-		SplitCycleAnalytics       cfg.SplitStreamConfig     `yaml:"splitCycleAnalytics" mapstructure:"splitCycleAnalytics"`
-		StandardAnalytics         cfg.WhenStreamConfig      `yaml:"standardAnalytics" mapstructure:"standardAnalytics"`
-		WriteCycleAnalytics       cfg.SinkStreamConfig      `yaml:"writeCycleAnalytics" mapstructure:"writeCycleAnalytics"`
-		WriteHighValueAnalytics   cfg.SinkStreamConfig      `yaml:"writeHighValueAnalytics" mapstructure:"writeHighValueAnalytics"`
-		WriteJoinedAnalytics      cfg.SinkStreamConfig      `yaml:"writeJoinedAnalytics" mapstructure:"writeJoinedAnalytics"`
-		WriteStandardAnalytics    cfg.SinkStreamConfig      `yaml:"writeStandardAnalytics" mapstructure:"writeStandardAnalytics"`
+		AdvanceCycleAnalytics         cfg.MapStreamConfig       `yaml:"advanceCycleAnalytics" mapstructure:"advanceCycleAnalytics"`
+		AnalyticsOrders               cfg.InputStreamConfig     `yaml:"analyticsOrders" mapstructure:"analyticsOrders"`
+		AnalyticsPayments             cfg.InputStreamConfig     `yaml:"analyticsPayments" mapstructure:"analyticsPayments"`
+		AnalyticsSchedule             cfg.InputStreamConfig     `yaml:"analyticsSchedule" mapstructure:"analyticsSchedule"`
+		AnalyticsShipments            cfg.InputStreamConfig     `yaml:"analyticsShipments" mapstructure:"analyticsShipments"`
+		AnalyzeAnalyticsSubstream     cfg.SubStreamConfig       `yaml:"analyzeAnalyticsSubstream" mapstructure:"analyzeAnalyticsSubstream"`
+		BuildSubstreamAnalyticsResult cfg.MapStreamConfig       `yaml:"buildSubstreamAnalyticsResult" mapstructure:"buildSubstreamAnalyticsResult"`
+		CompleteCycleAnalytics        cfg.FilterStreamConfig    `yaml:"completeCycleAnalytics" mapstructure:"completeCycleAnalytics"`
+		ConsumeOrderProcessed         cfg.InputStreamConfig     `yaml:"consumeOrderProcessed" mapstructure:"consumeOrderProcessed"`
+		ContinueCycleAnalytics        cfg.FilterStreamConfig    `yaml:"continueCycleAnalytics" mapstructure:"continueCycleAnalytics"`
+		CountOrderProcessed           cfg.ProcessStreamConfig   `yaml:"countOrderProcessed" mapstructure:"countOrderProcessed"`
+		CycleAnalyticsInput           cfg.InputStreamConfig     `yaml:"cycleAnalyticsInput" mapstructure:"cycleAnalyticsInput"`
+		CycleAnalyticsLink            cfg.CycleLinkStreamConfig `yaml:"cycleAnalyticsLink" mapstructure:"cycleAnalyticsLink"`
+		HighValueAnalytics            cfg.WhenStreamConfig      `yaml:"highValueAnalytics" mapstructure:"highValueAnalytics"`
+		InvokeAnalyticsSubstream      cfg.MapStreamConfig       `yaml:"invokeAnalyticsSubstream" mapstructure:"invokeAnalyticsSubstream"`
+		JoinOrderPaymentAnalytics     cfg.JoinStreamConfig      `yaml:"joinOrderPaymentAnalytics" mapstructure:"joinOrderPaymentAnalytics"`
+		KeyOrdersForJoin              cfg.KeyByStreamConfig     `yaml:"keyOrdersForJoin" mapstructure:"keyOrdersForJoin"`
+		KeyOrdersForMultiJoin         cfg.KeyByStreamConfig     `yaml:"keyOrdersForMultiJoin" mapstructure:"keyOrdersForMultiJoin"`
+		KeyPaymentsForJoin            cfg.KeyByStreamConfig     `yaml:"keyPaymentsForJoin" mapstructure:"keyPaymentsForJoin"`
+		KeyPaymentsForMultiJoin       cfg.KeyByStreamConfig     `yaml:"keyPaymentsForMultiJoin" mapstructure:"keyPaymentsForMultiJoin"`
+		KeyShipmentsForMultiJoin      cfg.KeyByStreamConfig     `yaml:"keyShipmentsForMultiJoin" mapstructure:"keyShipmentsForMultiJoin"`
+		MergeCycleAnalytics           cfg.MergeStreamConfig     `yaml:"mergeCycleAnalytics" mapstructure:"mergeCycleAnalytics"`
+		MultiJoinAnalyticsEvents      cfg.MultiJoinStreamConfig `yaml:"multiJoinAnalyticsEvents" mapstructure:"multiJoinAnalyticsEvents"`
+		RouteAnalyticsResult          cfg.CaseStreamConfig      `yaml:"routeAnalyticsResult" mapstructure:"routeAnalyticsResult"`
+		SplitAnalyticsOrders          cfg.SplitStreamConfig     `yaml:"splitAnalyticsOrders" mapstructure:"splitAnalyticsOrders"`
+		SplitAnalyticsPayments        cfg.SplitStreamConfig     `yaml:"splitAnalyticsPayments" mapstructure:"splitAnalyticsPayments"`
+		SplitCycleAnalytics           cfg.SplitStreamConfig     `yaml:"splitCycleAnalytics" mapstructure:"splitCycleAnalytics"`
+		StandardAnalytics             cfg.WhenStreamConfig      `yaml:"standardAnalytics" mapstructure:"standardAnalytics"`
+		SubstreamAnalyticsInput       cfg.InputStreamConfig     `yaml:"substreamAnalyticsInput" mapstructure:"substreamAnalyticsInput"`
+		WriteCycleAnalytics           cfg.SinkStreamConfig      `yaml:"writeCycleAnalytics" mapstructure:"writeCycleAnalytics"`
+		WriteHighValueAnalytics       cfg.SinkStreamConfig      `yaml:"writeHighValueAnalytics" mapstructure:"writeHighValueAnalytics"`
+		WriteJoinedAnalytics          cfg.SinkStreamConfig      `yaml:"writeJoinedAnalytics" mapstructure:"writeJoinedAnalytics"`
+		WriteStandardAnalytics        cfg.SinkStreamConfig      `yaml:"writeStandardAnalytics" mapstructure:"writeStandardAnalytics"`
+		WriteSubstreamAnalytics       cfg.SinkStreamConfig      `yaml:"writeSubstreamAnalytics" mapstructure:"writeSubstreamAnalytics"`
 	} `yaml:"streams" mapstructure:"streams"`
 
 	DataConnectors struct {
@@ -134,6 +146,10 @@ type Config struct {
 		OrderProcessed cfg.KafkaEndpointConfig `yaml:"orderProcessed" mapstructure:"orderProcessed"`
 
 		StandardAnalytics cfg.CustomEndpointConfig `yaml:"standardAnalytics" mapstructure:"standardAnalytics"`
+
+		SubstreamAnalyticsInput cfg.CustomEndpointConfig `yaml:"substreamAnalyticsInput" mapstructure:"substreamAnalyticsInput"`
+
+		SubstreamAnalyticsResult cfg.CustomEndpointConfig `yaml:"substreamAnalyticsResult" mapstructure:"substreamAnalyticsResult"`
 	} `yaml:"endpoints" mapstructure:"endpoints"`
 
 	Pools struct {
@@ -177,6 +193,8 @@ func (c *Config) GetStreams() []cfg.StreamConfig {
 		&c.Streams.AnalyticsPayments,
 		&c.Streams.AnalyticsSchedule,
 		&c.Streams.AnalyticsShipments,
+		&c.Streams.AnalyzeAnalyticsSubstream,
+		&c.Streams.BuildSubstreamAnalyticsResult,
 		&c.Streams.CompleteCycleAnalytics,
 		&c.Streams.ConsumeOrderProcessed,
 		&c.Streams.ContinueCycleAnalytics,
@@ -184,6 +202,7 @@ func (c *Config) GetStreams() []cfg.StreamConfig {
 		&c.Streams.CycleAnalyticsInput,
 		&c.Streams.CycleAnalyticsLink,
 		&c.Streams.HighValueAnalytics,
+		&c.Streams.InvokeAnalyticsSubstream,
 		&c.Streams.JoinOrderPaymentAnalytics,
 		&c.Streams.KeyOrdersForJoin,
 		&c.Streams.KeyOrdersForMultiJoin,
@@ -197,10 +216,12 @@ func (c *Config) GetStreams() []cfg.StreamConfig {
 		&c.Streams.SplitAnalyticsPayments,
 		&c.Streams.SplitCycleAnalytics,
 		&c.Streams.StandardAnalytics,
+		&c.Streams.SubstreamAnalyticsInput,
 		&c.Streams.WriteCycleAnalytics,
 		&c.Streams.WriteHighValueAnalytics,
 		&c.Streams.WriteJoinedAnalytics,
 		&c.Streams.WriteStandardAnalytics,
+		&c.Streams.WriteSubstreamAnalytics,
 	}
 }
 
@@ -224,6 +245,8 @@ func (c *Config) GetEndpoints() []cfg.EndpointConfig {
 		&c.Endpoints.JoinedAnalytics,
 		&c.Endpoints.OrderProcessed,
 		&c.Endpoints.StandardAnalytics,
+		&c.Endpoints.SubstreamAnalyticsInput,
+		&c.Endpoints.SubstreamAnalyticsResult,
 	}
 }
 
@@ -561,35 +584,40 @@ func MakeConfig() *Config {
 			},
 		},
 		Streams: struct {
-			AdvanceCycleAnalytics     cfg.MapStreamConfig       `yaml:"advanceCycleAnalytics" mapstructure:"advanceCycleAnalytics"`
-			AnalyticsOrders           cfg.InputStreamConfig     `yaml:"analyticsOrders" mapstructure:"analyticsOrders"`
-			AnalyticsPayments         cfg.InputStreamConfig     `yaml:"analyticsPayments" mapstructure:"analyticsPayments"`
-			AnalyticsSchedule         cfg.InputStreamConfig     `yaml:"analyticsSchedule" mapstructure:"analyticsSchedule"`
-			AnalyticsShipments        cfg.InputStreamConfig     `yaml:"analyticsShipments" mapstructure:"analyticsShipments"`
-			CompleteCycleAnalytics    cfg.FilterStreamConfig    `yaml:"completeCycleAnalytics" mapstructure:"completeCycleAnalytics"`
-			ConsumeOrderProcessed     cfg.InputStreamConfig     `yaml:"consumeOrderProcessed" mapstructure:"consumeOrderProcessed"`
-			ContinueCycleAnalytics    cfg.FilterStreamConfig    `yaml:"continueCycleAnalytics" mapstructure:"continueCycleAnalytics"`
-			CountOrderProcessed       cfg.ProcessStreamConfig   `yaml:"countOrderProcessed" mapstructure:"countOrderProcessed"`
-			CycleAnalyticsInput       cfg.InputStreamConfig     `yaml:"cycleAnalyticsInput" mapstructure:"cycleAnalyticsInput"`
-			CycleAnalyticsLink        cfg.CycleLinkStreamConfig `yaml:"cycleAnalyticsLink" mapstructure:"cycleAnalyticsLink"`
-			HighValueAnalytics        cfg.WhenStreamConfig      `yaml:"highValueAnalytics" mapstructure:"highValueAnalytics"`
-			JoinOrderPaymentAnalytics cfg.JoinStreamConfig      `yaml:"joinOrderPaymentAnalytics" mapstructure:"joinOrderPaymentAnalytics"`
-			KeyOrdersForJoin          cfg.KeyByStreamConfig     `yaml:"keyOrdersForJoin" mapstructure:"keyOrdersForJoin"`
-			KeyOrdersForMultiJoin     cfg.KeyByStreamConfig     `yaml:"keyOrdersForMultiJoin" mapstructure:"keyOrdersForMultiJoin"`
-			KeyPaymentsForJoin        cfg.KeyByStreamConfig     `yaml:"keyPaymentsForJoin" mapstructure:"keyPaymentsForJoin"`
-			KeyPaymentsForMultiJoin   cfg.KeyByStreamConfig     `yaml:"keyPaymentsForMultiJoin" mapstructure:"keyPaymentsForMultiJoin"`
-			KeyShipmentsForMultiJoin  cfg.KeyByStreamConfig     `yaml:"keyShipmentsForMultiJoin" mapstructure:"keyShipmentsForMultiJoin"`
-			MergeCycleAnalytics       cfg.MergeStreamConfig     `yaml:"mergeCycleAnalytics" mapstructure:"mergeCycleAnalytics"`
-			MultiJoinAnalyticsEvents  cfg.MultiJoinStreamConfig `yaml:"multiJoinAnalyticsEvents" mapstructure:"multiJoinAnalyticsEvents"`
-			RouteAnalyticsResult      cfg.CaseStreamConfig      `yaml:"routeAnalyticsResult" mapstructure:"routeAnalyticsResult"`
-			SplitAnalyticsOrders      cfg.SplitStreamConfig     `yaml:"splitAnalyticsOrders" mapstructure:"splitAnalyticsOrders"`
-			SplitAnalyticsPayments    cfg.SplitStreamConfig     `yaml:"splitAnalyticsPayments" mapstructure:"splitAnalyticsPayments"`
-			SplitCycleAnalytics       cfg.SplitStreamConfig     `yaml:"splitCycleAnalytics" mapstructure:"splitCycleAnalytics"`
-			StandardAnalytics         cfg.WhenStreamConfig      `yaml:"standardAnalytics" mapstructure:"standardAnalytics"`
-			WriteCycleAnalytics       cfg.SinkStreamConfig      `yaml:"writeCycleAnalytics" mapstructure:"writeCycleAnalytics"`
-			WriteHighValueAnalytics   cfg.SinkStreamConfig      `yaml:"writeHighValueAnalytics" mapstructure:"writeHighValueAnalytics"`
-			WriteJoinedAnalytics      cfg.SinkStreamConfig      `yaml:"writeJoinedAnalytics" mapstructure:"writeJoinedAnalytics"`
-			WriteStandardAnalytics    cfg.SinkStreamConfig      `yaml:"writeStandardAnalytics" mapstructure:"writeStandardAnalytics"`
+			AdvanceCycleAnalytics         cfg.MapStreamConfig       `yaml:"advanceCycleAnalytics" mapstructure:"advanceCycleAnalytics"`
+			AnalyticsOrders               cfg.InputStreamConfig     `yaml:"analyticsOrders" mapstructure:"analyticsOrders"`
+			AnalyticsPayments             cfg.InputStreamConfig     `yaml:"analyticsPayments" mapstructure:"analyticsPayments"`
+			AnalyticsSchedule             cfg.InputStreamConfig     `yaml:"analyticsSchedule" mapstructure:"analyticsSchedule"`
+			AnalyticsShipments            cfg.InputStreamConfig     `yaml:"analyticsShipments" mapstructure:"analyticsShipments"`
+			AnalyzeAnalyticsSubstream     cfg.SubStreamConfig       `yaml:"analyzeAnalyticsSubstream" mapstructure:"analyzeAnalyticsSubstream"`
+			BuildSubstreamAnalyticsResult cfg.MapStreamConfig       `yaml:"buildSubstreamAnalyticsResult" mapstructure:"buildSubstreamAnalyticsResult"`
+			CompleteCycleAnalytics        cfg.FilterStreamConfig    `yaml:"completeCycleAnalytics" mapstructure:"completeCycleAnalytics"`
+			ConsumeOrderProcessed         cfg.InputStreamConfig     `yaml:"consumeOrderProcessed" mapstructure:"consumeOrderProcessed"`
+			ContinueCycleAnalytics        cfg.FilterStreamConfig    `yaml:"continueCycleAnalytics" mapstructure:"continueCycleAnalytics"`
+			CountOrderProcessed           cfg.ProcessStreamConfig   `yaml:"countOrderProcessed" mapstructure:"countOrderProcessed"`
+			CycleAnalyticsInput           cfg.InputStreamConfig     `yaml:"cycleAnalyticsInput" mapstructure:"cycleAnalyticsInput"`
+			CycleAnalyticsLink            cfg.CycleLinkStreamConfig `yaml:"cycleAnalyticsLink" mapstructure:"cycleAnalyticsLink"`
+			HighValueAnalytics            cfg.WhenStreamConfig      `yaml:"highValueAnalytics" mapstructure:"highValueAnalytics"`
+			InvokeAnalyticsSubstream      cfg.MapStreamConfig       `yaml:"invokeAnalyticsSubstream" mapstructure:"invokeAnalyticsSubstream"`
+			JoinOrderPaymentAnalytics     cfg.JoinStreamConfig      `yaml:"joinOrderPaymentAnalytics" mapstructure:"joinOrderPaymentAnalytics"`
+			KeyOrdersForJoin              cfg.KeyByStreamConfig     `yaml:"keyOrdersForJoin" mapstructure:"keyOrdersForJoin"`
+			KeyOrdersForMultiJoin         cfg.KeyByStreamConfig     `yaml:"keyOrdersForMultiJoin" mapstructure:"keyOrdersForMultiJoin"`
+			KeyPaymentsForJoin            cfg.KeyByStreamConfig     `yaml:"keyPaymentsForJoin" mapstructure:"keyPaymentsForJoin"`
+			KeyPaymentsForMultiJoin       cfg.KeyByStreamConfig     `yaml:"keyPaymentsForMultiJoin" mapstructure:"keyPaymentsForMultiJoin"`
+			KeyShipmentsForMultiJoin      cfg.KeyByStreamConfig     `yaml:"keyShipmentsForMultiJoin" mapstructure:"keyShipmentsForMultiJoin"`
+			MergeCycleAnalytics           cfg.MergeStreamConfig     `yaml:"mergeCycleAnalytics" mapstructure:"mergeCycleAnalytics"`
+			MultiJoinAnalyticsEvents      cfg.MultiJoinStreamConfig `yaml:"multiJoinAnalyticsEvents" mapstructure:"multiJoinAnalyticsEvents"`
+			RouteAnalyticsResult          cfg.CaseStreamConfig      `yaml:"routeAnalyticsResult" mapstructure:"routeAnalyticsResult"`
+			SplitAnalyticsOrders          cfg.SplitStreamConfig     `yaml:"splitAnalyticsOrders" mapstructure:"splitAnalyticsOrders"`
+			SplitAnalyticsPayments        cfg.SplitStreamConfig     `yaml:"splitAnalyticsPayments" mapstructure:"splitAnalyticsPayments"`
+			SplitCycleAnalytics           cfg.SplitStreamConfig     `yaml:"splitCycleAnalytics" mapstructure:"splitCycleAnalytics"`
+			StandardAnalytics             cfg.WhenStreamConfig      `yaml:"standardAnalytics" mapstructure:"standardAnalytics"`
+			SubstreamAnalyticsInput       cfg.InputStreamConfig     `yaml:"substreamAnalyticsInput" mapstructure:"substreamAnalyticsInput"`
+			WriteCycleAnalytics           cfg.SinkStreamConfig      `yaml:"writeCycleAnalytics" mapstructure:"writeCycleAnalytics"`
+			WriteHighValueAnalytics       cfg.SinkStreamConfig      `yaml:"writeHighValueAnalytics" mapstructure:"writeHighValueAnalytics"`
+			WriteJoinedAnalytics          cfg.SinkStreamConfig      `yaml:"writeJoinedAnalytics" mapstructure:"writeJoinedAnalytics"`
+			WriteStandardAnalytics        cfg.SinkStreamConfig      `yaml:"writeStandardAnalytics" mapstructure:"writeStandardAnalytics"`
+			WriteSubstreamAnalytics       cfg.SinkStreamConfig      `yaml:"writeSubstreamAnalytics" mapstructure:"writeSubstreamAnalytics"`
 		}{
 			AdvanceCycleAnalytics: cfg.MapStreamConfig{
 				ID:                  advanceCycleAnalyticsStreamID,
@@ -647,6 +675,31 @@ func MakeConfig() *Config {
 				YPos:       -1308,
 				ValueType:  "AnalyticsEvent",
 				IdEndpoint: analyticsShipmentsEndpointID,
+			},
+
+			AnalyzeAnalyticsSubstream: cfg.SubStreamConfig{
+				ID:        analyzeAnalyticsSubstreamStreamID,
+				Name:      "Analyze Analytics Substream",
+				Pipeline:  "substreamAnalytics",
+				IdService: analyticsServiceServiceID,
+				IdSource:  buildSubstreamAnalyticsResultStreamID,
+				XPos:      -1740,
+				YPos:      -2860,
+				ValueType: "AnalyticsEvent",
+			},
+
+			BuildSubstreamAnalyticsResult: cfg.MapStreamConfig{
+				ID:                  buildSubstreamAnalyticsResultStreamID,
+				Name:                "Build Substream Analytics Result",
+				Pipeline:            "substreamAnalytics",
+				IdService:           analyticsServiceServiceID,
+				IdSource:            analyzeAnalyticsSubstreamStreamID,
+				XPos:                -1110,
+				YPos:                -2860,
+				ValueType:           "AnalyticsResult",
+				FunctionPackage:     "substreamanalytics",
+				FunctionName:        "BuildSubstreamAnalyticsResult",
+				FunctionDescription: "Transform one callable SubStream input into its analytics result.",
 			},
 
 			CompleteCycleAnalytics: cfg.FilterStreamConfig{
@@ -730,6 +783,20 @@ func MakeConfig() *Config {
 				XPos:      398,
 				YPos:      -1650,
 				ValueType: "AnalyticsResult",
+			},
+
+			InvokeAnalyticsSubstream: cfg.MapStreamConfig{
+				ID:                  invokeAnalyticsSubstreamStreamID,
+				Name:                "Invoke Analytics Substream",
+				Pipeline:            "substreamAnalytics",
+				IdService:           analyticsServiceServiceID,
+				IdSource:            substreamAnalyticsInputStreamID,
+				XPos:                -1740,
+				YPos:                -2530,
+				ValueType:           "AnalyticsResult",
+				FunctionPackage:     "substreamanalytics",
+				FunctionName:        "InvokeAnalyticsSubstream",
+				FunctionDescription: "Invoke the service-local analytics SubStream and emit its returned result.",
 			},
 
 			JoinOrderPaymentAnalytics: cfg.JoinStreamConfig{
@@ -908,6 +975,17 @@ func MakeConfig() *Config {
 				ValueType: "AnalyticsResult",
 			},
 
+			SubstreamAnalyticsInput: cfg.InputStreamConfig{
+				ID:         substreamAnalyticsInputStreamID,
+				Name:       "Substream Analytics Input",
+				Pipeline:   "substreamAnalytics",
+				IdService:  analyticsServiceServiceID,
+				XPos:       -2362,
+				YPos:       -2530,
+				ValueType:  "AnalyticsEvent",
+				IdEndpoint: substreamAnalyticsInputEndpointID,
+			},
+
 			WriteCycleAnalytics: cfg.SinkStreamConfig{
 				ID:         writeCycleAnalyticsStreamID,
 				Name:       "Write Cycle Analytics",
@@ -955,6 +1033,18 @@ func MakeConfig() *Config {
 				ValueType:  "AnalyticsResult",
 				IdEndpoint: standardAnalyticsEndpointID,
 			},
+
+			WriteSubstreamAnalytics: cfg.SinkStreamConfig{
+				ID:         writeSubstreamAnalyticsStreamID,
+				Name:       "Write Substream Analytics",
+				Pipeline:   "substreamAnalytics",
+				IdService:  analyticsServiceServiceID,
+				IdSource:   invokeAnalyticsSubstreamStreamID,
+				XPos:       -1110,
+				YPos:       -2530,
+				ValueType:  "AnalyticsResult",
+				IdEndpoint: substreamAnalyticsResultEndpointID,
+			},
 		},
 		DataConnectors: struct {
 			AnalyticsFunctions cfg.CustomDataConnectorConfig `yaml:"analyticsFunctions" mapstructure:"analyticsFunctions"`
@@ -985,16 +1075,18 @@ func MakeConfig() *Config {
 			},
 		},
 		Endpoints: struct {
-			AnalyticsOrders      cfg.CustomEndpointConfig `yaml:"analyticsOrders" mapstructure:"analyticsOrders"`
-			AnalyticsPayments    cfg.CustomEndpointConfig `yaml:"analyticsPayments" mapstructure:"analyticsPayments"`
-			AnalyticsSchedule    cfg.CronEndpointConfig   `yaml:"analyticsSchedule" mapstructure:"analyticsSchedule"`
-			AnalyticsShipments   cfg.CustomEndpointConfig `yaml:"analyticsShipments" mapstructure:"analyticsShipments"`
-			CycleAnalyticsInput  cfg.CustomEndpointConfig `yaml:"cycleAnalyticsInput" mapstructure:"cycleAnalyticsInput"`
-			CycleAnalyticsResult cfg.CustomEndpointConfig `yaml:"cycleAnalyticsResult" mapstructure:"cycleAnalyticsResult"`
-			HighValueAnalytics   cfg.CustomEndpointConfig `yaml:"highValueAnalytics" mapstructure:"highValueAnalytics"`
-			JoinedAnalytics      cfg.CustomEndpointConfig `yaml:"joinedAnalytics" mapstructure:"joinedAnalytics"`
-			OrderProcessed       cfg.KafkaEndpointConfig  `yaml:"orderProcessed" mapstructure:"orderProcessed"`
-			StandardAnalytics    cfg.CustomEndpointConfig `yaml:"standardAnalytics" mapstructure:"standardAnalytics"`
+			AnalyticsOrders          cfg.CustomEndpointConfig `yaml:"analyticsOrders" mapstructure:"analyticsOrders"`
+			AnalyticsPayments        cfg.CustomEndpointConfig `yaml:"analyticsPayments" mapstructure:"analyticsPayments"`
+			AnalyticsSchedule        cfg.CronEndpointConfig   `yaml:"analyticsSchedule" mapstructure:"analyticsSchedule"`
+			AnalyticsShipments       cfg.CustomEndpointConfig `yaml:"analyticsShipments" mapstructure:"analyticsShipments"`
+			CycleAnalyticsInput      cfg.CustomEndpointConfig `yaml:"cycleAnalyticsInput" mapstructure:"cycleAnalyticsInput"`
+			CycleAnalyticsResult     cfg.CustomEndpointConfig `yaml:"cycleAnalyticsResult" mapstructure:"cycleAnalyticsResult"`
+			HighValueAnalytics       cfg.CustomEndpointConfig `yaml:"highValueAnalytics" mapstructure:"highValueAnalytics"`
+			JoinedAnalytics          cfg.CustomEndpointConfig `yaml:"joinedAnalytics" mapstructure:"joinedAnalytics"`
+			OrderProcessed           cfg.KafkaEndpointConfig  `yaml:"orderProcessed" mapstructure:"orderProcessed"`
+			StandardAnalytics        cfg.CustomEndpointConfig `yaml:"standardAnalytics" mapstructure:"standardAnalytics"`
+			SubstreamAnalyticsInput  cfg.CustomEndpointConfig `yaml:"substreamAnalyticsInput" mapstructure:"substreamAnalyticsInput"`
+			SubstreamAnalyticsResult cfg.CustomEndpointConfig `yaml:"substreamAnalyticsResult" mapstructure:"substreamAnalyticsResult"`
 		}{
 			AnalyticsOrders: cfg.CustomEndpointConfig{
 				ID:                  analyticsOrdersEndpointID,
@@ -1095,6 +1187,24 @@ func MakeConfig() *Config {
 				FunctionName:        "StandardAnalytics",
 				FunctionPackage:     "endpoint",
 				FunctionDescription: "Validate and record analytics results routed to the standard Case branch.",
+			},
+
+			SubstreamAnalyticsInput: cfg.CustomEndpointConfig{
+				ID:                  substreamAnalyticsInputEndpointID,
+				Name:                "Substream Analytics Input",
+				IdDataConnector:     analyticsFunctionsConnectorID,
+				FunctionName:        "SubstreamAnalyticsInput",
+				FunctionPackage:     "endpoint",
+				FunctionDescription: "Produce one deterministic analytics event that invokes the service-local SubStream example.",
+			},
+
+			SubstreamAnalyticsResult: cfg.CustomEndpointConfig{
+				ID:                  substreamAnalyticsResultEndpointID,
+				Name:                "Substream Analytics Result",
+				IdDataConnector:     analyticsFunctionsConnectorID,
+				FunctionName:        "SubstreamAnalyticsResult",
+				FunctionPackage:     "endpoint",
+				FunctionDescription: "Validate and record the result returned by the service-local SubStream example.",
 			},
 		},
 		Pools: struct {

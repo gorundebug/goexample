@@ -1,4 +1,4 @@
-# Task 4/22: `CompleteCycleAnalytics`
+# Task 4/26: `CompleteCycleAnalytics`
 
 > Rules: [`spec/rules.md`](../rules.md)
 

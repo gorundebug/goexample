@@ -1,4 +1,4 @@
-# Task 7/22: `AnalyticsPaymentsSource`
+# Task 7/26: `AnalyticsPaymentsSource`
 
 > Rules: [`spec/rules.md`](../rules.md)
 

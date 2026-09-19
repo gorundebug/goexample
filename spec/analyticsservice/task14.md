@@ -1,4 +1,4 @@
-# Task 14/22: `StandardAnalyticsSink`
+# Task 14/26: `StandardAnalyticsSink`
 
 > Rules: [`spec/rules.md`](../rules.md)
 

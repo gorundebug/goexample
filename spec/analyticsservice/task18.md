@@ -1,4 +1,4 @@
-# Task 18/22: `KeyOrdersForMultiJoin`
+# Task 18/26: `KeyOrdersForJoin`
 
 > Rules: [`spec/rules.md`](../rules.md)
 
@@ -6,14 +6,14 @@
 |-------|-------|
 | Language | `Go` |
 | Kind | `keyBy` |
-| File | `analyticsservice/internal/functions/multijoinanalytics/keyordersformultijoin.go` |
-| Test | `analyticsservice/internal/functions/multijoinanalytics/keyordersformultijoin_test.go` |
+| File | `analyticsservice/internal/functions/joinanalytics/keyordersforjoin.go` |
+| Test | `analyticsservice/internal/functions/joinanalytics/keyordersforjoin_test.go` |
 | Service | `Analytics Service` |
 
 
 ## Behaviour
 
-Key the order analytics event for the multi-way join.
+Key the order analytics event by correlation key.
 
 
 
@@ -26,11 +26,11 @@ Key the order analytics event for the multi-way join.
 ## Checklist
 
 - [ ] Read [`spec/rules.md`](../rules.md), especially the `Go` section
-- [ ] Open `analyticsservice/internal/functions/multijoinanalytics/keyordersformultijoin.go` and preserve its generated contract
+- [ ] Open `analyticsservice/internal/functions/joinanalytics/keyordersforjoin.go` and preserve its generated contract
 - [ ] Inspect input type `AnalyticsEvent` in `analyticsservice/internal/types/analyticsevent.go`
 - [ ] Inspect output type `AnalyticsEvent` in `analyticsservice/internal/types/analyticsevent.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
-- [ ] Implement meaningful assertions in `analyticsservice/internal/functions/multijoinanalytics/keyordersformultijoin_test.go`
+- [ ] Implement meaningful assertions in `analyticsservice/internal/functions/joinanalytics/keyordersforjoin_test.go`
 - [ ] Re-read this checklist
-- [ ] Append to `spec/progress.md`: `- [x] analyticsservice/task18.md — KeyOrdersForMultiJoin — Go — done`
+- [ ] Append to `spec/progress.md`: `- [x] analyticsservice/task18.md — KeyOrdersForJoin — Go — done`

@@ -1,4 +1,4 @@
-# Task 19/22: `KeyPaymentsForMultiJoin`
+# Task 19/26: `KeyPaymentsForJoin`
 
 > Rules: [`spec/rules.md`](../rules.md)
 
@@ -6,14 +6,14 @@
 |-------|-------|
 | Language | `Go` |
 | Kind | `keyBy` |
-| File | `analyticsservice/internal/functions/multijoinanalytics/keypaymentsformultijoin.go` |
-| Test | `analyticsservice/internal/functions/multijoinanalytics/keypaymentsformultijoin_test.go` |
+| File | `analyticsservice/internal/functions/joinanalytics/keypaymentsforjoin.go` |
+| Test | `analyticsservice/internal/functions/joinanalytics/keypaymentsforjoin_test.go` |
 | Service | `Analytics Service` |
 
 
 ## Behaviour
 
-Key the payment analytics event for the multi-way join.
+Key the payment analytics event by correlation key.
 
 
 
@@ -26,11 +26,11 @@ Key the payment analytics event for the multi-way join.
 ## Checklist
 
 - [ ] Read [`spec/rules.md`](../rules.md), especially the `Go` section
-- [ ] Open `analyticsservice/internal/functions/multijoinanalytics/keypaymentsformultijoin.go` and preserve its generated contract
+- [ ] Open `analyticsservice/internal/functions/joinanalytics/keypaymentsforjoin.go` and preserve its generated contract
 - [ ] Inspect input type `AnalyticsEvent` in `analyticsservice/internal/types/analyticsevent.go`
 - [ ] Inspect output type `AnalyticsEvent` in `analyticsservice/internal/types/analyticsevent.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
-- [ ] Implement meaningful assertions in `analyticsservice/internal/functions/multijoinanalytics/keypaymentsformultijoin_test.go`
+- [ ] Implement meaningful assertions in `analyticsservice/internal/functions/joinanalytics/keypaymentsforjoin_test.go`
 - [ ] Re-read this checklist
-- [ ] Append to `spec/progress.md`: `- [x] analyticsservice/task19.md — KeyPaymentsForMultiJoin — Go — done`
+- [ ] Append to `spec/progress.md`: `- [x] analyticsservice/task19.md — KeyPaymentsForJoin — Go — done`

@@ -1,4 +1,4 @@
-# Task 2/22: `AnalyticsScheduleSource`
+# Task 2/26: `AnalyticsScheduleSource`
 
 > Rules: [`spec/rules.md`](../rules.md)
 

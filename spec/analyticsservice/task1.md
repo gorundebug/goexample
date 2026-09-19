@@ -1,4 +1,4 @@
-# Task 1/22: `CountOrderProcessed`
+# Task 1/26: `CountOrderProcessed`
 
 > Rules: [`spec/rules.md`](../rules.md)
 

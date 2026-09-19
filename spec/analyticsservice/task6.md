@@ -1,4 +1,4 @@
-# Task 6/22: `AnalyticsOrdersSource`
+# Task 6/26: `AnalyticsOrdersSource`
 
 > Rules: [`spec/rules.md`](../rules.md)
 
