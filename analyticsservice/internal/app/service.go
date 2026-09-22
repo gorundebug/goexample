@@ -7,7 +7,6 @@ import (
 
 	"github.com/gorundebug/servicelib/api"
 	"github.com/gorundebug/servicelib/runtime"
-	runtimecfg "github.com/gorundebug/servicelib/runtime/config"
 	"github.com/gorundebug/servicelib/runtime/environment"
 	"github.com/gorundebug/servicelib/runtime/environment/log"
 	"github.com/gorundebug/servicelib/runtime/environment/metrics"
@@ -107,11 +106,11 @@ func (s *Service) stop(ctx context.Context) {
 // When non-nil values are returned, the library's built-in server is NOT created
 // and the generated code manages the full lifecycle (Listen/Serve/Shutdown).
 func (s *Service) httpServerMakers(ctx context.Context) error {
-	s.httpServerMaker = func(_ context.Context, env runtime.RuntimeEnvironment) (*http.Server, error) {
+	s.makers.httpServerMaker = func(_ context.Context, env runtime.RuntimeEnvironment) (*http.Server, error) {
 		// svcCfg := s.ServiceConfig()
 		// return &http.Server{
 		//    Addr: fmt.Sprintf("%s:%d", svcCfg.HttpHost, svcCfg.HttpPort),
-		//    Handler: env.MetricsEngine().HTTPServerHandler(s.httpMux, runtime.ToSnakeCase(svcCfg.Name)),
+		//    Handler: env.MetricsEngine().HTTPServerHandler(s.servers.httpMux, runtime.ToSnakeCase(svcCfg.Name)),
 		// }, nil
 		return nil, nil
 	}
@@ -128,7 +127,6 @@ func (s *Service) customMakersInit(ctx context.Context) error {
 	}
 	s.makers.substreamanalyticsInvokeAnalyticsSubstreamMaker = func(
 		_ context.Context,
-		_ *runtimecfg.MapStreamConfig,
 		_ environment.ServiceEnvironment,
 	) (*substreamanalytics.InvokeAnalyticsSubstream, error) {
 		return substreamanalytics.NewInvokeAnalyticsSubstream(s.AnalyzeAnalyticsSubstream()), nil

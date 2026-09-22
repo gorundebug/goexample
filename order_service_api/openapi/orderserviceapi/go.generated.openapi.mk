@@ -3,7 +3,7 @@
 all: gen
 
 gen:
-	@mkdir -p "$(MODULE_DIR)/pkg/generated/openapi/orderserviceapi"; \
+	@set -e; mkdir -p "$(MODULE_DIR)/pkg/generated/openapi/orderserviceapi"; \
 	$(OAPI_CODEGEN) -generate "std-http,models" \
 		-package orderserviceapi \
 		-o "$(MODULE_DIR)/pkg/generated/openapi/orderserviceapi/orderserviceapi_http.openapi.go" \

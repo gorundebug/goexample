@@ -6,7 +6,7 @@ import (
 	"github.com/gorundebug/analyticsservice/internal/types"
 
 	"github.com/gorundebug/servicelib/runtime"
-	runtimecfg "github.com/gorundebug/servicelib/runtime/config"
+
 	"github.com/gorundebug/servicelib/runtime/environment"
 	"github.com/gorundebug/servicelib/transformation"
 )
@@ -33,6 +33,6 @@ func (f *MultiJoinAnalyticsEvents) MultiJoin(ctx context.Context, _ runtime.Stre
 // MakeMultiJoinAnalyticsEvents is instantiated once at application startup via its maker function.
 // Fields of this struct are not protected by any synchronization — do not use
 // shared mutable state here without external synchronization.
-func MakeMultiJoinAnalyticsEvents(ctx context.Context, env environment.ServiceEnvironment, cfg *runtimecfg.MultiJoinStreamConfig) (*MultiJoinAnalyticsEvents, error) {
+func MakeMultiJoinAnalyticsEvents(ctx context.Context, env environment.ServiceEnvironment) (*MultiJoinAnalyticsEvents, error) {
 	return &MultiJoinAnalyticsEvents{}, nil
 }

@@ -728,9 +728,7 @@ func MakeConfig() *Config {
 				From: splitPipelineStreamID,
 				To:   softDeadlineStreamID,
 				CallSemantics: &cfg.CallSemanticsGroup{
-					FunctionCall: &cfg.FunctionCallSemanticsConfig{
-						Async: true,
-					},
+					FunctionCall: &cfg.FunctionCallSemanticsConfig{},
 				},
 			},
 		},

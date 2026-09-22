@@ -19,14 +19,14 @@ test: all ## [host] Run this module's tests
 	@go test ./...
 
 gen-proto:
-	@find . -type f -name 'go.generated.proto.mk' | while read mkfile; do \
+	@set -e; find . -type f -name 'go.generated.proto.mk' | while read mkfile; do \
 		dir=$$(dirname $$mkfile); \
 		echo "Generating files in $$dir..."; \
 		$(MAKE) -C $$dir -f $$(basename $$mkfile) gen MODULE_DIR="$(MODULE_DIR)" PROTOC="$(PROTOC)"; \
 	done
 
 fmt-proto:
-	@find . -type f -name '*.proto' | while read protofile; do \
+	@set -e; find . -type f -name '*.proto' | while read protofile; do \
 		$(BUF) format -w $$protofile; \
 	done
 
@@ -36,7 +36,7 @@ $(OAPI_CODEGEN):
 	@GOBIN=$(TOOLS_DIR) go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@$(OAPI_CODEGEN_VERSION)
 
 gen-openapi: $(OAPI_CODEGEN)
-	@find . -type f -name 'go.generated.openapi.mk' | while read mkfile; do \
+	@set -e; find . -type f -name 'go.generated.openapi.mk' | while read mkfile; do \
 		dir=$$(dirname $$mkfile); \
 		echo "Generating files in $$dir..."; \
 		$(MAKE) -C $$dir -f $$(basename $$mkfile) gen MODULE_DIR="$(MODULE_DIR)" OAPI_CODEGEN="$(OAPI_CODEGEN)"; \

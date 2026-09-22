@@ -5,7 +5,7 @@ import (
 
 	"github.com/gorundebug/servicelib/datasource"
 	"github.com/gorundebug/servicelib/runtime"
-	runtimecfg "github.com/gorundebug/servicelib/runtime/config"
+
 	"github.com/gorundebug/servicelib/runtime/environment"
 )
 
@@ -35,7 +35,6 @@ func (f *AnalyticsScheduleSource) OnTrigger(
 func MakeAnalyticsScheduleSource(
 	_ context.Context,
 	_ environment.ServiceEnvironment,
-	_ *runtimecfg.CronEndpointConfig,
 ) (*AnalyticsScheduleSource, error) {
 	return &AnalyticsScheduleSource{}, nil
 }

@@ -6,7 +6,7 @@ import (
 	"github.com/gorundebug/analyticsservice/internal/types"
 
 	"github.com/gorundebug/servicelib/runtime"
-	runtimecfg "github.com/gorundebug/servicelib/runtime/config"
+
 	"github.com/gorundebug/servicelib/runtime/environment"
 	"github.com/gorundebug/servicelib/transformation"
 )
@@ -34,6 +34,6 @@ func (f *InvokeAnalyticsSubstream) Map(ctx context.Context, _ runtime.Stream, va
 // MakeInvokeAnalyticsSubstream is instantiated once at application startup via its maker function.
 // Fields of this struct are not protected by any synchronization — do not use
 // shared mutable state here without external synchronization.
-func MakeInvokeAnalyticsSubstream(ctx context.Context, env environment.ServiceEnvironment, cfg *runtimecfg.MapStreamConfig) (*InvokeAnalyticsSubstream, error) {
+func MakeInvokeAnalyticsSubstream(ctx context.Context, env environment.ServiceEnvironment) (*InvokeAnalyticsSubstream, error) {
 	return &InvokeAnalyticsSubstream{}, nil
 }

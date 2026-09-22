@@ -6,7 +6,7 @@ import (
 	"github.com/gorundebug/analyticsservice/internal/types"
 
 	"github.com/gorundebug/servicelib/runtime"
-	runtimecfg "github.com/gorundebug/servicelib/runtime/config"
+
 	"github.com/gorundebug/servicelib/runtime/environment"
 	"github.com/gorundebug/servicelib/transformation"
 )
@@ -27,6 +27,6 @@ func (f *JoinOrderPaymentAnalytics) Join(ctx context.Context, _ runtime.Stream, 
 // MakeJoinOrderPaymentAnalytics is instantiated once at application startup via its maker function.
 // Fields of this struct are not protected by any synchronization — do not use
 // shared mutable state here without external synchronization.
-func MakeJoinOrderPaymentAnalytics(ctx context.Context, env environment.ServiceEnvironment, cfg *runtimecfg.JoinStreamConfig) (*JoinOrderPaymentAnalytics, error) {
+func MakeJoinOrderPaymentAnalytics(ctx context.Context, env environment.ServiceEnvironment) (*JoinOrderPaymentAnalytics, error) {
 	return &JoinOrderPaymentAnalytics{}, nil
 }

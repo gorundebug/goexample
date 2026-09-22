@@ -5,7 +5,7 @@ import (
 
 	localsource "github.com/gorundebug/servicelib/datasource/localsource"
 	"github.com/gorundebug/servicelib/runtime"
-	runtimecfg "github.com/gorundebug/servicelib/runtime/config"
+
 	"github.com/gorundebug/servicelib/runtime/environment"
 
 	"github.com/gorundebug/analyticsservice/internal/types"
@@ -97,6 +97,6 @@ func (ep *CycleAnalyticsInputSource) EndRequest(_ context.Context, _ localsource
 // Instantiated once at application startup via its maker function.
 // Fields of this struct are not protected by any synchronization — do not use
 // shared mutable state here without external synchronization.
-func MakeCycleAnalyticsInputSource(ctx context.Context, env environment.ServiceEnvironment, cfg *runtimecfg.CustomEndpointConfig) (*CycleAnalyticsInputSource, error) {
+func MakeCycleAnalyticsInputSource(ctx context.Context, env environment.ServiceEnvironment) (*CycleAnalyticsInputSource, error) {
 	return &CycleAnalyticsInputSource{}, nil
 }

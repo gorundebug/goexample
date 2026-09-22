@@ -5,7 +5,7 @@ import (
 
 	"github.com/gorundebug/model_go/pkg/types"
 	"github.com/gorundebug/servicelib/runtime"
-	runtimecfg "github.com/gorundebug/servicelib/runtime/config"
+
 	"github.com/gorundebug/servicelib/runtime/environment"
 	"github.com/gorundebug/servicelib/runtime/environment/metrics"
 	"github.com/gorundebug/servicelib/transformation"
@@ -30,7 +30,7 @@ func (f *CountOrderProcessed) Process(ctx context.Context, _ runtime.Stream, val
 // MakeCountOrderProcessed is instantiated once at application startup via its maker function.
 // Fields of this struct are not protected by any synchronization — do not use
 // shared mutable state here without external synchronization.
-func MakeCountOrderProcessed(ctx context.Context, env environment.ServiceEnvironment, cfg *runtimecfg.ProcessStreamConfig) (*CountOrderProcessed, error) {
+func MakeCountOrderProcessed(ctx context.Context, env environment.ServiceEnvironment) (*CountOrderProcessed, error) {
 	counter, err := env.Metrics().Scope("analytics", nil).CounterVec(
 		"orders_total", "Number of processed orders by result",
 	)

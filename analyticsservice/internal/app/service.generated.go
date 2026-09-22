@@ -3,400 +3,97 @@ package app
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"net"
-	"net/http"
-	"os"
-	"os/signal"
-	"reflect"
-	"sync"
-	"syscall"
-	"time"
-
 	"github.com/gorundebug/servicelib/runtime"
 	"github.com/gorundebug/servicelib/runtime/environment"
 	log "github.com/gorundebug/servicelib/runtime/environment/log"
-	runtimeserde "github.com/gorundebug/servicelib/runtime/serde"
-	"golang.org/x/sync/errgroup"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
-	"github.com/gorundebug/analyticsservice/internal/config"
-	"github.com/gorundebug/analyticsservice/internal/serdes"
-	"github.com/gorundebug/analyticsservice/internal/types"
-	serdes2 "github.com/gorundebug/model_go/pkg/serdes"
-	types2 "github.com/gorundebug/model_go/pkg/types"
+	config "github.com/gorundebug/analyticsservice/internal/config"
 )
-
-type serviceMakers struct {
-	analyticsPipelineMakers
-	analyticsSourcesPipelineMakers
-	cycleAnalyticsPipelineMakers
-	joinAnalyticsPipelineMakers
-	multiJoinAnalyticsPipelineMakers
-	substreamAnalyticsPipelineMakers
-}
-
-type serviceFunctions struct {
-	analyticsPipelineFunctions
-	analyticsSourcesPipelineFunctions
-	cycleAnalyticsPipelineFunctions
-	joinAnalyticsPipelineFunctions
-	multiJoinAnalyticsPipelineFunctions
-	substreamAnalyticsPipelineFunctions
-}
-
-type serviceStreams struct {
-	analyticsPipelineStreams
-	analyticsSourcesPipelineStreams
-	cycleAnalyticsPipelineStreams
-	joinAnalyticsPipelineStreams
-	multiJoinAnalyticsPipelineStreams
-	substreamAnalyticsPipelineStreams
-}
-
-type serviceHandlers struct {
-	analyticsPipelineHandlers
-	analyticsSourcesPipelineHandlers
-	cycleAnalyticsPipelineHandlers
-	joinAnalyticsPipelineHandlers
-	multiJoinAnalyticsPipelineHandlers
-	substreamAnalyticsPipelineHandlers
-}
-
-type serviceDataConnectors struct {
-	analyticsPipelineDataConnectors
-	analyticsSourcesPipelineDataConnectors
-	cycleAnalyticsPipelineDataConnectors
-	joinAnalyticsPipelineDataConnectors
-	multiJoinAnalyticsPipelineDataConnectors
-	substreamAnalyticsPipelineDataConnectors
-}
-
-// AnalyzeAnalyticsSubstream returns a callable service-local graph.
-// The handle can be injected by a custom maker before streams are initialized.
-func (s *Service) AnalyzeAnalyticsSubstream() runtime.SubStream[*types.AnalyticsEvent, *types.AnalyticsResult] {
-	return analyzeAnalyticsSubstreamSubStreamHandle{service: s}
-}
-
-type analyzeAnalyticsSubstreamSubStreamHandle struct {
-	service *Service
-}
-
-func (h analyzeAnalyticsSubstreamSubStreamHandle) Consume(
-	ctx context.Context,
-	value *types.AnalyticsEvent,
-	collector runtime.SubStreamCollector[*types.AnalyticsResult],
-) error {
-	stream := h.service.streams.analyzeAnalyticsSubstream
-	if stream == nil {
-		return fmt.Errorf("SubStream %s is not initialized", "Analyze Analytics Substream")
-	}
-	return stream.Consume(ctx, value, collector)
-}
 
 type Service struct {
 	runtime.ServiceApp
-	makers          serviceMakers
-	functions       serviceFunctions
-	streams         serviceStreams
-	handlers        serviceHandlers
-	dataConnectors  serviceDataConnectors
-	httpServer      *http.Server
-	httpServerMaker func(context.Context, runtime.RuntimeEnvironment) (*http.Server, error)
-	httpMux         *http.ServeMux
-	httpMuxMaker    func(context.Context, runtime.RuntimeEnvironment) (*http.ServeMux, error)
-	httpServerDone  chan struct{}
+	makers    serviceMakers
+	functions serviceFunctions
+	streams   serviceStreams
+	endpoints serviceEndpoints
+	clients   serviceClients
+	servers   serviceServers
 }
 
-func (s *Service) GetSerde(valueType reflect.Type) (runtimeserde.Serializer, error) {
-	if serde, err := s.getCustomSerde(valueType); err != nil {
-		return nil, err
-	} else if serde != nil {
-		return serde, nil
-	}
-	switch valueType {
-	case runtimeserde.GetSerdeType[types.AnalyticsEvent](), runtimeserde.GetSerdeType[*types.AnalyticsEvent]():
-		{
-			var serde runtimeserde.Serde[*types.AnalyticsEvent] = &serdes.AnalyticsEventSerde{}
-			return serde, nil
-		}
-
-	case runtimeserde.GetSerdeType[types.AnalyticsResult](), runtimeserde.GetSerdeType[*types.AnalyticsResult]():
-		{
-			var serde runtimeserde.Serde[*types.AnalyticsResult] = &serdes.AnalyticsResultSerde{}
-			return serde, nil
-		}
-
-	case runtimeserde.GetSerdeType[types2.OrderProcessed](), runtimeserde.GetSerdeType[*types2.OrderProcessed]():
-		{
-			var serde runtimeserde.Serde[*types2.OrderProcessed] = &serdes2.OrderProcessedSerde{}
-			return serde, nil
-		}
-
-	}
-	return nil, nil
-}
-
-func (s *Service) RegisterHTTPHandler(path string, handler http.Handler) {
-	if s.httpMux != nil {
-		s.httpMux.Handle(path, s.httpHandlerMiddleware(path, handler))
-	} else {
-		s.ServiceApp.RegisterHTTPHandler(path, s.httpHandlerMiddleware(path, handler))
-	}
-}
-
-func (s *Service) Config() *config.Config {
-	return s.ServiceApp.GetConfig().(*config.Config)
-}
-
-func (s *Service) initMakers(ctx context.Context) error {
-	s.initAnalyticsMakers()
-	s.initAnalyticsSourcesMakers()
-	s.initCycleAnalyticsMakers()
-	s.initJoinAnalyticsMakers()
-	s.initMultiJoinAnalyticsMakers()
-	s.initSubstreamAnalyticsMakers()
-
-	return nil
-}
+func (s *Service) Config() *config.Config { return s.ServiceApp.GetConfig().(*config.Config) }
 
 func (s *Service) buildRuntime(ctx context.Context) error {
 	cfg := s.Config()
-
-	if err := s.initMakers(ctx); err != nil {
+	if err := s.makers.initMakers(ctx); err != nil {
 		return fmt.Errorf("init makers failed: %w", err)
 	}
-
 	if err := s.customMakersInit(ctx); err != nil {
 		return fmt.Errorf("custom init makers failed: %w", err)
 	}
-
-	var err error
-
-	if s.httpMuxMaker != nil {
-		if s.httpMux, err = s.httpMuxMaker(ctx, s); err != nil {
+	if err := initConnectors(cfg, s); err != nil {
+		return err
+	}
+	if s.makers.httpMuxMaker != nil {
+		mux, err := s.makers.httpMuxMaker(ctx, s)
+		if err != nil {
 			return fmt.Errorf("create http mux failed: %w", err)
 		}
+		s.servers.httpMux = mux
 	}
-
-	if err := s.initFunctions(ctx, cfg, s); err != nil {
+	if err := s.clients.initClients(ctx, cfg, s, &s.makers); err != nil {
+		return err
+	}
+	if err := s.functions.initFunctions(ctx, s, &s.makers); err != nil {
 		return fmt.Errorf("init functions failed: %w", err)
 	}
-
 	if err := s.customFunctionsInit(ctx); err != nil {
 		return fmt.Errorf("custom functions init failed: %w", err)
 	}
+	return s.buildGraph(ctx, cfg, s)
+}
 
-	if err := s.initStreams(ctx, cfg, s); err != nil {
+func (s *Service) buildGraph(ctx context.Context, cfg *config.Config, env runtime.RuntimeEnvironment) error {
+	if err := s.streams.initStreams(ctx, cfg, env, &s.functions); err != nil {
 		return fmt.Errorf("init streams failed: %w", err)
 	}
-
-	return nil
+	if err := s.streams.build(); err != nil {
+		return err
+	}
+	if err := s.endpoints.initEndpoints(s); err != nil {
+		return err
+	}
+	return s.streams.finish()
 }
-
-func (s *Service) initStreams(ctx context.Context, cfg *config.Config, env runtime.RuntimeEnvironment) error {
-	var err error
-	if err = s.initAnalyticsStreams(ctx, cfg, env); err != nil {
-		return err
-	}
-	if err = s.initAnalyticsSourcesStreams(ctx, cfg, env); err != nil {
-		return err
-	}
-	if err = s.initCycleAnalyticsStreams(ctx, cfg, env); err != nil {
-		return err
-	}
-	if err = s.initJoinAnalyticsStreams(ctx, cfg, env); err != nil {
-		return err
-	}
-	if err = s.initMultiJoinAnalyticsStreams(ctx, cfg, env); err != nil {
-		return err
-	}
-	if err = s.initSubstreamAnalyticsStreams(ctx, cfg, env); err != nil {
-		return err
-	}
-	if err = s.bindAnalyticsStreams(); err != nil {
-		return err
-	}
-	if err = s.bindAnalyticsSourcesStreams(); err != nil {
-		return err
-	}
-	if err = s.bindCycleAnalyticsStreams(); err != nil {
-		return err
-	}
-	if err = s.bindJoinAnalyticsStreams(); err != nil {
-		return err
-	}
-	if err = s.bindMultiJoinAnalyticsStreams(); err != nil {
-		return err
-	}
-	if err = s.bindSubstreamAnalyticsStreams(); err != nil {
-		return err
-	}
-	if err = s.initAnalyticsEndpoints(); err != nil {
-		return err
-	}
-	if err = s.initAnalyticsSourcesEndpoints(); err != nil {
-		return err
-	}
-	if err = s.initCycleAnalyticsEndpoints(); err != nil {
-		return err
-	}
-	if err = s.initJoinAnalyticsEndpoints(); err != nil {
-		return err
-	}
-	if err = s.initMultiJoinAnalyticsEndpoints(); err != nil {
-		return err
-	}
-	if err = s.initSubstreamAnalyticsEndpoints(); err != nil {
-		return err
-	}
-	if err = s.postInitAnalyticsStreams(); err != nil {
-		return err
-	}
-	if err = s.postInitAnalyticsSourcesStreams(); err != nil {
-		return err
-	}
-	if err = s.postInitCycleAnalyticsStreams(); err != nil {
-		return err
-	}
-	if err = s.postInitJoinAnalyticsStreams(); err != nil {
-		return err
-	}
-	if err = s.postInitMultiJoinAnalyticsStreams(); err != nil {
-		return err
-	}
-	if err = s.postInitSubstreamAnalyticsStreams(); err != nil {
-		return err
-	}
-	_ = err
-	_ = cfg
-	return nil
-}
-
-type pipelineMakerTaskGroup interface {
-	Go(func() error)
-}
-
-func (s *Service) initFunctions(ctx context.Context, cfg *config.Config, env runtime.RuntimeEnvironment) error {
-	eg, egCtx := errgroup.WithContext(ctx)
-	s.scheduleAnalyticsFunctions(eg, egCtx, cfg, env)
-	s.scheduleAnalyticsSourcesFunctions(eg, egCtx, cfg, env)
-	s.scheduleCycleAnalyticsFunctions(eg, egCtx, cfg, env)
-	s.scheduleJoinAnalyticsFunctions(eg, egCtx, cfg, env)
-	s.scheduleMultiJoinAnalyticsFunctions(eg, egCtx, cfg, env)
-	s.scheduleSubstreamAnalyticsFunctions(eg, egCtx, cfg, env)
-	if err := eg.Wait(); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (s *Service) ServiceInit() error {
-	return nil
-}
-
 func (s *Service) StartService(ctx context.Context) error {
-
 	if err := s.buildRuntime(ctx); err != nil {
 		return fmt.Errorf("build runtime failed: %w", err)
 	}
-
 	if err := s.start(ctx); err != nil {
 		return fmt.Errorf("service start failed: %w", err)
 	}
-
 	if err := s.ServiceApp.Start(ctx); err != nil {
 		return fmt.Errorf("service app start failed: %w", err)
 	}
-
-	var err error
-
-	if s.httpMux != nil {
-		if s.httpServerMaker != nil {
-			if s.httpServer, err = s.httpServerMaker(ctx, s); err != nil {
-				return fmt.Errorf("create http server failed: %w", err)
-			}
-		}
-	}
-	if s.httpServer != nil {
-		s.httpServerDone = make(chan struct{})
-		ln, err := net.Listen("tcp", s.httpServer.Addr)
-		if err != nil {
-			return fmt.Errorf("failed to listen http port: %v", err)
-		}
-		go func() {
-			s.Log().Info(ctx, "HTTP server listening", log.Any("addr", s.httpServer.Addr))
-			if err := s.httpServer.Serve(ln); err != nil && !errors.Is(err, http.ErrServerClosed) {
-				s.Log().Error(ctx, "HTTP server stopped unexpectedly", log.Err(err))
-			}
-			close(s.httpServerDone)
-		}()
-	}
-	return nil
+	return s.servers.start(ctx, s)
 }
 
 func (s *Service) StopService(ctx context.Context) {
-	svcCfg := s.ServiceConfig()
-	timeoutCtx, cancel := context.WithTimeout(ctx, time.Duration(svcCfg.ShutdownTimeout)*time.Millisecond)
+	timeoutCtx, cancel := context.WithTimeout(ctx, time.Duration(s.ServiceConfig().ShutdownTimeout)*time.Millisecond)
 	defer cancel()
-
-	// First stop transport admission and let requests already accepted by the
-	// HTTP/gRPC servers finish while the graph runtime and outbound clients
-	// are still available to their handlers.
-	wg := sync.WaitGroup{}
-	admissionDone := make(chan struct{})
-	if s.httpServer != nil {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			if err := s.httpServer.Shutdown(timeoutCtx); err != nil {
-				s.Log().Warn(timeoutCtx, "HTTP server shutdown", log.Err(err))
-			}
-			<-s.httpServerDone
-		}()
-	}
-	go func() {
-		wg.Wait()
-		close(admissionDone)
-	}()
-	select {
-	case <-admissionDone:
-	case <-timeoutCtx.Done():
-		s.Log().Warn(timeoutCtx, "transport drain timed out", log.Err(timeoutCtx.Err()))
-	}
-
-	// Only after inbound handlers have drained may graph resources, pools and
-	// sinks stop. All phases share the same absolute shutdown deadline.
+	s.servers.stop(timeoutCtx, s)
 	runtimeDone := make(chan struct{})
-	go func() {
-		defer close(runtimeDone)
-		s.ServiceApp.Stop(timeoutCtx)
-	}()
+	go func() { defer close(runtimeDone); s.ServiceApp.Stop(timeoutCtx) }()
 	select {
 	case <-runtimeDone:
 	case <-timeoutCtx.Done():
 		s.Log().Warn(timeoutCtx, "graph runtime stop timed out", log.Err(timeoutCtx.Err()))
 	}
-
-	// Outbound clients and user-owned resources are last: accepted handlers
-	// and graph shutdown callbacks may still need them in earlier phases.
-	cleanupWg := sync.WaitGroup{}
-
-	cleanupWg.Add(1)
-	go func() {
-		defer cleanupWg.Done()
-		s.stop(timeoutCtx)
-	}()
-	cleanupDone := make(chan struct{})
-	go func() {
-		cleanupWg.Wait()
-		close(cleanupDone)
-	}()
-	select {
-	case <-cleanupDone:
-	case <-timeoutCtx.Done():
-		s.Log().Warn(timeoutCtx, "service cleanup timed out", log.Err(timeoutCtx.Err()))
-	}
+	s.clients.close(timeoutCtx, s)
 }
 
 func Start(ctx context.Context,

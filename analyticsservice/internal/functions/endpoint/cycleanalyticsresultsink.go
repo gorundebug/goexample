@@ -6,7 +6,7 @@ import (
 
 	localsink "github.com/gorundebug/servicelib/datasink/localsink"
 	"github.com/gorundebug/servicelib/runtime"
-	runtimecfg "github.com/gorundebug/servicelib/runtime/config"
+
 	"github.com/gorundebug/servicelib/runtime/environment"
 
 	"github.com/gorundebug/analyticsservice/internal/types"
@@ -71,6 +71,6 @@ func (ep *CycleAnalyticsResultSink) EndRequest(_ context.Context, _ runtime.Stre
 // Instantiated once at application startup via its maker function.
 // Fields of this struct are not protected by any synchronization — do not use
 // shared mutable state here without external synchronization.
-func MakeCycleAnalyticsResultSink(ctx context.Context, env environment.ServiceEnvironment, cfg *runtimecfg.CustomEndpointConfig) (*CycleAnalyticsResultSink, error) {
+func MakeCycleAnalyticsResultSink(ctx context.Context, env environment.ServiceEnvironment) (*CycleAnalyticsResultSink, error) {
 	return &CycleAnalyticsResultSink{}, nil
 }

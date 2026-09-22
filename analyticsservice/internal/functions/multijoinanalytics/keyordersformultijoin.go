@@ -6,7 +6,7 @@ import (
 	"github.com/gorundebug/analyticsservice/internal/types"
 
 	"github.com/gorundebug/servicelib/runtime"
-	runtimecfg "github.com/gorundebug/servicelib/runtime/config"
+
 	"github.com/gorundebug/servicelib/runtime/datastruct"
 	"github.com/gorundebug/servicelib/runtime/environment"
 	"github.com/gorundebug/servicelib/transformation"
@@ -24,6 +24,6 @@ func (f *KeyOrdersForMultiJoin) KeyBy(ctx context.Context, _ runtime.Stream, val
 // MakeKeyOrdersForMultiJoin is instantiated once at application startup via its maker function.
 // Fields of this struct are not protected by any synchronization — do not use
 // shared mutable state here without external synchronization.
-func MakeKeyOrdersForMultiJoin(ctx context.Context, env environment.ServiceEnvironment, cfg *runtimecfg.KeyByStreamConfig) (*KeyOrdersForMultiJoin, error) {
+func MakeKeyOrdersForMultiJoin(ctx context.Context, env environment.ServiceEnvironment) (*KeyOrdersForMultiJoin, error) {
 	return &KeyOrdersForMultiJoin{}, nil
 }

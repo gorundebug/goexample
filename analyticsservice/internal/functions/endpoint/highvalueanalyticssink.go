@@ -6,7 +6,7 @@ import (
 
 	localsink "github.com/gorundebug/servicelib/datasink/localsink"
 	"github.com/gorundebug/servicelib/runtime"
-	runtimecfg "github.com/gorundebug/servicelib/runtime/config"
+
 	"github.com/gorundebug/servicelib/runtime/environment"
 
 	"github.com/gorundebug/analyticsservice/internal/types"
@@ -71,6 +71,6 @@ func (ep *HighValueAnalyticsSink) EndRequest(_ context.Context, _ runtime.Stream
 // Instantiated once at application startup via its maker function.
 // Fields of this struct are not protected by any synchronization — do not use
 // shared mutable state here without external synchronization.
-func MakeHighValueAnalyticsSink(ctx context.Context, env environment.ServiceEnvironment, cfg *runtimecfg.CustomEndpointConfig) (*HighValueAnalyticsSink, error) {
+func MakeHighValueAnalyticsSink(ctx context.Context, env environment.ServiceEnvironment) (*HighValueAnalyticsSink, error) {
 	return &HighValueAnalyticsSink{}, nil
 }
