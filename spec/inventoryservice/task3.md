@@ -21,13 +21,14 @@ Preserve the order and item identity and requested quantity, and record the fail
 
 
 ## Stream types
-- Input: `InventoryFailure`
+- Input: `InventoryFailure` — `inventoryservice/internal/types/inventoryfailure.go`
 - Output: `OrderItemResult` — `model_go/pkg/types/orderitemresult.go`
 
 ## Checklist
 
 - [ ] Read [`spec/rules.md`](../rules.md), especially the `Go` section
 - [ ] Open `inventoryservice/internal/functions/inventoryItem/getinventoryitemerror.go` and preserve its generated contract
+- [ ] Inspect input type `InventoryFailure` in `inventoryservice/internal/types/inventoryfailure.go`
 - [ ] Inspect output type `OrderItemResult` in `model_go/pkg/types/orderitemresult.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
