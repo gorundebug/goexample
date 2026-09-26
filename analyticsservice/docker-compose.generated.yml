@@ -1,6 +1,6 @@
 services:
   analyticsservice:
-    image: analyticsservice:local
+    image: analyticsservice:${DOCKER_IMAGE_TAG:-local}
     build:
       context: .
       dockerfile: Dockerfile

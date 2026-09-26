@@ -1,6 +1,6 @@
 services:
   inventoryservice:
-    image: inventoryservice:local
+    image: inventoryservice:${DOCKER_IMAGE_TAG:-local}
     build:
       context: .
       dockerfile: Dockerfile

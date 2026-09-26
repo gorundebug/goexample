@@ -1,6 +1,6 @@
 services:
   orderservice:
-    image: orderservice:local
+    image: orderservice:${DOCKER_IMAGE_TAG:-local}
     build:
       context: .
       dockerfile: Dockerfile
