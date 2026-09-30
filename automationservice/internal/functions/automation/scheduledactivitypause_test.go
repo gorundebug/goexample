@@ -5,8 +5,9 @@ import (
 	"testing"
 	"time"
 
-	runtimecfg "github.com/gorundebug/servicelib/runtime/config"
 	"github.com/stretchr/testify/assert"
+
+	runtimecfg "github.com/gorundebug/servicelib/runtime/config"
 )
 
 // Apply the ordinary local Delay inside an Activity started by Temporal Schedule.

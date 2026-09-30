@@ -3,8 +3,10 @@ package app
 
 import (
 	"context"
-	"github.com/gorundebug/servicelib/runtime"
+
 	"golang.org/x/sync/errgroup"
+
+	"github.com/gorundebug/servicelib/runtime"
 
 	analytics "github.com/gorundebug/analyticsservice/internal/functions/analytics"
 	cron "github.com/gorundebug/analyticsservice/internal/functions/cron"

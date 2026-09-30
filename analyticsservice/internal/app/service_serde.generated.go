@@ -2,12 +2,14 @@
 package app
 
 import (
+	"reflect"
+
+	runtimeserde "github.com/gorundebug/servicelib/runtime/serde"
+
 	serdes "github.com/gorundebug/analyticsservice/internal/serdes"
 	types "github.com/gorundebug/analyticsservice/internal/types"
 	serdes2 "github.com/gorundebug/model_go/pkg/serdes"
 	types2 "github.com/gorundebug/model_go/pkg/types"
-	runtimeserde "github.com/gorundebug/servicelib/runtime/serde"
-	"reflect"
 )
 
 func (s *Service) GetSerde(valueType reflect.Type) (runtimeserde.Serializer, error) {

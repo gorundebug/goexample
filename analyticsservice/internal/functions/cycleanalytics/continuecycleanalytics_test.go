@@ -4,8 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/gorundebug/analyticsservice/internal/types"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/gorundebug/analyticsservice/internal/types"
 )
 
 // Keep intermediate analytics events whose cycle counter is below three.

@@ -3,12 +3,11 @@ package cycleanalytics
 import (
 	"context"
 
-	"github.com/gorundebug/analyticsservice/internal/types"
-
 	"github.com/gorundebug/servicelib/runtime"
-
 	"github.com/gorundebug/servicelib/runtime/environment"
 	"github.com/gorundebug/servicelib/transformation"
+
+	"github.com/gorundebug/analyticsservice/internal/types"
 )
 
 var _ transformation.FilterFunction[*types.AnalyticsEvent] = (*ContinueCycleAnalytics)(nil)

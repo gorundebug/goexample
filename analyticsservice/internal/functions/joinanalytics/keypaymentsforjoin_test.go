@@ -4,10 +4,12 @@ import (
 	"context"
 	"testing"
 
-	"github.com/gorundebug/analyticsservice/internal/types"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/gorundebug/servicelib/runtime"
 	"github.com/gorundebug/servicelib/runtime/datastruct"
-	"github.com/stretchr/testify/assert"
+
+	"github.com/gorundebug/analyticsservice/internal/types"
 )
 
 // Key the payment analytics event by correlation key.

@@ -3,12 +3,14 @@ package app
 
 import (
 	"context"
-	config "github.com/gorundebug/analyticsservice/internal/config"
-	types "github.com/gorundebug/analyticsservice/internal/types"
-	types2 "github.com/gorundebug/model_go/pkg/types"
+
 	"github.com/gorundebug/servicelib/runtime"
 	"github.com/gorundebug/servicelib/runtime/datastruct"
 	"github.com/gorundebug/servicelib/transformation"
+
+	config "github.com/gorundebug/analyticsservice/internal/config"
+	types "github.com/gorundebug/analyticsservice/internal/types"
+	types2 "github.com/gorundebug/model_go/pkg/types"
 )
 
 type serviceStreams struct {

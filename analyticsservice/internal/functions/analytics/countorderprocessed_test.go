@@ -4,9 +4,11 @@ import (
 	"context"
 	"testing"
 
-	"github.com/gorundebug/model_go/pkg/types"
-	"github.com/gorundebug/servicelib/runtime"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/gorundebug/servicelib/runtime"
+
+	"github.com/gorundebug/model_go/pkg/types"
 )
 
 // Count successful and unsuccessful orders independently, then return the event unchanged.

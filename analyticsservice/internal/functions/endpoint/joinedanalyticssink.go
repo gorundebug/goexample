@@ -6,7 +6,6 @@ import (
 
 	localsink "github.com/gorundebug/servicelib/datasink/localsink"
 	"github.com/gorundebug/servicelib/runtime"
-
 	"github.com/gorundebug/servicelib/runtime/environment"
 
 	"github.com/gorundebug/analyticsservice/internal/types"

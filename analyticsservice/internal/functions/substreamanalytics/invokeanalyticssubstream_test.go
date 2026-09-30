@@ -4,9 +4,11 @@ import (
 	"context"
 	"testing"
 
-	"github.com/gorundebug/analyticsservice/internal/types"
-	"github.com/gorundebug/servicelib/runtime"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/gorundebug/servicelib/runtime"
+
+	"github.com/gorundebug/analyticsservice/internal/types"
 )
 
 // Invoke the service-local analytics SubStream and emit its returned result.

@@ -5,10 +5,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/gorundebug/servicelib/runtime"
 	runtimecfg "github.com/gorundebug/servicelib/runtime/config"
 	"github.com/gorundebug/servicelib/runtime/environment"
-	"github.com/stretchr/testify/assert"
 )
 
 // Apply the ordinary local Delay while processing an on-demand Temporal Activity.

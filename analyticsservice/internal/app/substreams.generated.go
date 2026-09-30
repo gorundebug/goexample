@@ -4,6 +4,7 @@ package app
 import (
 	"context"
 	"fmt"
+
 	"github.com/gorundebug/servicelib/runtime"
 
 	types "github.com/gorundebug/analyticsservice/internal/types"

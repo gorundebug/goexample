@@ -4,9 +4,11 @@ import (
 	"context"
 	"testing"
 
-	"github.com/gorundebug/analyticsservice/internal/types"
-	"github.com/gorundebug/servicelib/runtime"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/gorundebug/servicelib/runtime"
+
+	"github.com/gorundebug/analyticsservice/internal/types"
 )
 
 // Increment the cycle counter while preserving the analytics event identity.

@@ -5,8 +5,9 @@ import (
 	"testing"
 	"time"
 
-	runtimecfg "github.com/gorundebug/servicelib/runtime/config"
 	"github.com/stretchr/testify/assert"
+
+	runtimecfg "github.com/gorundebug/servicelib/runtime/config"
 )
 
 // Use the same Delay contract backed by the Temporal Workflow timer.

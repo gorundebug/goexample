@@ -3,13 +3,12 @@ package joinanalytics
 import (
 	"context"
 
-	"github.com/gorundebug/analyticsservice/internal/types"
-
 	"github.com/gorundebug/servicelib/runtime"
-
 	"github.com/gorundebug/servicelib/runtime/datastruct"
 	"github.com/gorundebug/servicelib/runtime/environment"
 	"github.com/gorundebug/servicelib/transformation"
+
+	"github.com/gorundebug/analyticsservice/internal/types"
 )
 
 var _ transformation.KeyByFunction[*types.AnalyticsEvent, string, *types.AnalyticsEvent] = (*KeyOrdersForJoin)(nil)

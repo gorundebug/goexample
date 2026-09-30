@@ -3,12 +3,11 @@ package multijoinanalytics
 import (
 	"context"
 
-	"github.com/gorundebug/analyticsservice/internal/types"
-
 	"github.com/gorundebug/servicelib/runtime"
-
 	"github.com/gorundebug/servicelib/runtime/environment"
 	"github.com/gorundebug/servicelib/transformation"
+
+	"github.com/gorundebug/analyticsservice/internal/types"
 )
 
 var _ transformation.MultiJoinFunction[string, any, *types.AnalyticsResult] = (*MultiJoinAnalyticsEvents)(nil)

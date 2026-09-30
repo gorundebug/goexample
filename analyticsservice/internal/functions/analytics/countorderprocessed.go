@@ -3,12 +3,12 @@ package analytics
 import (
 	"context"
 
-	"github.com/gorundebug/model_go/pkg/types"
 	"github.com/gorundebug/servicelib/runtime"
-
 	"github.com/gorundebug/servicelib/runtime/environment"
 	"github.com/gorundebug/servicelib/runtime/environment/metrics"
 	"github.com/gorundebug/servicelib/transformation"
+
+	"github.com/gorundebug/model_go/pkg/types"
 )
 
 var _ transformation.ProcessFunction[*types.OrderProcessed, *types.OrderProcessed, error] = (*CountOrderProcessed)(nil)

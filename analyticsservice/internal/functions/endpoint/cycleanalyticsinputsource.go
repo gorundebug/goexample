@@ -5,7 +5,6 @@ import (
 
 	localsource "github.com/gorundebug/servicelib/datasource/localsource"
 	"github.com/gorundebug/servicelib/runtime"
-
 	"github.com/gorundebug/servicelib/runtime/environment"
 
 	"github.com/gorundebug/analyticsservice/internal/types"

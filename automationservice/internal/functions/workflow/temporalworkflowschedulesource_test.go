@@ -4,8 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/gorundebug/servicelib/runtime"
 	"github.com/stretchr/testify/require"
+
+	"github.com/gorundebug/servicelib/runtime"
 )
 
 func TestTemporalWorkflowScheduleSourceOnTrigger(t *testing.T) {

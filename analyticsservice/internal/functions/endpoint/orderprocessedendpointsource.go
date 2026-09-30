@@ -6,7 +6,6 @@ import (
 
 	datasourcekafka "github.com/gorundebug/servicelib/datasource/kafka"
 	"github.com/gorundebug/servicelib/runtime"
-
 	"github.com/gorundebug/servicelib/runtime/environment"
 
 	"github.com/gorundebug/model_go/pkg/types"
