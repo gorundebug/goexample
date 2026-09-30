@@ -49,18 +49,18 @@ golang-test: golang-codegen ## [host] Generate transport code and run tests for 
 	@$(MAKE) -C ./inventoryservice -f Makefile test USE_LOCAL_MODULES="$(USE_LOCAL_MODULES)"
 	@$(MAKE) -C ./orderservice -f Makefile test USE_LOCAL_MODULES="$(USE_LOCAL_MODULES)"
 
-golang-lint: $(GOLANGCI_LINT) ## Run Go linters
+golang-lint: $(call make_escape_path,$(GOLANGCI_LINT)) ## Run Go linters
 	@$(MAKE) -C ./analyticsservice -f Makefile lint GOLANGCI_LINT="$(GOLANGCI_LINT)"
 	@$(MAKE) -C ./automationservice -f Makefile lint GOLANGCI_LINT="$(GOLANGCI_LINT)"
 	@$(MAKE) -C ./inventoryservice -f Makefile lint GOLANGCI_LINT="$(GOLANGCI_LINT)"
 	@$(MAKE) -C ./orderservice -f Makefile lint GOLANGCI_LINT="$(GOLANGCI_LINT)"
 
-golang-lint-fix: $(GOLANGCI_LINT) ## Auto-fix Go lint issues
+golang-lint-fix: $(call make_escape_path,$(GOLANGCI_LINT)) ## Auto-fix Go lint issues
 	@$(MAKE) -C ./analyticsservice -f Makefile lint-fix GOLANGCI_LINT="$(GOLANGCI_LINT)"
 	@$(MAKE) -C ./automationservice -f Makefile lint-fix GOLANGCI_LINT="$(GOLANGCI_LINT)"
 	@$(MAKE) -C ./inventoryservice -f Makefile lint-fix GOLANGCI_LINT="$(GOLANGCI_LINT)"
 	@$(MAKE) -C ./orderservice -f Makefile lint-fix GOLANGCI_LINT="$(GOLANGCI_LINT)"
-golang-workflowcheck: $(WORKFLOWCHECK) ## Check Go Temporal Workflow determinism
+golang-workflowcheck: $(call make_escape_path,$(WORKFLOWCHECK)) ## Check Go Temporal Workflow determinism
 	@cd ./automationservice && GOWORK=off "$(WORKFLOWCHECK)" -config workflowcheck.generated.yaml ./...
 
 golang-fmt-go: ## Format Go code
@@ -72,7 +72,7 @@ golang-fmt-go: ## Format Go code
 	@gofmt -w ./model_go
 	@gofmt -w ./order_service_api
 
-golang-fmt-proto: $(BUF) ## Format protobuf files used by Go
+golang-fmt-proto: $(call make_escape_path,$(BUF)) ## Format protobuf files used by Go
 	@$(MAKE) -C ./analyticsservice -f Makefile fmt-proto TOOLS_DIR="$(TOOLS_DIR)"
 	@$(MAKE) -C ./automationservice -f Makefile fmt-proto TOOLS_DIR="$(TOOLS_DIR)"
 	@$(MAKE) -C ./inventoryservice -f Makefile fmt-proto TOOLS_DIR="$(TOOLS_DIR)"
@@ -83,7 +83,7 @@ golang-fmt-proto: $(BUF) ## Format protobuf files used by Go
 
 golang-fmt: golang-fmt-go golang-fmt-proto ## Format all Go-owned sources
 
-golang-gen-proto: $(PROTOC) $(PROTOC_GEN_GO) $(PROTOC_GEN_GO_GRPC) ## Generate Go protobuf code
+golang-gen-proto: $(call make_escape_path,$(PROTOC)) $(call make_escape_path,$(PROTOC_GEN_GO)) $(call make_escape_path,$(PROTOC_GEN_GO_GRPC)) ## Generate Go protobuf code
 	@$(MAKE) -C ./analyticsservice -f Makefile gen-proto PROTOC="$(PROTOC)"
 	@$(MAKE) -C ./automationservice -f Makefile gen-proto PROTOC="$(PROTOC)"
 	@$(MAKE) -C ./inventoryservice -f Makefile gen-proto PROTOC="$(PROTOC)"
@@ -91,7 +91,7 @@ golang-gen-proto: $(PROTOC) $(PROTOC_GEN_GO) $(PROTOC_GEN_GO_GRPC) ## Generate G
 	@$(MAKE) -C ./inventory_service_api -f make.generated.mk gen-proto PROTOC="$(PROTOC)"
 	@$(MAKE) -C ./model_go -f make.generated.mk gen-proto PROTOC="$(PROTOC)"
 	@$(MAKE) -C ./order_service_api -f make.generated.mk gen-proto PROTOC="$(PROTOC)"
-golang-gen-openapi: $(OAPI_CODEGEN) ## Generate Go OpenAPI code
+golang-gen-openapi: $(call make_escape_path,$(OAPI_CODEGEN)) ## Generate Go OpenAPI code
 	@$(MAKE) -C ./order_service_api -f Makefile gen-openapi TOOLS_DIR="$(TOOLS_DIR)"
 golang-codegen: golang-gen-proto golang-gen-openapi golang-fmt ## Generate all Go transport code without changing module manifests
 
@@ -164,7 +164,7 @@ go-mod-sync: ## Sync Go modules with published versions after git-push
 	@cd ./orderservice && GOWORK=off GOPRIVATE="$(GOPRIVATE)" go mod tidy -e
 	@go work use
 
-$(BUF):
+$(call make_escape_path,$(BUF)):
 	@mkdir -p "$(TOOLS_DIR)"
 	@echo "Downloading buf $(BUF_VERSION)..."
 	@set -eu; \
@@ -177,7 +177,7 @@ $(BUF):
 	mv "$$tmp" "$(BUF)"; \
 	trap - EXIT INT TERM
 
-$(PROTOC):
+$(call make_escape_path,$(PROTOC)):
 	@mkdir -p "$(TOOLS_DIR)"
 	@echo "Downloading protoc $(PROTOC_VERSION)..."
 	@set -eu; \
@@ -195,21 +195,21 @@ $(PROTOC):
 	trap - EXIT INT TERM; \
 	rm -rf "$$tmp"
 
-$(PROTOC_GEN_GO):
+$(call make_escape_path,$(PROTOC_GEN_GO)):
 	@mkdir -p "$(TOOLS_DIR)"
 	@GOBIN="$(TOOLS_DIR)" go install google.golang.org/protobuf/cmd/protoc-gen-go@$(PROTOC_GEN_GO_VERSION)
 
-$(PROTOC_GEN_GO_GRPC):
+$(call make_escape_path,$(PROTOC_GEN_GO_GRPC)):
 	@mkdir -p "$(TOOLS_DIR)"
 	@GOBIN="$(TOOLS_DIR)" go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@$(PROTOC_GEN_GO_GRPC_VERSION)
 
-$(GOLANGCI_LINT):
+$(call make_escape_path,$(GOLANGCI_LINT)):
 	@mkdir -p "$(TOOLS_DIR)"
 	@GOBIN="$(TOOLS_DIR)" go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
-$(WORKFLOWCHECK):
+$(call make_escape_path,$(WORKFLOWCHECK)):
 	@mkdir -p "$(TOOLS_DIR)"
 	@GOBIN="$(TOOLS_DIR)" go install go.temporal.io/sdk/contrib/tools/workflowcheck@$(WORKFLOWCHECK_VERSION)
-$(OAPI_CODEGEN):
+$(call make_escape_path,$(OAPI_CODEGEN)):
 	@mkdir -p "$(TOOLS_DIR)"
 	@GOBIN="$(TOOLS_DIR)" go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@$(OAPI_CODEGEN_VERSION)
-golang-tools: $(BUF) $(PROTOC) $(PROTOC_GEN_GO) $(PROTOC_GEN_GO_GRPC) $(GOLANGCI_LINT) $(WORKFLOWCHECK) $(OAPI_CODEGEN) ## Install Go code-generation and lint tools
+golang-tools: $(call make_escape_path,$(BUF)) $(call make_escape_path,$(PROTOC)) $(call make_escape_path,$(PROTOC_GEN_GO)) $(call make_escape_path,$(PROTOC_GEN_GO_GRPC)) $(call make_escape_path,$(GOLANGCI_LINT)) $(call make_escape_path,$(WORKFLOWCHECK)) $(call make_escape_path,$(OAPI_CODEGEN)) ## Install Go code-generation and lint tools

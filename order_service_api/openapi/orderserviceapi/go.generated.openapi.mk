@@ -4,7 +4,7 @@ all: gen
 
 gen:
 	@set -e; mkdir -p "$(MODULE_DIR)/pkg/generated/openapi/orderserviceapi"; \
-	$(OAPI_CODEGEN) -generate "std-http,models" \
+	"$(OAPI_CODEGEN)" -generate "std-http,models" \
 		-package orderserviceapi \
 		-o "$(MODULE_DIR)/pkg/generated/openapi/orderserviceapi/orderserviceapi_http.openapi.go" \
 		-import-mapping=./processorder/processorder.yaml:github.com/gorundebug/order_service_api/pkg/generated/openapi/orderserviceapi/processorder \
