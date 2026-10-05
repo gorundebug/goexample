@@ -1,0 +1,5 @@
+# servicegen template ownership v1alpha1
+create-only	analyticsservice/internal/config/config.go
+create-only	automationservice/internal/config/config.go
+create-only	inventoryservice/internal/config/config.go
+create-only	orderservice/internal/config/config.go
