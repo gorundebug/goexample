@@ -65,8 +65,6 @@ services:
       - "${ORDER_SERVICE_HOST_HTTP_PORT:-9091}:${ORDER_SERVICE_HTTP_PORT:-9091}"
       - "${ORDER_SERVICE_HOST_GRPC_PORT:-9201}:${ORDER_SERVICE_GRPC_PORT:-9201}"
     depends_on:
-      analyticsservice:
-        condition: service_started
       inventoryservice:
         condition: service_started
       redpanda:
