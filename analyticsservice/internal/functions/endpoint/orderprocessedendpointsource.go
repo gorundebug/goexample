@@ -29,6 +29,13 @@ type OrderProcessedEndpointSourceHandlerState struct {
 // OrderProcessedEndpointSource
 type OrderProcessedEndpointSource struct{}
 
+// OnError reports a transport failure without acknowledging any Kafka record.
+func (ep *OrderProcessedEndpointSource) OnError(ctx context.Context, sc datasourcekafka.StreamContext[*types.OrderProcessed, *types.OrderProcessed, error], err error) {
+	if err != nil {
+		sc.ErrorCollect(ctx, err)
+	}
+}
+
 // Concurrency returns the maximum number of messages processed concurrently.
 // Return 0 for unlimited concurrency (bounded only by partition count).
 func (ep *OrderProcessedEndpointSource) Concurrency(_ datasourcekafka.StreamContext[*types.OrderProcessed, *types.OrderProcessed, error]) int {
