@@ -3,8 +3,8 @@ module github.com/gorundebug/analyticsservice
 go 1.26.4
 
 require (
-	github.com/gorundebug/model_go v0.2.166
-	github.com/gorundebug/servicelib v0.2.166
+	github.com/gorundebug/model_go v0.2.167
+	github.com/gorundebug/servicelib v0.2.167
 	github.com/stretchr/testify v1.12.1
 	golang.org/x/sync v0.23.0
 )
