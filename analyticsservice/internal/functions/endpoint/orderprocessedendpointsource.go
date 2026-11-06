@@ -29,6 +29,11 @@ type OrderProcessedEndpointSourceHandlerState struct {
 // OrderProcessedEndpointSource
 type OrderProcessedEndpointSource struct{}
 
+// RestoreCheckpoint keeps broker-managed positions; this example has no external durable checkpoint.
+func (ep *OrderProcessedEndpointSource) RestoreCheckpoint(_ context.Context, _ datasourcekafka.StreamContext[*types.OrderProcessed, *types.OrderProcessed, error]) (map[int32]int64, error) {
+	return nil, nil
+}
+
 // OnError reports a transport failure without acknowledging any Kafka record.
 func (ep *OrderProcessedEndpointSource) OnError(ctx context.Context, sc datasourcekafka.StreamContext[*types.OrderProcessed, *types.OrderProcessed, error], err error) {
 	if err != nil {
