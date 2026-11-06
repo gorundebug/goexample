@@ -277,6 +277,12 @@ func (c *Config) GetTypes() []*cfg.TypeConfig {
 }
 
 func (c *Config) ApplyEnvironment() error {
+	if err := c.applyAnalyticsOrdersEnabled(); err != nil {
+		return err
+	}
+	if err := c.applyAnalyticsPaymentsEnabled(); err != nil {
+		return err
+	}
 	if err := c.applyAnalyticsScheduleEnabled(); err != nil {
 		return err
 	}
@@ -313,6 +319,21 @@ func (c *Config) ApplyEnvironment() error {
 	if err := c.applyAnalyticsServiceHttpPort(); err != nil {
 		return err
 	}
+	if err := c.applyAnalyticsShipmentsEnabled(); err != nil {
+		return err
+	}
+	if err := c.applyCycleAnalyticsInputEnabled(); err != nil {
+		return err
+	}
+	if err := c.applyCycleAnalyticsResultEnabled(); err != nil {
+		return err
+	}
+	if err := c.applyHighValueAnalyticsEnabled(); err != nil {
+		return err
+	}
+	if err := c.applyJoinedAnalyticsEnabled(); err != nil {
+		return err
+	}
 	if err := c.applyOrderEventsBrokers(); err != nil {
 		return err
 	}
@@ -331,6 +352,45 @@ func (c *Config) ApplyEnvironment() error {
 	if err := c.applyOrderProcessedEnabled(); err != nil {
 		return err
 	}
+	if err := c.applyStandardAnalyticsEnabled(); err != nil {
+		return err
+	}
+	if err := c.applySubstreamAnalyticsInputEnabled(); err != nil {
+		return err
+	}
+	if err := c.applySubstreamAnalyticsResultEnabled(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Config) applyAnalyticsOrdersEnabled() error {
+	value, exists := os.LookupEnv("ANALYTICS_ORDERS_ENABLED")
+	if !exists {
+		return nil
+	}
+
+	boolVal, err := strconv.ParseBool(value)
+	if err != nil {
+		return fmt.Errorf("failed to convert ANALYTICS_ORDERS_ENABLED to bool: %w", err)
+	}
+	c.Endpoints.AnalyticsOrders.Enabled = boolVal
+
+	return nil
+}
+
+func (c *Config) applyAnalyticsPaymentsEnabled() error {
+	value, exists := os.LookupEnv("ANALYTICS_PAYMENTS_ENABLED")
+	if !exists {
+		return nil
+	}
+
+	boolVal, err := strconv.ParseBool(value)
+	if err != nil {
+		return fmt.Errorf("failed to convert ANALYTICS_PAYMENTS_ENABLED to bool: %w", err)
+	}
+	c.Endpoints.AnalyticsPayments.Enabled = boolVal
+
 	return nil
 }
 
@@ -486,6 +546,81 @@ func (c *Config) applyAnalyticsServiceHttpPort() error {
 	return nil
 }
 
+func (c *Config) applyAnalyticsShipmentsEnabled() error {
+	value, exists := os.LookupEnv("ANALYTICS_SHIPMENTS_ENABLED")
+	if !exists {
+		return nil
+	}
+
+	boolVal, err := strconv.ParseBool(value)
+	if err != nil {
+		return fmt.Errorf("failed to convert ANALYTICS_SHIPMENTS_ENABLED to bool: %w", err)
+	}
+	c.Endpoints.AnalyticsShipments.Enabled = boolVal
+
+	return nil
+}
+
+func (c *Config) applyCycleAnalyticsInputEnabled() error {
+	value, exists := os.LookupEnv("CYCLE_ANALYTICS_INPUT_ENABLED")
+	if !exists {
+		return nil
+	}
+
+	boolVal, err := strconv.ParseBool(value)
+	if err != nil {
+		return fmt.Errorf("failed to convert CYCLE_ANALYTICS_INPUT_ENABLED to bool: %w", err)
+	}
+	c.Endpoints.CycleAnalyticsInput.Enabled = boolVal
+
+	return nil
+}
+
+func (c *Config) applyCycleAnalyticsResultEnabled() error {
+	value, exists := os.LookupEnv("CYCLE_ANALYTICS_RESULT_ENABLED")
+	if !exists {
+		return nil
+	}
+
+	boolVal, err := strconv.ParseBool(value)
+	if err != nil {
+		return fmt.Errorf("failed to convert CYCLE_ANALYTICS_RESULT_ENABLED to bool: %w", err)
+	}
+	c.Endpoints.CycleAnalyticsResult.Enabled = boolVal
+
+	return nil
+}
+
+func (c *Config) applyHighValueAnalyticsEnabled() error {
+	value, exists := os.LookupEnv("HIGH_VALUE_ANALYTICS_ENABLED")
+	if !exists {
+		return nil
+	}
+
+	boolVal, err := strconv.ParseBool(value)
+	if err != nil {
+		return fmt.Errorf("failed to convert HIGH_VALUE_ANALYTICS_ENABLED to bool: %w", err)
+	}
+	c.Endpoints.HighValueAnalytics.Enabled = boolVal
+
+	return nil
+}
+
+func (c *Config) applyJoinedAnalyticsEnabled() error {
+	value, exists := os.LookupEnv("JOINED_ANALYTICS_ENABLED")
+	if !exists {
+		return nil
+	}
+
+	boolVal, err := strconv.ParseBool(value)
+	if err != nil {
+		return fmt.Errorf("failed to convert JOINED_ANALYTICS_ENABLED to bool: %w", err)
+	}
+	c.Endpoints.JoinedAnalytics.Enabled = boolVal
+
+	return nil
+}
+
 func (c *Config) applyOrderEventsBrokers() error {
 	value, exists := os.LookupEnv("ORDER_EVENTS_BROKERS")
 	if !exists {
@@ -552,6 +687,51 @@ func (c *Config) applyOrderProcessedEnabled() error {
 		return fmt.Errorf("failed to convert ORDER_PROCESSED_ENABLED to bool: %w", err)
 	}
 	c.Endpoints.OrderProcessed.Enabled = boolVal
+
+	return nil
+}
+
+func (c *Config) applyStandardAnalyticsEnabled() error {
+	value, exists := os.LookupEnv("STANDARD_ANALYTICS_ENABLED")
+	if !exists {
+		return nil
+	}
+
+	boolVal, err := strconv.ParseBool(value)
+	if err != nil {
+		return fmt.Errorf("failed to convert STANDARD_ANALYTICS_ENABLED to bool: %w", err)
+	}
+	c.Endpoints.StandardAnalytics.Enabled = boolVal
+
+	return nil
+}
+
+func (c *Config) applySubstreamAnalyticsInputEnabled() error {
+	value, exists := os.LookupEnv("SUBSTREAM_ANALYTICS_INPUT_ENABLED")
+	if !exists {
+		return nil
+	}
+
+	boolVal, err := strconv.ParseBool(value)
+	if err != nil {
+		return fmt.Errorf("failed to convert SUBSTREAM_ANALYTICS_INPUT_ENABLED to bool: %w", err)
+	}
+	c.Endpoints.SubstreamAnalyticsInput.Enabled = boolVal
+
+	return nil
+}
+
+func (c *Config) applySubstreamAnalyticsResultEnabled() error {
+	value, exists := os.LookupEnv("SUBSTREAM_ANALYTICS_RESULT_ENABLED")
+	if !exists {
+		return nil
+	}
+
+	boolVal, err := strconv.ParseBool(value)
+	if err != nil {
+		return fmt.Errorf("failed to convert SUBSTREAM_ANALYTICS_RESULT_ENABLED to bool: %w", err)
+	}
+	c.Endpoints.SubstreamAnalyticsResult.Enabled = boolVal
 
 	return nil
 }
@@ -1089,6 +1269,7 @@ func MakeConfig() *Config {
 			SubstreamAnalyticsResult cfg.CustomEndpointConfig `yaml:"substreamAnalyticsResult" mapstructure:"substreamAnalyticsResult"`
 		}{
 			AnalyticsOrders: cfg.CustomEndpointConfig{
+				Enabled:             true,
 				ID:                  analyticsOrdersEndpointID,
 				Name:                "Analytics Orders",
 				IdDataConnector:     analyticsFunctionsConnectorID,
@@ -1098,6 +1279,7 @@ func MakeConfig() *Config {
 			},
 
 			AnalyticsPayments: cfg.CustomEndpointConfig{
+				Enabled:             true,
 				ID:                  analyticsPaymentsEndpointID,
 				Name:                "Analytics Payments",
 				IdDataConnector:     analyticsFunctionsConnectorID,
@@ -1121,6 +1303,7 @@ func MakeConfig() *Config {
 			},
 
 			AnalyticsShipments: cfg.CustomEndpointConfig{
+				Enabled:             true,
 				ID:                  analyticsShipmentsEndpointID,
 				Name:                "Analytics Shipments",
 				IdDataConnector:     analyticsFunctionsConnectorID,
@@ -1130,6 +1313,7 @@ func MakeConfig() *Config {
 			},
 
 			CycleAnalyticsInput: cfg.CustomEndpointConfig{
+				Enabled:             true,
 				ID:                  cycleAnalyticsInputEndpointID,
 				Name:                "Cycle Analytics Input",
 				IdDataConnector:     analyticsFunctionsConnectorID,
@@ -1139,6 +1323,7 @@ func MakeConfig() *Config {
 			},
 
 			CycleAnalyticsResult: cfg.CustomEndpointConfig{
+				Enabled:             true,
 				ID:                  cycleAnalyticsResultEndpointID,
 				Name:                "Cycle Analytics Result",
 				IdDataConnector:     analyticsFunctionsConnectorID,
@@ -1148,6 +1333,7 @@ func MakeConfig() *Config {
 			},
 
 			HighValueAnalytics: cfg.CustomEndpointConfig{
+				Enabled:             true,
 				ID:                  highValueAnalyticsEndpointID,
 				Name:                "High Value Analytics",
 				IdDataConnector:     analyticsFunctionsConnectorID,
@@ -1157,6 +1343,7 @@ func MakeConfig() *Config {
 			},
 
 			JoinedAnalytics: cfg.CustomEndpointConfig{
+				Enabled:             true,
 				ID:                  joinedAnalyticsEndpointID,
 				Name:                "Joined Analytics",
 				IdDataConnector:     analyticsFunctionsConnectorID,
@@ -1181,6 +1368,7 @@ func MakeConfig() *Config {
 			},
 
 			StandardAnalytics: cfg.CustomEndpointConfig{
+				Enabled:             true,
 				ID:                  standardAnalyticsEndpointID,
 				Name:                "Standard Analytics",
 				IdDataConnector:     analyticsFunctionsConnectorID,
@@ -1190,6 +1378,7 @@ func MakeConfig() *Config {
 			},
 
 			SubstreamAnalyticsInput: cfg.CustomEndpointConfig{
+				Enabled:             true,
 				ID:                  substreamAnalyticsInputEndpointID,
 				Name:                "Substream Analytics Input",
 				IdDataConnector:     analyticsFunctionsConnectorID,
@@ -1199,6 +1388,7 @@ func MakeConfig() *Config {
 			},
 
 			SubstreamAnalyticsResult: cfg.CustomEndpointConfig{
+				Enabled:             true,
 				ID:                  substreamAnalyticsResultEndpointID,
 				Name:                "Substream Analytics Result",
 				IdDataConnector:     analyticsFunctionsConnectorID,
