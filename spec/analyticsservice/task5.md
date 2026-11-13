@@ -2,6 +2,8 @@
 
 > Rules: [`spec/rules.md`](../rules.md)
 
+Paths and commands below are relative to the generated project root.
+
 | Field | Value |
 |-------|-------|
 | Language | `Go` |
@@ -20,14 +22,12 @@ Keep intermediate analytics events whose cycle counter is below three.
 
 ## Stream types
 - Input: `AnalyticsEvent` — `analyticsservice/internal/types/analyticsevent.go`
-- Output: `AnalyticsEvent` — `analyticsservice/internal/types/analyticsevent.go`
 
 ## Checklist
 
 - [ ] Read [`spec/rules.md`](../rules.md), especially the `Go` section
 - [ ] Open `analyticsservice/internal/functions/cycleanalytics/continuecycleanalytics.go` and preserve its generated contract
 - [ ] Inspect input type `AnalyticsEvent` in `analyticsservice/internal/types/analyticsevent.go`
-- [ ] Inspect output type `AnalyticsEvent` in `analyticsservice/internal/types/analyticsevent.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
 - [ ] Implement meaningful assertions in `analyticsservice/internal/functions/cycleanalytics/continuecycleanalytics_test.go`

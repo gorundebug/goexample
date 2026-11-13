@@ -2,6 +2,8 @@
 
 > Rules: [`spec/rules.md`](../rules.md)
 
+Paths and commands below are relative to the generated project root.
+
 | Field | Value |
 |-------|-------|
 | Language | `Go` |
@@ -20,15 +22,13 @@ Route high-value analytics results to the first branch and all others to the sec
 
 ## Stream types
 - Input: `AnalyticsResult` — `analyticsservice/internal/types/analyticsresult.go`
-- Output: `AnalyticsResult` — `analyticsservice/internal/types/analyticsresult.go`
 
 ## Checklist
 
 - [ ] Read [`spec/rules.md`](../rules.md), especially the `Go` section
 - [ ] Open `analyticsservice/internal/functions/multijoinanalytics/routeanalyticsresult.go` and preserve its generated contract
 - [ ] Inspect input type `AnalyticsResult` in `analyticsservice/internal/types/analyticsresult.go`
-- [ ] Inspect output type `AnalyticsResult` in `analyticsservice/internal/types/analyticsresult.go`
-- [ ] Implement the Go function and propagate the received `context.Context`
+- [ ] Implement `BuildSwitch` and its value-only selector; neither receives a per-message `context.Context`
 - [ ] Run `make test`
 - [ ] Implement meaningful assertions in `analyticsservice/internal/functions/multijoinanalytics/routeanalyticsresult_test.go`
 - [ ] Re-read this checklist

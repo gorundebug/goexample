@@ -2,6 +2,8 @@
 
 > Rules: [`spec/rules.md`](../rules.md)
 
+Paths and commands below are relative to the generated project root.
+
 | Field | Value |
 |-------|-------|
 | Language | `Go` |
@@ -20,6 +22,7 @@ Validate and record analytics results routed to the high-value Case branch.
 ## Stream types
 - Input: `AnalyticsResult` — `analyticsservice/internal/types/analyticsresult.go`
 - Output: `AnalyticsResult` — `analyticsservice/internal/types/analyticsresult.go`
+- Error: `error`
 
 ## Checklist
 

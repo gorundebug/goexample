@@ -2,6 +2,8 @@
 
 > Rules: [`spec/rules.md`](../rules.md)
 
+Paths and commands below are relative to the generated project root.
+
 | Field | Value |
 |-------|-------|
 | Language | `Go` |
@@ -31,16 +33,17 @@ Calculate the total from processed item prices, falling back to the submitted to
 
 
 ## Stream types
-- Input: `Order` — `orderservice/internal/types/order.go`
-- Output: `OrderState` — `orderservice/internal/types/orderstate.go`
+- Emits into graph: `Order` — `orderservice/internal/types/order.go`
+- Receives graph result: `OrderState` — `orderservice/internal/types/orderstate.go`
+- Error: `error`
 
 ## Checklist
 
 - [ ] Read [`spec/rules.md`](../rules.md), especially the `Go` section
 - [ ] Open `orderservice/internal/functions/endpoint/processordersource.go` and preserve its generated contract
 - [ ] Read `order_service_api/openapi/orderserviceapi/processorder/processorder.yaml`; change the source contract rather than generated bindings
-- [ ] Inspect input type `Order` in `orderservice/internal/types/order.go`
-- [ ] Inspect output type `OrderState` in `orderservice/internal/types/orderstate.go`
+- [ ] Inspect emitted message type `Order` in `orderservice/internal/types/order.go`
+- [ ] Inspect graph result type `OrderState` in `orderservice/internal/types/orderstate.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
 - [ ] Verify the endpoint/result lifecycle, including completion and error paths

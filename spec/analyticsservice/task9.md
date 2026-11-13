@@ -2,6 +2,8 @@
 
 > Rules: [`spec/rules.md`](../rules.md)
 
+Paths and commands below are relative to the generated project root.
+
 | Field | Value |
 |-------|-------|
 | Language | `Go` |
@@ -18,13 +20,14 @@ Produce one deterministic analytics event that exercises the finite feedback cyc
 
 
 ## Stream types
-- Input: `AnalyticsEvent` — `analyticsservice/internal/types/analyticsevent.go`
+- Emits into graph: `AnalyticsEvent` — `analyticsservice/internal/types/analyticsevent.go`
+- Error: `error`
 
 ## Checklist
 
 - [ ] Read [`spec/rules.md`](../rules.md), especially the `Go` section
 - [ ] Open `analyticsservice/internal/functions/endpoint/cycleanalyticsinputsource.go` and preserve its generated contract
-- [ ] Inspect input type `AnalyticsEvent` in `analyticsservice/internal/types/analyticsevent.go`
+- [ ] Inspect emitted message type `AnalyticsEvent` in `analyticsservice/internal/types/analyticsevent.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
 - [ ] Re-read this checklist

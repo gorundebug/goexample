@@ -2,6 +2,8 @@
 
 > Rules: [`spec/rules.md`](../rules.md)
 
+Paths and commands below are relative to the generated project root.
+
 | Field | Value |
 |-------|-------|
 | Language | `Go` |
@@ -21,15 +23,16 @@ Consumers decode the event and mark its Kafka message processed only after the p
 
 
 ## Stream types
-- Input: `OrderProcessed` — `model_go/pkg/types/orderprocessed.go`
-- Output: `OrderProcessed` — `model_go/pkg/types/orderprocessed.go`
+- Emits into graph: `OrderProcessed` — `model_go/pkg/types/orderprocessed.go`
+- Receives graph result: `OrderProcessed` — `model_go/pkg/types/orderprocessed.go`
+- Error: `error`
 
 ## Checklist
 
 - [ ] Read [`spec/rules.md`](../rules.md), especially the `Go` section
 - [ ] Open `analyticsservice/internal/functions/endpoint/orderprocessedendpointsource.go` and preserve its generated contract
-- [ ] Inspect input type `OrderProcessed` in `model_go/pkg/types/orderprocessed.go`
-- [ ] Inspect output type `OrderProcessed` in `model_go/pkg/types/orderprocessed.go`
+- [ ] Inspect emitted message type `OrderProcessed` in `model_go/pkg/types/orderprocessed.go`
+- [ ] Inspect graph result type `OrderProcessed` in `model_go/pkg/types/orderprocessed.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
 - [ ] Re-read this checklist

@@ -2,6 +2,8 @@
 
 > Rules: [`spec/rules.md`](../rules.md)
 
+Paths and commands below are relative to the generated project root.
+
 | Field | Value |
 |-------|-------|
 | Language | `Go` |
@@ -21,7 +23,7 @@ Key the order analytics event by correlation key.
 ## Stream types
 - Input: `AnalyticsEvent` — `analyticsservice/internal/types/analyticsevent.go`
 - Output: `AnalyticsEvent` — `analyticsservice/internal/types/analyticsevent.go`
-- Key: `AnalyticsKey`
+- Key: `string`
 
 ## Checklist
 

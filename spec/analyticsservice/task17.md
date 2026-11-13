@@ -2,6 +2,8 @@
 
 > Rules: [`spec/rules.md`](../rules.md)
 
+Paths and commands below are relative to the generated project root.
+
 | Field | Value |
 |-------|-------|
 | Language | `Go` |
@@ -20,12 +22,15 @@ Join matching order and payment analytics events and emit their combined total.
 
 ## Stream types
 - Input: `AnalyticsEvent` — `analyticsservice/internal/types/analyticsevent.go`
+- Input: `AnalyticsEvent` — `analyticsservice/internal/types/analyticsevent.go`
 - Output: `AnalyticsResult` — `analyticsservice/internal/types/analyticsresult.go`
+- Key: `string`
 
 ## Checklist
 
 - [ ] Read [`spec/rules.md`](../rules.md), especially the `Go` section
 - [ ] Open `analyticsservice/internal/functions/joinanalytics/joinorderpaymentanalytics.go` and preserve its generated contract
+- [ ] Inspect input type `AnalyticsEvent` in `analyticsservice/internal/types/analyticsevent.go`
 - [ ] Inspect input type `AnalyticsEvent` in `analyticsservice/internal/types/analyticsevent.go`
 - [ ] Inspect output type `AnalyticsResult` in `analyticsservice/internal/types/analyticsresult.go`
 - [ ] Implement the Go function and propagate the received `context.Context`

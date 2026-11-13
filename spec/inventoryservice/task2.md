@@ -2,6 +2,8 @@
 
 > Rules: [`spec/rules.md`](../rules.md)
 
+Paths and commands below are relative to the generated project root.
+
 | Field | Value |
 |-------|-------|
 | Language | `Go` |
@@ -25,6 +27,7 @@ The example starts with SKU-001: 100, SKU-002: 50, and SKU-003: 25.
 ## Stream types
 - Input: `OrderItem` — `model_go/pkg/types/orderitem.go`
 - Output: `OrderItemResult` — `model_go/pkg/types/orderitemresult.go`
+- Error: `InventoryFailure` — `inventoryservice/internal/types/inventoryfailure.go`
 
 ## Checklist
 
@@ -32,6 +35,7 @@ The example starts with SKU-001: 100, SKU-002: 50, and SKU-003: 25.
 - [ ] Open `inventoryservice/internal/functions/inventoryItem/getinventoryitemdata.go` and preserve its generated contract
 - [ ] Inspect input type `OrderItem` in `model_go/pkg/types/orderitem.go`
 - [ ] Inspect output type `OrderItemResult` in `model_go/pkg/types/orderitemresult.go`
+- [ ] Inspect error type `InventoryFailure` in `inventoryservice/internal/types/inventoryfailure.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
 - [ ] Implement meaningful assertions in `inventoryservice/internal/functions/inventoryItem/getinventoryitemdata_test.go`

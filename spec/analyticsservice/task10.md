@@ -2,6 +2,8 @@
 
 > Rules: [`spec/rules.md`](../rules.md)
 
+Paths and commands below are relative to the generated project root.
+
 | Field | Value |
 |-------|-------|
 | Language | `Go` |
@@ -20,6 +22,7 @@ Validate the terminal event emitted after three passes through the feedback cycl
 ## Stream types
 - Input: `AnalyticsEvent` — `analyticsservice/internal/types/analyticsevent.go`
 - Output: `AnalyticsEvent` — `analyticsservice/internal/types/analyticsevent.go`
+- Error: `error`
 
 ## Checklist
 

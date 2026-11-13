@@ -2,6 +2,8 @@
 
 > Rules: [`spec/rules.md`](../rules.md)
 
+Paths and commands below are relative to the generated project root.
+
 | Field | Value |
 |-------|-------|
 | Language | `Go` |
@@ -21,7 +23,7 @@ Key the payment analytics event for the multi-way join.
 ## Stream types
 - Input: `AnalyticsEvent` — `analyticsservice/internal/types/analyticsevent.go`
 - Output: `AnalyticsEvent` — `analyticsservice/internal/types/analyticsevent.go`
-- Key: `AnalyticsKey`
+- Key: `string`
 
 ## Checklist
 

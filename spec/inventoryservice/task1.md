@@ -2,6 +2,8 @@
 
 > Rules: [`spec/rules.md`](../rules.md)
 
+Paths and commands below are relative to the generated project root.
+
 | Field | Value |
 |-------|-------|
 | Language | `Go` |
@@ -30,16 +32,17 @@ If the inventory call fails, the caller returns a non-reserved PROCESSING_ERROR 
 
 
 ## Stream types
-- Input: `OrderItem` — `model_go/pkg/types/orderitem.go`
-- Output: `OrderItemResult` — `model_go/pkg/types/orderitemresult.go`
+- Emits into graph: `OrderItem` — `model_go/pkg/types/orderitem.go`
+- Receives graph result: `OrderItemResult` — `model_go/pkg/types/orderitemresult.go`
+- Error: `error`
 
 ## Checklist
 
 - [ ] Read [`spec/rules.md`](../rules.md), especially the `Go` section
 - [ ] Open `inventoryservice/internal/functions/endpoint/processorderitemsource.go` and preserve its generated contract
 - [ ] Read `inventory_service_api/proto/inventoryserviceapi/processorderitem/processorderitem.proto`; change the source contract rather than generated bindings
-- [ ] Inspect input type `OrderItem` in `model_go/pkg/types/orderitem.go`
-- [ ] Inspect output type `OrderItemResult` in `model_go/pkg/types/orderitemresult.go`
+- [ ] Inspect emitted message type `OrderItem` in `model_go/pkg/types/orderitem.go`
+- [ ] Inspect graph result type `OrderItemResult` in `model_go/pkg/types/orderitemresult.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
 - [ ] Verify the endpoint/result lifecycle, including completion and error paths

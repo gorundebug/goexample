@@ -2,6 +2,8 @@
 
 > Rules: [`spec/rules.md`](../rules.md)
 
+Paths and commands below are relative to the generated project root.
+
 | Field | Value |
 |-------|-------|
 | Language | `Go` |
@@ -23,6 +25,7 @@ Consumers decode the event and mark its Kafka message processed only after the p
 ## Stream types
 - Input: `OrderProcessed` — `model_go/pkg/types/orderprocessed.go`
 - Output: `OrderProcessed` — `model_go/pkg/types/orderprocessed.go`
+- Error: `error`
 
 ## Checklist
 
