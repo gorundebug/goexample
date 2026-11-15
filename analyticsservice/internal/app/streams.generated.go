@@ -183,7 +183,7 @@ func (streams *serviceStreams) build() error {
 func (streams *serviceStreams) finish() error {
 	var err error
 
-	if err = streams.cycleAnalyticsLink.SetSource(streams.continueCycleAnalytics); err != nil {
+	if err = runtime.BindLinkSource(streams.cycleAnalyticsLink, streams.continueCycleAnalytics); err != nil {
 		return err
 	}
 	return err
