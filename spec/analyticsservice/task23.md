@@ -37,6 +37,7 @@ Combine matching order, payment, and shipment analytics events.
 - [ ] Inspect output type `AnalyticsResult` in `analyticsservice/internal/types/analyticsresult.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
+
 - [ ] Implement meaningful assertions in `analyticsservice/internal/functions/multijoinanalytics/multijoinanalyticsevents_test.go`
 - [ ] Re-read this checklist
 - [ ] Append to `spec/progress.md`: `- [x] analyticsservice/task23.md — MultiJoinAnalyticsEvents — Go — done`

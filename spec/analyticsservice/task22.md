@@ -33,6 +33,7 @@ Key the shipment analytics event for the multi-way join.
 - [ ] Inspect output type `AnalyticsEvent` in `analyticsservice/internal/types/analyticsevent.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
+
 - [ ] Implement meaningful assertions in `analyticsservice/internal/functions/multijoinanalytics/keyshipmentsformultijoin_test.go`
 - [ ] Re-read this checklist
 - [ ] Append to `spec/progress.md`: `- [x] analyticsservice/task22.md — KeyShipmentsForMultiJoin — Go — done`

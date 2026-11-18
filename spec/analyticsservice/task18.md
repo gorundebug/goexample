@@ -33,6 +33,7 @@ Key the order analytics event by correlation key.
 - [ ] Inspect output type `AnalyticsEvent` in `analyticsservice/internal/types/analyticsevent.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
+
 - [ ] Implement meaningful assertions in `analyticsservice/internal/functions/joinanalytics/keyordersforjoin_test.go`
 - [ ] Re-read this checklist
 - [ ] Append to `spec/progress.md`: `- [x] analyticsservice/task18.md — KeyOrdersForJoin — Go — done`

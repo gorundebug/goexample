@@ -30,6 +30,7 @@ Keep intermediate analytics events whose cycle counter is below three.
 - [ ] Inspect input type `AnalyticsEvent` in `analyticsservice/internal/types/analyticsevent.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
+
 - [ ] Implement meaningful assertions in `analyticsservice/internal/functions/cycleanalytics/continuecycleanalytics_test.go`
 - [ ] Re-read this checklist
 - [ ] Append to `spec/progress.md`: `- [x] analyticsservice/task5.md — ContinueCycleAnalytics — Go — done`

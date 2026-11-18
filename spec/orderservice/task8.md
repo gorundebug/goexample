@@ -34,6 +34,7 @@ When no request deadline exists, use the configured duration itself. Never wait 
 - [ ] Inspect output type `Order` in `orderservice/internal/types/order.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
+
 - [ ] Implement meaningful assertions in `orderservice/internal/functions/order/softdeadline_test.go`
 - [ ] Re-read this checklist
 - [ ] Append to `spec/progress.md`: `- [x] orderservice/task8.md — SoftDeadline — Go — done`

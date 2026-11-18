@@ -30,6 +30,7 @@ Route high-value analytics results to the first branch and all others to the sec
 - [ ] Inspect input type `AnalyticsResult` in `analyticsservice/internal/types/analyticsresult.go`
 - [ ] Implement `BuildSwitch` and its value-only selector; neither receives a per-message `context.Context`
 - [ ] Run `make test`
+
 - [ ] Implement meaningful assertions in `analyticsservice/internal/functions/multijoinanalytics/routeanalyticsresult_test.go`
 - [ ] Re-read this checklist
 - [ ] Append to `spec/progress.md`: `- [x] analyticsservice/task24.md — RouteAnalyticsResult — Go — done`

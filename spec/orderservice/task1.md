@@ -35,5 +35,6 @@ Consumers decode the event and mark its Kafka message processed only after the p
 - [ ] Inspect output type `OrderProcessed` in `model_go/pkg/types/orderprocessed.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
+
 - [ ] Re-read this checklist
 - [ ] Append to `spec/progress.md`: `- [x] orderservice/task1.md — OrderProcessedEndpointSink — Go — done`

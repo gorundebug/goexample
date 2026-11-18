@@ -34,6 +34,7 @@ Count successful and unsuccessful orders independently, then return the event un
 - [ ] Inspect output type `OrderProcessed` in `model_go/pkg/types/orderprocessed.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
+
 - [ ] Implement meaningful assertions in `analyticsservice/internal/functions/analytics/countorderprocessed_test.go`
 - [ ] Re-read this checklist
 - [ ] Append to `spec/progress.md`: `- [x] analyticsservice/task1.md — CountOrderProcessed — Go — done`

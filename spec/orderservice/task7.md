@@ -34,6 +34,7 @@ Preserve each item's data and assign the parent order ID.
 - [ ] Inspect output type `OrderItem` in `model_go/pkg/types/orderitem.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
+
 - [ ] Implement meaningful assertions in `orderservice/internal/functions/order/processorderitems_test.go`
 - [ ] Re-read this checklist
 - [ ] Append to `spec/progress.md`: `- [x] orderservice/task7.md — ProcessOrderItems — Go — done`

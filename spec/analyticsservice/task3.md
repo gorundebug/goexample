@@ -32,6 +32,7 @@ Increment the cycle counter while preserving the analytics event identity.
 - [ ] Inspect output type `AnalyticsEvent` in `analyticsservice/internal/types/analyticsevent.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
+
 - [ ] Implement meaningful assertions in `analyticsservice/internal/functions/cycleanalytics/advancecycleanalytics_test.go`
 - [ ] Re-read this checklist
 - [ ] Append to `spec/progress.md`: `- [x] analyticsservice/task3.md — AdvanceCycleAnalytics — Go — done`

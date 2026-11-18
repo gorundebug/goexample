@@ -35,6 +35,7 @@ Record the time when this result is produced.
 - [ ] Inspect output type `OrderState` in `orderservice/internal/types/orderstate.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
+
 - [ ] Implement meaningful assertions in `orderservice/internal/functions/order/maporderitemresulttoorderstate_test.go`
 - [ ] Re-read this checklist
 - [ ] Append to `spec/progress.md`: `- [x] orderservice/task4.md — MapOrderItemResultToOrderState — Go — done`

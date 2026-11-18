@@ -32,5 +32,6 @@ Validate and record analytics results routed to the high-value Case branch.
 - [ ] Inspect output type `AnalyticsResult` in `analyticsservice/internal/types/analyticsresult.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
+
 - [ ] Re-read this checklist
 - [ ] Append to `spec/progress.md`: `- [x] analyticsservice/task11.md — HighValueAnalyticsSink — Go — done`

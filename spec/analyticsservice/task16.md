@@ -32,5 +32,6 @@ Validate and record the result returned by the service-local SubStream example.
 - [ ] Inspect output type `AnalyticsResult` in `analyticsservice/internal/types/analyticsresult.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
+
 - [ ] Re-read this checklist
 - [ ] Append to `spec/progress.md`: `- [x] analyticsservice/task16.md — SubstreamAnalyticsResultSink — Go — done`

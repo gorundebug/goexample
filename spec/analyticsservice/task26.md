@@ -32,6 +32,7 @@ Invoke the service-local analytics SubStream and emit its returned result.
 - [ ] Inspect output type `AnalyticsResult` in `analyticsservice/internal/types/analyticsresult.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
+
 - [ ] Implement meaningful assertions in `analyticsservice/internal/functions/substreamanalytics/invokeanalyticssubstream_test.go`
 - [ ] Re-read this checklist
 - [ ] Append to `spec/progress.md`: `- [x] analyticsservice/task26.md — InvokeAnalyticsSubstream — Go — done`

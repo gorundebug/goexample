@@ -46,6 +46,7 @@ If the inventory call fails, the caller returns a non-reserved PROCESSING_ERROR 
 - [ ] Inspect error type `OrderState` in `orderservice/internal/types/orderstate.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
+
 - [ ] Verify the endpoint/result lifecycle, including completion and error paths
 - [ ] Re-read this checklist
 - [ ] Append to `spec/progress.md`: `- [x] orderservice/task2.md — ProcessOrderItemSink — Go — done`

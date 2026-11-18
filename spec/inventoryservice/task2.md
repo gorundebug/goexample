@@ -38,6 +38,7 @@ The example starts with SKU-001: 100, SKU-002: 50, and SKU-003: 25.
 - [ ] Inspect error type `InventoryFailure` in `inventoryservice/internal/types/inventoryfailure.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
+
 - [ ] Implement meaningful assertions in `inventoryservice/internal/functions/inventoryItem/getinventoryitemdata_test.go`
 - [ ] Re-read this checklist
 - [ ] Append to `spec/progress.md`: `- [x] inventoryservice/task2.md — GetInventoryItemData — Go — done`
