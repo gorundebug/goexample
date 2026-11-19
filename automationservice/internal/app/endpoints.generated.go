@@ -120,5 +120,6 @@ func (endpoints *serviceEndpoints) initEndpoints(s *Service) error {
 	if endpoints.submitWorkflowJobWorkflowJob, err = datasink.TemporalEndpointConsumerWithResultAndHandlerAndOptions(s.streams.submitWorkflowJob, s.functions.workflowWorkflowJobEndpointSink, s.makers.temporalSubmissionOptions.submitWorkflowJobWorkflowJob); err != nil {
 		return err
 	}
+
 	return err
 }

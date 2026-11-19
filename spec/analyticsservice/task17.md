@@ -35,7 +35,6 @@ Join matching order and payment analytics events and emit their combined total.
 - [ ] Inspect output type `AnalyticsResult` in `analyticsservice/internal/types/analyticsresult.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
-
 - [ ] Implement meaningful assertions in `analyticsservice/internal/functions/joinanalytics/joinorderpaymentanalytics_test.go`
 - [ ] Re-read this checklist
 - [ ] Append to `spec/progress.md`: `- [x] analyticsservice/task17.md — JoinOrderPaymentAnalytics — Go — done`

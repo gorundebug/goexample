@@ -34,7 +34,6 @@ Do not add item results at this stage; results received before the timeout are i
 - [ ] Inspect output type `OrderState` in `orderservice/internal/types/orderstate.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
-
 - [ ] Implement meaningful assertions in `orderservice/internal/functions/order/maptoorderstate_test.go`
 - [ ] Re-read this checklist
 - [ ] Append to `spec/progress.md`: `- [x] orderservice/task6.md — MapToOrderState — Go — done`

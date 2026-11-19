@@ -2,6 +2,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 
 	datasourcetemporal "github.com/gorundebug/servicelib/datasource/temporal"
@@ -12,7 +13,7 @@ import (
 
 // Connector resources are owned and registered by the runtime environment.
 // Do not keep a duplicate registry in the generated service.
-func initConnectors(cfg *config.Config, env runtime.RuntimeEnvironment) error {
+func initConnectors(ctx context.Context, cfg *config.Config, env runtime.RuntimeEnvironment, makers *serviceMakers) error {
 
 	if _, err := datasourcetemporal.MakeConnector(cfg.DataConnectors.Temporal.ID, env); err != nil {
 		return fmt.Errorf("init Temporal connector 'Temporal' failed: %w", err)

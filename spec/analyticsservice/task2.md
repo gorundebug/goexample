@@ -30,6 +30,5 @@ Create an analytics job message identifying the local scheduled firing.
 - [ ] Open `analyticsservice/internal/functions/cron/analyticsschedulesource.go` and preserve its generated contract
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
-
 - [ ] Re-read this checklist
 - [ ] Append to `spec/progress.md`: `- [x] analyticsservice/task2.md — AnalyticsScheduleSource — Go — done`

@@ -30,7 +30,6 @@ Keep the terminal analytics event once its cycle counter reaches three.
 - [ ] Inspect input type `AnalyticsEvent` in `analyticsservice/internal/types/analyticsevent.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
-
 - [ ] Implement meaningful assertions in `analyticsservice/internal/functions/cycleanalytics/completecycleanalytics_test.go`
 - [ ] Re-read this checklist
 - [ ] Append to `spec/progress.md`: `- [x] analyticsservice/task4.md — CompleteCycleAnalytics — Go — done`

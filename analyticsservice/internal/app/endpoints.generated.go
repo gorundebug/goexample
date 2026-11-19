@@ -76,5 +76,6 @@ func (endpoints *serviceEndpoints) initEndpoints(s *Service) error {
 	if endpoints.writeSubstreamAnalyticsSubstreamAnalyticsResult, err = endpoint.MakeEndpointConsumerSubstreamAnalyticsResultSink(s.streams.writeSubstreamAnalytics, s.functions.endpointSubstreamAnalyticsResultSink); err != nil {
 		return err
 	}
+
 	return err
 }

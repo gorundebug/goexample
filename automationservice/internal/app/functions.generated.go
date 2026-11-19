@@ -352,6 +352,7 @@ func (functions *serviceFunctions) scheduleFunctions(tasks makerTaskGroup, ctx c
 			return err
 		})
 	}
+
 }
 
 func (functions *serviceFunctions) initWorkflowFunctions(workflowCtx temporalworkflow.Context, ctx context.Context, env runtime.RuntimeEnvironment, makers *serviceMakers) error {

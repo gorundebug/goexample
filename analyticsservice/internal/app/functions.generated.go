@@ -274,4 +274,5 @@ func (functions *serviceFunctions) scheduleFunctions(tasks makerTaskGroup, ctx c
 			return err
 		})
 	}
+
 }

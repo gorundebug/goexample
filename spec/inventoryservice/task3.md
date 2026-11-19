@@ -34,7 +34,6 @@ Preserve the order and item identity and requested quantity, and record the fail
 - [ ] Inspect output type `OrderItemResult` in `model_go/pkg/types/orderitemresult.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
-
 - [ ] Implement meaningful assertions in `inventoryservice/internal/functions/inventoryItem/getinventoryitemerror_test.go`
 - [ ] Re-read this checklist
 - [ ] Append to `spec/progress.md`: `- [x] inventoryservice/task3.md — GetInventoryItemError — Go — done`

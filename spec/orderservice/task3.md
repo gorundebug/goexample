@@ -46,7 +46,6 @@ Calculate the total from processed item prices, falling back to the submitted to
 - [ ] Inspect graph result type `OrderState` in `orderservice/internal/types/orderstate.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
-
 - [ ] Verify the endpoint/result lifecycle, including completion and error paths
 - [ ] Re-read this checklist
 - [ ] Append to `spec/progress.md`: `- [x] orderservice/task3.md — ProcessOrderSource — Go — done`

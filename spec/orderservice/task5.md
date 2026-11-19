@@ -34,7 +34,6 @@ Preserve the order ID, status, and processing time. Count all item results and r
 - [ ] Inspect output type `OrderProcessed` in `model_go/pkg/types/orderprocessed.go`
 - [ ] Implement the Go function and propagate the received `context.Context`
 - [ ] Run `make test`
-
 - [ ] Implement meaningful assertions in `orderservice/internal/functions/order/maptoorderprocessed_test.go`
 - [ ] Re-read this checklist
 - [ ] Append to `spec/progress.md`: `- [x] orderservice/task5.md — MapToOrderProcessed — Go — done`
