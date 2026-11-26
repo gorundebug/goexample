@@ -1,6 +1,7 @@
 # Build artifacts
 bin/
-generated/
+# Generated source and application-owned tests are versioned; ignore build
+# outputs by their artifact directories, never a generic generated/ directory.
 build/
 dist/
 node_modules/
